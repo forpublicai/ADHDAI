@@ -110,12 +110,28 @@ header {
     50% { transform: scale(1.02); }
 }
 
+.site-tagline {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 1rem 0;
+    background: linear-gradient(135deg, var(--accent2), var(--primary), var(--accent));
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 5s ease infinite;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+}
+
 .site-description {
     font-size: 1.4rem;
     color: var(--dark);
     font-weight: 500;
     opacity: 0.9;
     letter-spacing: -0.01em;
+    margin-top: 0.5rem;
 }
 
 main {

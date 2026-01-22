@@ -1,0 +1,73 @@
+.window-frame {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.window-frame.minimized {
+  width: 200px;
+  height: 40px;
+}
+
+.window-title-bar {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+  user-select: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.window-title {
+  text-transform: capitalize;
+}
+
+.window-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.window-controls button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.window-controls button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.window-content {
+  flex: 1;
+  overflow: auto;
+  background: white;
+}
+
+.window-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 0%, transparent 40%, rgba(0,0,0,0.1) 50%, transparent 60%, transparent 100%);
+}

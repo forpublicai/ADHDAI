@@ -5,3 +5,20 @@ _site/
 vendor/
 .bundle/
 Gemfile.lock
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
