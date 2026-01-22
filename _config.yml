@@ -17,9 +17,21 @@ plugins:
 # Exclude from processing (important: exclude README.md so it doesn't interfere)
 exclude:
   - README.md
+  - README-AGENCY.md
+  - DEPLOYMENT.md
   - Gemfile
   - Gemfile.lock
   - node_modules
+  - src
+  - public
+  - dist
+  - .github
+  - package.json
+  - package-lock.json
+  - tsconfig.json
+  - tsconfig.node.json
+  - vite.config.ts
+  - index.html
   - vendor/bundle/
   - vendor/cache/
   - vendor/gems/

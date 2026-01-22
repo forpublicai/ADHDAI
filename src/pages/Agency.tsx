@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
-import { AppState, Message, Phase, CharacterId } from './types';
-import { CHARACTERS, PHASES, INITIAL_TASKS, INITIAL_WINDOWS, INITIAL_BRIEF } from './constants';
-import ChatSidebar from './components/ChatSidebar';
-import CodeEditor from './components/CodeEditor';
-import LivePreview from './components/LivePreview';
-import KanbanBoard from './components/KanbanBoard';
-import WindowFrame from './components/WindowFrame';
-import ControlPanel from './components/ControlPanel';
-import './App.css';
+import { useState, useCallback } from 'react';
+import { AppState, Message, CharacterId } from '../types';
+import { CHARACTERS, INITIAL_TASKS, INITIAL_WINDOWS, INITIAL_BRIEF } from '../constants';
+import ChatSidebar from '../components/ChatSidebar';
+import CodeEditor from '../components/CodeEditor';
+import LivePreview from '../components/LivePreview';
+import KanbanBoard from '../components/KanbanBoard';
+import WindowFrame from '../components/WindowFrame';
+import ControlPanel from '../components/ControlPanel';
+import { Link } from 'react-router-dom';
+import '../App.css';
 
-function App() {
+export default function Agency() {
   const [state, setState] = useState<AppState>({
     isRunning: false,
     currentPhase: 'brief',
@@ -160,6 +161,19 @@ function App() {
 
   return (
     <div className="app">
+      <div style={{ position: 'fixed', top: 20, left: 20, zIndex: 1000 }}>
+        <Link to="/" style={{ 
+          padding: '8px 16px', 
+          background: 'rgba(255, 255, 255, 0.9)', 
+          borderRadius: '8px', 
+          textDecoration: 'none', 
+          color: '#0A0E27',
+          fontWeight: 600,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+        }}>
+          ← Back to Home
+        </Link>
+      </div>
       <ControlPanel
         isRunning={state.isRunning}
         currentPhase={state.currentPhase}
@@ -193,5 +207,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

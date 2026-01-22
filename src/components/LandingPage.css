@@ -1,0 +1,205 @@
+.landing-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  padding: 2rem;
+  position: relative;
+  overflow-x: hidden;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.landing-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  padding: 3rem;
+  animation: slideDown 0.8s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 3px solid;
+  border-image: linear-gradient(90deg, #FF006E, #8338EC, #3A86FF) 1;
+}
+
+.landing-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 4.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #FF006E 0%, #8338EC 25%, #3A86FF 50%, #FFBE0B 75%, #FB5607 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 8s ease infinite;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.landing-tagline {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 1rem 0;
+  background: linear-gradient(135deg, #FB5607, #FF006E, #FFBE0B);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 5s ease infinite;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+
+.landing-description {
+  font-size: 1.2rem;
+  color: rgba(10, 14, 39, 0.9);
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+.cta-button {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #FF006E, #8338EC);
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(255, 0, 110, 0.3);
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(255, 0, 110, 0.4);
+}
+
+.landing-content {
+  margin-top: 3rem;
+}
+
+.landing-section {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: rgba(248, 249, 250, 0.5);
+  border-radius: 16px;
+  border-left: 4px solid;
+  border-image: linear-gradient(180deg, #FF006E, #8338EC) 1;
+  transition: all 0.3s ease;
+}
+
+.landing-section:hover {
+  transform: translateX(5px);
+  box-shadow: 0 5px 15px rgba(131, 56, 236, 0.2);
+}
+
+.landing-section h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+  color: #8338EC;
+  letter-spacing: -0.01em;
+}
+
+.landing-section p {
+  margin-bottom: 1.2rem;
+  font-size: 1.05rem;
+  color: rgba(10, 14, 39, 0.85);
+  line-height: 1.8;
+}
+
+.landing-section ul {
+  margin-left: 2rem;
+  margin-bottom: 1.5rem;
+  list-style: none;
+}
+
+.landing-section li {
+  margin-bottom: 0.8rem;
+  padding-left: 1.5rem;
+  position: relative;
+  font-size: 1.05rem;
+  color: rgba(10, 14, 39, 0.85);
+  line-height: 1.8;
+}
+
+.landing-section li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #FF006E;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.landing-section a {
+  color: #3A86FF;
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.landing-section a:hover {
+  color: #FF006E;
+  border-bottom-color: #FFBE0B;
+}
+
+.landing-section strong {
+  color: #FF006E;
+  font-weight: 600;
+}
+
+.landing-section em {
+  font-style: italic;
+  background: linear-gradient(135deg, #FF006E, #FB5607);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 768px) {
+  .landing-container {
+    padding: 1.5rem;
+  }
+  
+  .landing-title {
+    font-size: 3rem;
+  }
+  
+  .landing-tagline {
+    font-size: 1.3rem;
+  }
+  
+  .landing-section {
+    padding: 1.5rem;
+  }
+}
