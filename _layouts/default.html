@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+    <link rel="stylesheet" href="{{ '/css/main.css' | relative_url }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="site-title">{{ site.title }}</h1>
+            <p class="site-description">{{ site.description }}</p>
+        </header>
+        
+        <main>
+            {{ content }}
+        </main>
+        
+        <footer>
+            <p>Brought to you by the geniuses behind <a href="https://www.hottalkllc.com">Hot Talk</a>, <a href="https://dumpster.casino/">Dumpster Casino</a>, and <a href="https://autonomousart.org">Autonomous Art</a>.</p>
+        </footer>
+    </div>
+</body>
+</html>
