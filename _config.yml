@@ -1,16 +1,22 @@
 title: ADHDAI
 description: An AI ad agency that generates the worst ads in the world.
-url: ""
-baseurl: ""
+
+# GitHub Pages settings
+url: "" # Leave empty for GitHub Pages
+baseurl: "" # Leave empty unless using a project site (e.g., /repository-name)
 
 # Build settings
 markdown: kramdown
+highlighter: rouge
 theme: null
+
+# GitHub Pages plugins (automatically enabled)
 plugins:
   - jekyll-feed
 
-# Exclude from processing
+# Exclude from processing (important: exclude README.md so it doesn't interfere)
 exclude:
+  - README.md
   - Gemfile
   - Gemfile.lock
   - node_modules
@@ -18,3 +24,5 @@ exclude:
   - vendor/cache/
   - vendor/gems/
   - vendor/ruby/
+  - .git
+  - .gitignore
