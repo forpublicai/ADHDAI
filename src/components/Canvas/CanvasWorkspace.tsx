@@ -4,6 +4,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { CHARACTERS } from '../../constants';
 import { CharacterId } from '../../types';
+import { parseBrief, getImagePromptContext } from '../../utils/briefParser';
 import './CanvasWorkspace.css';
 
 // Initialize OpenAI
@@ -569,9 +570,13 @@ KEY ELEMENTS:
   }, []);
 
   // Generate final ad code with complete campaign suite
-  const generateFinalAdCode = useCallback((headline: string, product: string) => {
+  const generateFinalAdCode = useCallback((headline: string, briefForCampaign: string) => {
     const timestamp = new Date().toISOString().slice(0, 10);
     const campaignId = Math.random().toString(36).substr(2, 6).toUpperCase();
+    
+    // Use intelligent brief parsing to extract product
+    const parsed = parseBrief(briefForCampaign);
+    const product = parsed.product || 'Campaign';
     
     return `<!DOCTYPE html>
 <html lang="en">
@@ -1282,12 +1287,13 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Write the FINAL approved headline. Memorable, slightly unsettling, true. Under 12 words. Just the headline.`
       );
       
-      const words = currentBrief.split(' ').filter(w => w.length > 3);
-      const product = words[0] || 'PRODUCT';
+      // Use intelligent brief parsing
+      const parsedBrief = parseBrief(currentBrief);
+      const productName = parsedBrief.product || 'Campaign';
       
-      createWorkItem('apparatus', 'board', `FINAL AD:\n\n"${finalHeadline}"\n\n— ${product.toUpperCase()}`, { x: 760, y: 660 }, 7, true);
+      createWorkItem('apparatus', 'board', `FINAL AD:\n\n"${finalHeadline}"\n\n— ${productName.toUpperCase()}`, { x: 760, y: 660 }, 7, true);
       
-      const code = generateFinalAdCode(finalHeadline, product);
+      const code = generateFinalAdCode(finalHeadline, currentBrief);
       setFinalAdCode(code);
       
       addChatMessage('apparatus', `COMPILATION COMPLETE — The dossier is assembled. The work exists. It simply... is.`);
@@ -1385,9 +1391,15 @@ KEY ELEMENTS:
   // Generate and download ZIP with all deliverables INCLUDING actual images
   const downloadZip = useCallback(async () => {
     const currentBrief = briefRef.current;
-    const product = currentBrief.split(' ').filter(w => w.length > 3)[0] || 'campaign';
+    
+    // Use intelligent brief parsing
+    const parsedBrief = parseBrief(currentBrief);
+    const product = parsedBrief.product || 'campaign';
+    const category = parsedBrief.category;
+    const imageContext = getImagePromptContext(currentBrief);
+    
     const timestamp = new Date().toISOString().split('T')[0];
-    const campaignName = `${product.toLowerCase()}_campaign_${timestamp}`;
+    const campaignName = `${product.toLowerCase().replace(/\s+/g, '_')}_campaign_${timestamp}`;
     const headline = workItems.find(w => w.type === 'headline')?.content?.split('\n').pop()?.replace(/['"]/g, '') || 'The truth was always there';
     const visualDirection = workItems.find(w => w.type === 'visual')?.content || 'Documentary photography, muted tones';
     
@@ -1438,21 +1450,21 @@ KEY ELEMENTS:
     zip.file('campaign_dossier.html', finalAdCode);
     
     // 2. Generate ACTUAL images for print
-    addChatMessage('burl', '*adjusts glasses* Generating hero campaign image...');
+    addChatMessage('burl', `*adjusts glasses* Generating hero campaign image for ${product}...`);
     
     const heroImage = await generateImage(
-      `A single powerful image for a ${product} campaign. Subject: Someone experiencing a quiet moment of realization about ${currentBrief}. Composition: Rule of thirds, significant negative space on one side for text placement. Mood: ${visualDirection}`,
+      `A single powerful image for a ${imageContext} campaign in the ${category} industry. Subject: Someone experiencing a quiet moment of realization while interacting with ${product}. Show the actual ${product} in use. Composition: Rule of thirds, significant negative space on one side for text placement. Mood: ${visualDirection}`,
       'hero_image.png'
     );
     
     if (heroImage) {
       printFolder?.file('hero_campaign_image.png', heroImage.blob);
-      addChatMessage('burl', 'Hero image captured. Moving to print layouts...');
+      addChatMessage('burl', `Hero image captured for ${product}. Moving to print layouts...`);
     }
     
     // Generate print ad mockup
     const printAdImage = await generateImage(
-      `A magazine advertisement layout for ${product}. Show the product or service context in an unexpected, documentary way. The image should tell a story without words. Think: National Geographic meets Swiss design.`,
+      `A magazine advertisement layout featuring ${imageContext}. Show the ${product} in its natural context - how it's actually used in daily life. Documentary style, unexpected angle, tells a story without words. Category: ${category}. Think: National Geographic meets Swiss design.`,
       'print_ad.png'
     );
     
@@ -1510,28 +1522,28 @@ Generated by ADHDAI — The Feral Creative Collective
     printFolder?.file('poster_a1_spec.txt', posterSpec);
     
     // 3. Video storyboard with ACTUAL frame images
-    addChatMessage('apparatus', 'GENERATING VIDEO STORYBOARD FRAMES...');
+    addChatMessage('apparatus', `GENERATING VIDEO STORYBOARD FRAMES for ${product.toUpperCase()}...`);
     
-    // Generate key storyboard frames
+    // Generate key storyboard frames - specific to the product/category
     const frame2Image = await generateImage(
-      `Cinematic still frame for video ad: A person in a contemplative moment, looking at or thinking about ${product}. Natural lighting, shallow depth of field, 16:9 aspect ratio composition. Documentary style.`,
+      `Cinematic still frame for ${category} video ad: A person in a contemplative moment, looking at or about to use their ${product}. The ${product} is clearly visible in frame. Natural lighting, shallow depth of field, 16:9 aspect ratio composition. Documentary style, ${category} context.`,
       'frame_02.png'
     );
     if (frame2Image) videoFolder?.file('frame_02_fade_in.png', frame2Image.blob);
     
     const frame3Image = await generateImage(
-      `Cinematic close-up detail shot: The key moment of recognition or connection with ${product}. Extreme close-up on hands, eyes, or the product detail. Soft focus background, warm natural light.`,
+      `Cinematic close-up detail shot featuring ${imageContext}: The key moment of interaction with ${product}. Extreme close-up on hands using the ${product}, showing texture and detail. Soft focus background, warm natural light. ${category} product photography.`,
       'frame_03.png'
     );
     if (frame3Image) videoFolder?.file('frame_03_detail.png', frame3Image.blob);
     
     const frame5Image = await generateImage(
-      `Wide shot establishing context: Subject in their environment with ${product}. Pull back to reveal the full scene. Editorial photography style, muted color palette, cinematic composition.`,
+      `Wide shot establishing context: Subject in their natural environment with ${product}. The ${product} is central to the scene, showing its use case clearly. Pull back to reveal the full ${category} context. Editorial photography style, muted color palette, cinematic composition.`,
       'frame_05.png'
     );
     if (frame5Image) videoFolder?.file('frame_05_context.png', frame5Image.blob);
     
-    addChatMessage('burl', 'Storyboard frames rendered. Three key moments captured.');
+    addChatMessage('burl', `Storyboard frames for ${product} rendered. Three key moments captured.`);
     
     const storyboard = `VIDEO STORYBOARD — :30 SPOT
 ============================
@@ -1611,23 +1623,23 @@ Generated by ADHDAI — The Feral Creative Collective
     videoFolder?.file('video_specs.json', JSON.stringify(videoSpecs, null, 2));
     
     // 4. Social media with ACTUAL images
-    addChatMessage('apparatus', 'GENERATING SOCIAL MEDIA ASSETS...');
+    addChatMessage('apparatus', `GENERATING SOCIAL MEDIA ASSETS for ${product.toUpperCase()}...`);
     
-    // Instagram feed image
+    // Instagram feed image - product specific
     const instaFeedImage = await generateImage(
-      `Square format social media post for ${product}. A striking, scroll-stopping image that works at small sizes. Bold composition, single focal point, muted but distinct colors. Should feel premium and editorial, not sales-y.`,
+      `Square format social media post featuring ${imageContext}. Show the ${product} as the hero - clean, striking, scroll-stopping. The ${product} should be immediately recognizable. Bold composition, single focal point on the ${product}, muted but distinct colors. ${category} product photography. Should feel premium and editorial, not sales-y.`,
       'instagram_feed.png'
     );
     if (instaFeedImage) socialFolder?.file('instagram_feed_1080x1080.png', instaFeedImage.blob);
     
     // Instagram story image
     const instaStoryImage = await generateImage(
-      `Vertical format (9:16) social media story for ${product}. Full screen mobile experience. Subject centered in lower third, plenty of space at top for text overlay. Immersive, intimate moment.`,
+      `Vertical format (9:16) social media story for ${imageContext}. Full screen mobile experience showing someone about to use or just discovering their ${product}. The ${product} centered in lower third, plenty of space at top for text overlay. Immersive, intimate moment in ${category} context.`,
       'instagram_story.png'
     );
     if (instaStoryImage) socialFolder?.file('instagram_story_1080x1920.png', instaStoryImage.blob);
     
-    addChatMessage('the-cell', '[VERA]: Social assets generated. [THURSDAY]: *nods approvingly at the square format*');
+    addChatMessage('the-cell', `[VERA]: Social assets for ${product} generated. [THURSDAY]: *nods approvingly at the square format*`);
     
     const socialCopy = `SOCIAL MEDIA COPY DECK
 ======================
@@ -1697,23 +1709,23 @@ ASSETS INCLUDED:
     socialFolder?.file('social_specs.json', JSON.stringify(socialSpecs, null, 2));
     
     // 5. OOH with ACTUAL images
-    addChatMessage('apparatus', 'GENERATING OUT-OF-HOME ASSETS...');
+    addChatMessage('apparatus', `GENERATING OUT-OF-HOME ASSETS for ${product.toUpperCase()}...`);
     
-    // Billboard image
+    // Billboard image - product specific
     const billboardImage = await generateImage(
-      `Wide format billboard advertisement visual for ${product}. Ultra-simple composition that reads from 50 meters away. One striking image, maximum impact. Think: Apple billboard simplicity. Landscape orientation, high contrast.`,
+      `Wide format billboard advertisement visual featuring ${imageContext}. The ${product} as the sole visual element. Ultra-simple composition that reads from 50 meters away. One striking image of the ${product}, maximum impact. ${category} product photography. Think: Apple billboard simplicity. Landscape orientation, high contrast, clean background.`,
       'billboard.png'
     );
     if (billboardImage) oohFolder?.file('billboard_visual.png', billboardImage.blob);
     
     // Bus shelter image  
     const busShelterImage = await generateImage(
-      `Portrait format bus shelter advertisement for ${product}. Street-level viewing, eye-catching but not aggressive. A moment of human connection with the product/service. Works in daylight and at night.`,
+      `Portrait format bus shelter advertisement for ${imageContext}. Street-level viewing showing someone engaging with ${product} in daily life. ${category} lifestyle context. Eye-catching but not aggressive. A moment of human connection with the ${product}. Works in daylight and at night.`,
       'bus_shelter.png'
     );
     if (busShelterImage) oohFolder?.file('bus_shelter_visual.png', busShelterImage.blob);
     
-    addChatMessage('nadya', 'OOH assets complete. ⏱ We are 47 seconds behind schedule. Acceptable.');
+    addChatMessage('nadya', `OOH assets for ${product} complete. ⏱ We are 47 seconds behind schedule. Acceptable.`);
     
     // 6. OOH specifications
     const oohSpec = `OUT OF HOME SPECIFICATIONS

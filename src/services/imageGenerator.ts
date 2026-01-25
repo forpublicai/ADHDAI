@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { BrandInfo } from '../types';
+import { parseBrief, getImagePromptContext } from '../utils/briefParser';
 
 // Create OpenAI client only when API key is available
 function getOpenAIClient(): OpenAI | null {
@@ -34,26 +35,28 @@ export async function generateAdImage(
     return null;
   }
 
-  // Extract product/service from brief
-  const productMatch = brief.match(/(?:for|about|promoting)\s+(?:a\s+)?(?:new\s+)?([^.]+)/i);
-  const product = productMatch ? productMatch[1].trim() : brief;
+  // Use intelligent brief parsing for better product extraction
+  const parsedBrief = parseBrief(brief);
+  const product = parsedBrief.product;
+  const category = parsedBrief.category;
+  const imageContext = getImagePromptContext(brief);
   
   // Build the prompt based on style and brand
   let prompt = '';
   
   switch (style) {
     case 'hero':
-      prompt = `Professional advertising photography of ${product}. Clean, minimalist composition on a neutral background. Studio lighting, high-end commercial quality. Documentary style, authentic feel. No text, no logos, no watermarks. Muted, desaturated colors with subtle warmth.`;
+      prompt = `Professional advertising photography of ${imageContext}. The ${product} is the clear hero of the image, shown in its full glory. ${category} product photography. Clean, minimalist composition on a neutral background. Studio lighting, high-end commercial quality. Documentary style, authentic feel. No text, no logos, no watermarks. Muted, desaturated colors with subtle warmth.`;
       break;
     case 'product':
-      prompt = `Editorial product photography of ${product}. Overhead shot on textured paper background. Natural daylight, soft shadows. Documentary aesthetic like a form or document. Minimal styling, honest presentation. No text, no logos, no watermarks.`;
+      prompt = `Editorial product photography featuring ${imageContext}. The ${product} photographed from overhead on textured paper background. Natural daylight, soft shadows. Documentary aesthetic like a form or document. Show the ${product} in detail. Minimal styling, honest presentation. No text, no logos, no watermarks.`;
       break;
     case 'lifestyle':
-      prompt = `Documentary-style lifestyle photography showing hands using ${product}. Real person, authentic moment. Natural lighting, slightly desaturated colors. Film photography aesthetic. No faces visible, focus on the action. No text, no logos, no watermarks.`;
+      prompt = `Documentary-style lifestyle photography showing hands using ${imageContext}. A real person interacting with their ${product} in a natural ${category} context. Authentic moment. Natural lighting, slightly desaturated colors. Film photography aesthetic. No faces visible, focus on the action and the ${product}. No text, no logos, no watermarks.`;
       break;
     case 'documentary':
     default:
-      prompt = `Documentary photography of ${product}. Shot like evidence photography or archival documentation. Neutral background, natural lighting. Honest, unglamorous presentation. Slightly faded, bureaucratic aesthetic. No text, no logos, no watermarks.`;
+      prompt = `Documentary photography of ${imageContext}. The ${product} shot like evidence photography or archival documentation. ${category} context. Neutral background, natural lighting. Honest, unglamorous presentation of the ${product}. Slightly faded, bureaucratic aesthetic. No text, no logos, no watermarks.`;
       break;
   }
 
@@ -126,7 +129,7 @@ export async function generateCampaignImages(
  */
 export async function generateStoryboardFrame(
   visualDescription: string,
-  _brief: string,
+  brief: string,
   frameNumber: number
 ): Promise<string | null> {
   const openai = getOpenAIClient();
@@ -135,13 +138,18 @@ export async function generateStoryboardFrame(
     return null;
   }
 
+  // Use intelligent brief parsing
+  const parsedBrief = parseBrief(brief);
+  const product = parsedBrief.product;
+  const category = parsedBrief.category;
+  
   // Clean up the visual description for DALL-E
   const cleanDescription = visualDescription
     .replace(/FADE IN:|MEDIUM SHOT:|CLOSE-UP:|WIDE:|INSERT:|SUPER:|END CARD:/gi, '')
     .replace(/\([^)]+\)/g, '') // Remove parentheticals
     .trim();
 
-  const prompt = `Film still from a commercial, frame ${frameNumber}. ${cleanDescription}. Cinematic composition, 16:9 aspect ratio feel. Documentary style, natural lighting, muted colors. Professional advertising production quality. No text overlays, no watermarks.`;
+  const prompt = `Film still from a ${category} commercial, frame ${frameNumber}. ${cleanDescription}. Feature the ${product} prominently in this scene. Cinematic composition, 16:9 aspect ratio feel. Documentary style, natural lighting, muted colors. Professional advertising production quality. No text overlays, no watermarks.`;
 
   try {
     const response = await openai.images.generate({
@@ -175,9 +183,11 @@ export async function generateSocialImage(
     return null;
   }
 
-  // Extract the essence of the post for visual
-  const productMatch = brief.match(/(?:for|about|promoting)\s+(?:a\s+)?(?:new\s+)?([^.]+)/i);
-  const product = productMatch ? productMatch[1].trim() : brief;
+  // Use intelligent brief parsing
+  const parsedBrief = parseBrief(brief);
+  const product = parsedBrief.product;
+  const category = parsedBrief.category;
+  const imageContext = getImagePromptContext(brief);
 
   let aspectRatio = '1024x1024'; // Square for Instagram
   let sizeHint = 'square composition';
@@ -187,7 +197,7 @@ export async function generateSocialImage(
     sizeHint = 'horizontal composition, 16:9 feel';
   }
 
-  const prompt = `Social media photography for ${platform}. Subject: ${product}. ${sizeHint}. Documentary aesthetic, authentic feel. Natural lighting, muted colors. Not overly polished or commercial. Real, honest, slightly melancholic. No text, no logos, no watermarks.`;
+  const prompt = `Social media photography for ${platform}. Subject: ${imageContext}. The ${product} is clearly featured as the main subject. ${category} lifestyle context. ${sizeHint}. Documentary aesthetic, authentic feel. Natural lighting, muted colors. Not overly polished or commercial. Real, honest, slightly melancholic. No text, no logos, no watermarks.`;
 
   try {
     const response = await openai.images.generate({

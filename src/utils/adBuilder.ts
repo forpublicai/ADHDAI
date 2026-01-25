@@ -1,5 +1,6 @@
 import { Message, AdComponents } from '../types';
 import { generateAdHTML } from '../services/adGenerator';
+import { parseBrief } from './briefParser';
 
 /**
  * Extracts ad components from agent messages
@@ -134,12 +135,13 @@ export function extractAdComponents(messages: Message[]): AdComponents {
  * Generates a numbered decisions list HTML based on the brief/product category
  */
 function generateDecisionsList(count: number, brief?: string): string {
-  // Determine the category from the brief
-  const briefLower = (brief || '').toLowerCase();
+  // Use intelligent brief parsing for category detection
+  const parsed = brief ? parseBrief(brief) : null;
+  const category = parsed?.category || 'consumer goods';
   
   let decisions: string[];
   
-  if (briefLower.includes('cat') || briefLower.includes('pet') || briefLower.includes('dog') || briefLower.includes('food')) {
+  if (category === 'pet food' || category === 'food & beverage') {
     decisions = [
       'Wet food or dry',
       'Which brand to trust',
@@ -172,7 +174,7 @@ function generateDecisionsList(count: number, brief?: string): string {
       'What your neighbor feeds theirs',
       'What you can afford'
     ];
-  } else if (briefLower.includes('knife') || briefLower.includes('kitchen') || briefLower.includes('cook')) {
+  } else if (category === 'kitchenware') {
     decisions = [
       'German or Japanese',
       'Which steel type',
@@ -205,7 +207,7 @@ function generateDecisionsList(count: number, brief?: string): string {
       'What your mother used',
       'What works for your hands'
     ];
-  } else if (briefLower.includes('car') || briefLower.includes('auto') || briefLower.includes('vehicle')) {
+  } else if (category === 'automotive') {
     decisions = [
       'New or used',
       'Lease or buy',
@@ -233,7 +235,7 @@ function generateDecisionsList(count: number, brief?: string): string {
       'What they\'ll think',
       'What makes sense'
     ];
-  } else if (briefLower.includes('tech') || briefLower.includes('software') || briefLower.includes('app')) {
+  } else if (category === 'technology') {
     decisions = [
       'Monthly or annual',
       'Basic or premium',

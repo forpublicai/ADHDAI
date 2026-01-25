@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { AdComponents, BrandInfo } from '../types';
 import { generateAdImage, generateStoryboardFrame, generateSocialImage } from './imageGenerator';
+import { parseBrief, ParsedBrief } from '../utils/briefParser';
 
 // Create OpenAI client only when API key is available
 function getOpenAIClient(): OpenAI | null {
@@ -78,66 +79,18 @@ export interface SocialPost {
 }
 
 /**
- * Extracts key information from the brief
+ * Extracts key information from the brief using intelligent parsing
  */
 function extractBriefInfo(brief: string): { product: string; brand: string; category: string; problem: string } {
-  const briefLower = brief.toLowerCase();
+  // Use the shared brief parser for consistent extraction
+  const parsed: ParsedBrief = parseBrief(brief);
   
-  // Extract brand/company name
-  const brandPatterns = [
-    /(?:for|from|by)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/,
-    /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*?)(?:'s|'s|\s+brand|\s+company)/i,
-    /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/
-  ];
-  
-  let brand = 'The Client';
-  for (const pattern of brandPatterns) {
-    const match = brief.match(pattern);
-    if (match && match[1] && match[1].length < 40) {
-      brand = match[1].trim();
-      break;
-    }
-  }
-  
-  // Extract product/service
-  const productPatterns = [
-    /(?:new|their|a|the)\s+(?:type of\s+)?([a-z]+(?:\s+[a-z]+)?)/i,
-    /(?:promoting|advertising|selling|launching)\s+(?:a\s+)?([a-z]+(?:\s+[a-z]+)?)/i
-  ];
-  
-  let product = 'product';
-  for (const pattern of productPatterns) {
-    const match = briefLower.match(pattern);
-    if (match && match[1] && match[1].length < 30) {
-      product = match[1].trim();
-      break;
-    }
-  }
-  
-  // Infer category
-  let category = 'consumer goods';
-  if (briefLower.includes('knife') || briefLower.includes('kitchen') || briefLower.includes('cook')) {
-    category = 'kitchenware';
-  } else if (briefLower.includes('tech') || briefLower.includes('app') || briefLower.includes('software')) {
-    category = 'technology';
-  } else if (briefLower.includes('food') || briefLower.includes('drink') || briefLower.includes('beverage')) {
-    category = 'food & beverage';
-  } else if (briefLower.includes('clothes') || briefLower.includes('fashion') || briefLower.includes('wear')) {
-    category = 'fashion';
-  } else if (briefLower.includes('car') || briefLower.includes('auto') || briefLower.includes('vehicle')) {
-    category = 'automotive';
-  } else if (briefLower.includes('bank') || briefLower.includes('finance') || briefLower.includes('invest')) {
-    category = 'financial services';
-  }
-  
-  // Extract the core problem/benefit
-  let problem = 'making better decisions';
-  if (briefLower.includes('help')) {
-    const helpMatch = brief.match(/help(?:ing|s|ed)?\s+(?:people\s+)?([^.]+)/i);
-    if (helpMatch) problem = helpMatch[1].trim();
-  }
-  
-  return { product, brand, category, problem };
+  return {
+    product: parsed.product,
+    brand: parsed.brand,
+    category: parsed.category,
+    problem: parsed.problem
+  };
 }
 
 /**
