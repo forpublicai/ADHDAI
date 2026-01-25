@@ -286,26 +286,6 @@ Output ONLY the creative content. No explanations. No preamble. Just the work.`
     }
   }, []);
 
-  // Generate campaign image using DALL-E (available for future use)
-  const _generateCampaignImage = useCallback(async (imagePrompt: string): Promise<string | null> => {
-    const openai = getOpenAI();
-    if (!openai) return null;
-    
-    try {
-      const response = await openai.images.generate({
-        model: 'dall-e-3',
-        prompt: `Award-winning advertising campaign photograph. ${imagePrompt}. Style: documentary realism, muted colors, editorial quality, no text overlays, no logos. Shot on medium format film. High fashion meets documentary photography.`,
-        n: 1,
-        size: '1024x1024',
-        quality: 'standard',
-      });
-      return response.data?.[0]?.url || null;
-    } catch (error) {
-      console.error('Image generation error:', error);
-      return null;
-    }
-  }, []);
-
   // Canvas panning
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0 && !draggedItem) {

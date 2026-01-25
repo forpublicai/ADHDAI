@@ -14,7 +14,6 @@ export function createStrategyPhaseActions(brief: string): CanvasAction[] {
   
   // Extract key info from brief for dynamic content
   const briefWords = brief.toLowerCase();
-  const hasProduct = briefWords.includes('product') || briefWords.includes('brand');
   const hasProblem = briefWords.includes('problem') || briefWords.includes('issue') || briefWords.includes('challenge');
   
   return [
@@ -40,10 +39,10 @@ export function createStrategyPhaseActions(brief: string): CanvasAction[] {
     { id: 'a11', agent: 'poole', action: 'createDiagram', position: { x: 450, y: 150 }, elementId: frameworkId, diagramType: 'framework', text: 'THE POOLE SYSTEM\n\n1. EXCAVATION\n   ↓\n2. CONTRADICTION\n   ↓\n3. SYNTHESIS\n   ↓\n4. DEPLOYMENT' },
     
     // Cell member objects
-    { id: 'a12', agent: 'cell', action: 'moveTo', position: { x: 700, y: 200 }, duration: 800 },
-    { id: 'a13', agent: 'cell', action: 'think', text: 'Reviewing framework with skepticism...', duration: 1000 },
-    { id: 'a14', agent: 'cell', action: 'createSticky', position: { x: 700, y: 200 }, elementId: objectionId, color: '#cc3333' },
-    { id: 'a15', agent: 'cell', action: 'typeInto', elementId: objectionId, text: 'OBJECTION:\nPoole\'s framework assumes client honesty. They never know what they need.', charDelay: 45 },
+    { id: 'a12', agent: 'the-cell', action: 'moveTo', position: { x: 700, y: 200 }, duration: 800 },
+    { id: 'a13', agent: 'the-cell', action: 'think', text: 'Reviewing framework with skepticism...', duration: 1000 },
+    { id: 'a14', agent: 'the-cell', action: 'createSticky', position: { x: 700, y: 200 }, elementId: objectionId, color: '#cc3333' },
+    { id: 'a15', agent: 'the-cell', action: 'typeInto', elementId: objectionId, text: 'OBJECTION:\nPoole\'s framework assumes client honesty. They never know what they need.', charDelay: 45 },
     
     // Poole defends
     { id: 'a16', agent: 'poole', action: 'moveTo', position: { x: 550, y: 350 }, duration: 600 },
@@ -56,7 +55,7 @@ export function createStrategyPhaseActions(brief: string): CanvasAction[] {
 }
 
 // Phase 2: Copy Development - Cell writes copy, Burl comments on visuals
-export function createCopyPhaseActions(brief: string): CanvasAction[] {
+export function createCopyPhaseActions(_brief: string): CanvasAction[] {
   const headline1Id = generateId('text');
   const headline2Id = generateId('text');
   const headline3Id = generateId('text');
@@ -66,20 +65,20 @@ export function createCopyPhaseActions(brief: string): CanvasAction[] {
   
   return [
     // Cell moves to copy area
-    { id: 'b1', agent: 'cell', action: 'moveTo', position: { x: 100, y: 500 }, duration: 800 },
-    { id: 'b2', agent: 'cell', action: 'think', text: 'Generating headline options...', duration: 2000 },
+    { id: 'b1', agent: 'the-cell', action: 'moveTo', position: { x: 100, y: 500 }, duration: 800 },
+    { id: 'b2', agent: 'the-cell', action: 'think', text: 'Generating headline options...', duration: 2000 },
     
     // Cell creates headline options
-    { id: 'b3', agent: 'cell', action: 'createText', position: { x: 100, y: 500 }, elementId: headline1Id },
-    { id: 'b4', agent: 'cell', action: 'typeInto', elementId: headline1Id, text: 'OPTION A:\n"You already know.\nYou just haven\'t said it yet."', charDelay: 60 },
+    { id: 'b3', agent: 'the-cell', action: 'createText', position: { x: 100, y: 500 }, elementId: headline1Id },
+    { id: 'b4', agent: 'the-cell', action: 'typeInto', elementId: headline1Id, text: 'OPTION A:\n"You already know.\nYou just haven\'t said it yet."', charDelay: 60 },
     
-    { id: 'b5', agent: 'cell', action: 'moveTo', position: { x: 100, y: 650 }, duration: 400 },
-    { id: 'b6', agent: 'cell', action: 'createText', position: { x: 100, y: 650 }, elementId: headline2Id },
-    { id: 'b7', agent: 'cell', action: 'typeInto', elementId: headline2Id, text: 'OPTION B:\n"The truth was always there.\nWaiting."', charDelay: 60 },
+    { id: 'b5', agent: 'the-cell', action: 'moveTo', position: { x: 100, y: 650 }, duration: 400 },
+    { id: 'b6', agent: 'the-cell', action: 'createText', position: { x: 100, y: 650 }, elementId: headline2Id },
+    { id: 'b7', agent: 'the-cell', action: 'typeInto', elementId: headline2Id, text: 'OPTION B:\n"The truth was always there.\nWaiting."', charDelay: 60 },
     
-    { id: 'b8', agent: 'cell', action: 'moveTo', position: { x: 100, y: 800 }, duration: 400 },
-    { id: 'b9', agent: 'cell', action: 'createText', position: { x: 100, y: 800 }, elementId: headline3Id },
-    { id: 'b10', agent: 'cell', action: 'typeInto', elementId: headline3Id, text: 'OPTION C: [THURSDAY SPECIAL]\n"47 decisions and one silence."', charDelay: 60 },
+    { id: 'b8', agent: 'the-cell', action: 'moveTo', position: { x: 100, y: 800 }, duration: 400 },
+    { id: 'b9', agent: 'the-cell', action: 'createText', position: { x: 100, y: 800 }, elementId: headline3Id },
+    { id: 'b10', agent: 'the-cell', action: 'typeInto', elementId: headline3Id, text: 'OPTION C: [THURSDAY SPECIAL]\n"47 decisions and one silence."', charDelay: 60 },
     
     // Burl reviews visuals
     { id: 'b11', agent: 'burl', action: 'moveTo', position: { x: 450, y: 550 }, duration: 1000 },
@@ -92,14 +91,14 @@ export function createCopyPhaseActions(brief: string): CanvasAction[] {
     // Highlight Burl's preferred option
     { id: 'b15', agent: 'burl', action: 'highlightElement', elementId: headline1Id, duration: 1000 },
     
-    // Committee arrives to vote
-    { id: 'b16', agent: 'committee', action: 'moveTo', position: { x: 350, y: 700 }, duration: 900 },
-    { id: 'b17', agent: 'committee', action: 'think', text: 'Deliberating...', duration: 2000 },
+    // The Cell votes internally
+    { id: 'b16', agent: 'the-cell', action: 'moveTo', position: { x: 350, y: 700 }, duration: 900 },
+    { id: 'b17', agent: 'the-cell', action: 'think', text: 'Internal deliberation...', duration: 2000 },
     
-    // Committee votes
-    { id: 'b18', agent: 'committee', action: 'vote', elementId: headline1Id },
-    { id: 'b19', agent: 'committee', action: 'createSticky', position: { x: 350, y: 650 }, elementId: vote1Id, color: '#4a4a4a' },
-    { id: 'b20', agent: 'committee', action: 'typeInto', elementId: vote1Id, text: 'COMMITTEE VOTE:\n\nOption A: ████████ 4\nOption B: ████ 2\nOption C: ██ 1\n\nOption A APPROVED (4-2-1)', charDelay: 40 },
+    // The Cell votes
+    { id: 'b18', agent: 'the-cell', action: 'vote', elementId: headline1Id },
+    { id: 'b19', agent: 'the-cell', action: 'createSticky', position: { x: 350, y: 650 }, elementId: vote1Id, color: '#4a4a4a' },
+    { id: 'b20', agent: 'the-cell', action: 'typeInto', elementId: vote1Id, text: 'CELL VOTE:\n\nOption A: Vera ✓\nOption B: Gjon ✓\nOption C: Thursday ✓✓\n\nOption C APPROVED (Thursday always wins)', charDelay: 40 },
     
     // Poole objects
     { id: 'b21', agent: 'poole', action: 'moveTo', position: { x: 550, y: 750 }, duration: 600 },
@@ -155,10 +154,10 @@ export function createAssemblyPhaseActions(adHtml: string): CanvasAction[] {
     { id: 'd5', agent: 'burl', action: 'think', text: 'Final visual review...', duration: 1500 },
     { id: 'd6', agent: 'burl', action: 'highlightElement', elementId: adFrameId, duration: 1200 },
     
-    // Committee final approval
-    { id: 'd7', agent: 'committee', action: 'moveTo', position: { x: 700, y: 1350 }, duration: 700 },
-    { id: 'd8', agent: 'committee', action: 'createSticky', position: { x: 750, y: 1200 }, elementId: approvalId, color: '#2a4a2a' },
-    { id: 'd9', agent: 'committee', action: 'typeInto', elementId: approvalId, text: '✓ FINAL APPROVAL\n\nCommittee has reviewed.\nVote: UNANIMOUS\n\nAd approved for deployment.', charDelay: 45 },
+    // Poole final approval
+    { id: 'd7', agent: 'poole', action: 'moveTo', position: { x: 700, y: 1350 }, duration: 700 },
+    { id: 'd8', agent: 'poole', action: 'createSticky', position: { x: 750, y: 1200 }, elementId: approvalId, color: '#2a4a2a' },
+    { id: 'd9', agent: 'poole', action: 'typeInto', elementId: approvalId, text: '✓ FINAL APPROVAL\n\nThe Poole System has been satisfied.\nFramework integrity: MAINTAINED\n\nAd approved for deployment.', charDelay: 45 },
     
     // Apparatus adds final observation
     { id: 'd10', agent: 'apparatus', action: 'moveTo', position: { x: 200, y: 1400 }, duration: 600 },

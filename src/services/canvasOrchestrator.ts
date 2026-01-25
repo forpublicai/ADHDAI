@@ -102,9 +102,8 @@ class CanvasOrchestrator {
     const agentConfigs: { id: CharacterId; position: Position }[] = [
       { id: 'mike', position: { x: 100, y: 100 } },
       { id: 'poole', position: { x: 300, y: 150 } },
-      { id: 'cell', position: { x: 500, y: 100 } },
+      { id: 'the-cell', position: { x: 500, y: 100 } },
       { id: 'burl', position: { x: 700, y: 150 } },
-      { id: 'committee', position: { x: 200, y: 400 } },
       { id: 'nadya', position: { x: 400, y: 450 } },
       { id: 'delmore', position: { x: 600, y: 400 } },
       { id: 'apparatus', position: { x: 800, y: 450 } },
@@ -480,7 +479,6 @@ class CanvasOrchestrator {
     agent.status = 'dragging';
     
     // First move cursor to element
-    const startPos = { ...agent.position };
     agent.position = { ...element.position };
     this.notifyStateListeners();
     
@@ -613,9 +611,8 @@ class CanvasOrchestrator {
     const colors: Record<CharacterId, string> = {
       mike: '#8B4513',
       poole: '#1a1a2e',
-      cell: '#2d2d44',
+      'the-cell': '#2d2d44',
       burl: '#3d3d3d',
-      committee: '#4a4a4a',
       nadya: '#cc0000',
       delmore: '#2a4a2a',
       apparatus: '#1a1a1a',
@@ -654,8 +651,8 @@ export const canvasOrchestrator = new CanvasOrchestrator();
 
 // Helper function to create action sequences
 export function createActionSequence(
-  phase: string,
-  brief: string
+  _phase: string,
+  _brief: string
 ): CanvasAction[] {
   // This will be populated with phase-specific sequences
   // For now, return empty array - will be implemented in phase-sequences
