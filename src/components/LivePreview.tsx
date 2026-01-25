@@ -1,32 +1,55 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './LivePreview.css';
 
 interface LivePreviewProps {
   code: string;
+  campaignDeliverables?: string;
 }
 
-export default function LivePreview({ code }: LivePreviewProps) {
+export default function LivePreview({ code, campaignDeliverables }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [activeTab, setActiveTab] = useState<'ad' | 'deliverables'>('ad');
 
   useEffect(() => {
-    if (iframeRef.current && code) {
+    if (iframeRef.current) {
       const iframe = iframeRef.current;
       const doc = iframe.contentDocument || iframe.contentWindow?.document;
       if (doc) {
         doc.open();
-        doc.write(code);
+        const contentToShow = activeTab === 'deliverables' && campaignDeliverables 
+          ? campaignDeliverables 
+          : code;
+        doc.write(contentToShow || '');
         doc.close();
       }
     }
-  }, [code]);
+  }, [code, campaignDeliverables, activeTab]);
+
+  const hasDeliverables = !!campaignDeliverables;
 
   return (
     <div className="live-preview">
       <div className="preview-header">
         <span>Live Preview</span>
+        {hasDeliverables && (
+          <div className="preview-tabs">
+            <button 
+              className={activeTab === 'ad' ? 'active' : ''}
+              onClick={() => setActiveTab('ad')}
+            >
+              Ad
+            </button>
+            <button 
+              className={activeTab === 'deliverables' ? 'active' : ''}
+              onClick={() => setActiveTab('deliverables')}
+            >
+              Campaign
+            </button>
+          </div>
+        )}
       </div>
       <div className="preview-content">
-        {code ? (
+        {(code || campaignDeliverables) ? (
           <iframe
             ref={iframeRef}
             title="preview"

@@ -1,205 +1,281 @@
 .landing-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-  padding: 2rem;
+  background: #ffffff;
+  padding: 0;
   position: relative;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+.landing-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  z-index: 1000;
+  padding: 0;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 18px;
+  font-weight: 400;
+  color: #000000;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+}
+
+.nav-link {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: opacity 0.2s ease;
+}
+
+.nav-link:hover {
+  opacity: 0.6;
 }
 
 .landing-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 30px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  padding: 3rem;
-  animation: slideDown 0.8s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  padding: 0;
+  background: transparent;
 }
 
 .landing-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  padding-bottom: 2rem;
-  border-bottom: 3px solid;
-  border-image: linear-gradient(90deg, #FF006E, #8338EC, #3A86FF) 1;
+  padding: 160px 40px 80px;
+  text-align: left;
+  border-bottom: 1px solid #e5e5e5;
+  margin-bottom: 0;
 }
 
 .landing-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 4.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #FF006E 0%, #8338EC 25%, #3A86FF 50%, #FFBE0B 75%, #FB5607 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 8s ease infinite;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 72px;
+  font-weight: 400;
+  margin-bottom: 24px;
+  color: #000000;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .landing-tagline {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin: 1rem 0;
-  background: linear-gradient(135deg, #FB5607, #FF006E, #FFBE0B);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 5s ease infinite;
-  font-style: italic;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
+  font-size: 18px;
+  font-weight: 400;
+  margin: 0 0 32px 0;
+  color: #666666;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  font-style: normal;
 }
 
 .landing-description {
-  font-size: 1.2rem;
-  color: rgba(10, 14, 39, 0.9);
-  margin-top: 1rem;
+  font-size: 20px;
+  color: #000000;
+  margin-top: 0;
   line-height: 1.6;
+  font-weight: 300;
+  max-width: 680px;
 }
 
 .cta-button {
   display: inline-block;
-  margin-top: 2rem;
+  margin-top: 48px;
   padding: 16px 32px;
-  background: linear-gradient(135deg, #FF006E, #8338EC);
-  color: white;
+  background: #000000;
+  color: #ffffff;
   text-decoration: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 20px rgba(255, 0, 110, 0.3);
+  border-radius: 0;
+  font-weight: 400;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  border: 1px solid #000000;
+  letter-spacing: 0.02em;
 }
 
 .cta-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(255, 0, 110, 0.4);
+  background: #ffffff;
+  color: #000000;
 }
 
 .landing-content {
-  margin-top: 3rem;
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0;
 }
 
 .landing-section {
-  margin-bottom: 3rem;
-  padding: 2rem;
-  background: rgba(248, 249, 250, 0.5);
-  border-radius: 16px;
-  border-left: 4px solid;
-  border-image: linear-gradient(180deg, #FF006E, #8338EC) 1;
-  transition: all 0.3s ease;
+  margin-bottom: 0;
+  padding: 80px 40px;
+  background: transparent;
+  border-radius: 0;
+  border-left: none;
+  border-bottom: 1px solid #e5e5e5;
+  transition: none;
+  grid-column: span 12;
+}
+
+.landing-section:last-child {
+  border-bottom: none;
 }
 
 .landing-section:hover {
-  transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(131, 56, 236, 0.2);
+  transform: none;
+  box-shadow: none;
 }
 
 .landing-section h2 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 600;
-  margin-bottom: 1.2rem;
-  color: #8338EC;
-  letter-spacing: -0.01em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  margin-bottom: 32px;
+  color: #000000;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .landing-section p {
-  margin-bottom: 1.2rem;
-  font-size: 1.05rem;
-  color: rgba(10, 14, 39, 0.85);
-  line-height: 1.8;
+  margin-bottom: 24px;
+  font-size: 18px;
+  color: #000000;
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 680px;
+}
+
+.landing-section p:last-child {
+  margin-bottom: 0;
 }
 
 .landing-section ul {
-  margin-left: 2rem;
-  margin-bottom: 1.5rem;
+  margin-left: 0;
+  margin-bottom: 32px;
   list-style: none;
+  max-width: 680px;
 }
 
 .landing-section li {
-  margin-bottom: 0.8rem;
-  padding-left: 1.5rem;
+  margin-bottom: 16px;
+  padding-left: 24px;
   position: relative;
-  font-size: 1.05rem;
-  color: rgba(10, 14, 39, 0.85);
-  line-height: 1.8;
+  font-size: 18px;
+  color: #000000;
+  line-height: 1.7;
+  font-weight: 300;
 }
 
 .landing-section li::before {
-  content: '▸';
+  content: '—';
   position: absolute;
   left: 0;
-  color: #FF006E;
-  font-weight: bold;
-  font-size: 1.2rem;
+  color: #000000;
+  font-weight: 400;
+  font-size: 18px;
 }
 
 .landing-section a {
-  color: #3A86FF;
-  text-decoration: none;
-  font-weight: 600;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s ease;
+  color: #000000;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  font-weight: 400;
+  transition: opacity 0.2s ease;
 }
 
 .landing-section a:hover {
-  color: #FF006E;
-  border-bottom-color: #FFBE0B;
+  opacity: 0.6;
 }
 
 .landing-section strong {
-  color: #FF006E;
-  font-weight: 600;
+  color: #000000;
+  font-weight: 500;
 }
 
 .landing-section em {
   font-style: italic;
-  background: linear-gradient(135deg, #FF006E, #FB5607);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #666666;
+  background: transparent;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+  background-clip: unset;
+}
+
+.landing-footer {
+  border-top: 1px solid #e5e5e5;
+  padding: 60px 40px;
+  margin-top: 0;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.landing-footer p {
+  font-size: 14px;
+  color: #666666;
+  font-weight: 300;
+  margin: 0;
 }
 
 @media (max-width: 768px) {
-  .landing-container {
-    padding: 1.5rem;
+  .nav-container {
+    padding: 20px 24px;
+  }
+  
+  .nav-links {
+    gap: 20px;
+  }
+  
+  .landing-header {
+    padding: 120px 24px 60px;
   }
   
   .landing-title {
-    font-size: 3rem;
+    font-size: 48px;
   }
   
   .landing-tagline {
-    font-size: 1.3rem;
+    font-size: 16px;
+  }
+  
+  .landing-description {
+    font-size: 18px;
   }
   
   .landing-section {
-    padding: 1.5rem;
+    padding: 60px 24px;
+  }
+  
+  .landing-section h2 {
+    font-size: 28px;
+  }
+  
+  .landing-section p,
+  .landing-section li {
+    font-size: 16px;
+  }
+  
+  .landing-footer {
+    padding: 40px 24px;
   }
 }

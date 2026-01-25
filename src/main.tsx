@@ -3,16 +3,27 @@ import ReactDOM from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
 import Agency from './pages/Agency'
+import Team from './pages/Team'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 
 // Use HashRouter for GitHub Pages compatibility
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
+
+console.log('Mounting React app...');
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/agency" element={<Agency />} />
-      </Routes>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/agency" element={<Agency />} />
+          <Route path="/team" element={<Team />} />
+        </Routes>
+      </HashRouter>
+    </ErrorBoundary>
   </React.StrictMode>,
 )

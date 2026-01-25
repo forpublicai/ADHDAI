@@ -1,0 +1,1468 @@
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import OpenAI from 'openai';
+import { CHARACTERS } from '../../constants';
+import { CharacterId } from '../../types';
+import './CanvasWorkspace.css';
+
+// Initialize OpenAI
+const getOpenAI = () => {
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  if (!apiKey) return null;
+  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
+};
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface WorkItem {
+  id: string;
+  type: 'sticky' | 'headline' | 'visual' | 'mockup' | 'strategy' | 'framework' | 'draft' | 'approval' | 'board' | 'concept';
+  content: string;
+  position: Position;
+  color: string;
+  createdBy: CharacterId;
+  timestamp: number;
+  phase: number;
+  isTyping?: boolean;
+  displayedContent?: string;
+  isDragging?: boolean;
+}
+
+interface ChatMessage {
+  id: string;
+  from: CharacterId;
+  to?: CharacterId;
+  content: string;
+  timestamp: number;
+}
+
+interface AgentState {
+  id: CharacterId;
+  position: Position;
+  targetPosition: Position;
+  status: 'idle' | 'moving' | 'typing' | 'thinking' | 'clicking' | 'dragging' | 'reviewing' | 'designing';
+  action: string;
+  currentPhase: number;
+  workZone: { x: number; y: number; width: number; height: number };
+  isActive: boolean;
+}
+
+interface KanbanTask {
+  id: string;
+  title: string;
+  assignee: CharacterId;
+  status: 'todo' | 'in-progress' | 'done';
+  phase: number;
+}
+
+interface CanvasWorkspaceProps {
+  brief: string;
+  generatedAd: string;
+  onComplete?: () => void;
+}
+
+// Work zone definitions
+const WORK_ZONES: Record<CharacterId, { x: number; y: number; width: number; height: number }> = {
+  mike: { x: 380, y: 60, width: 320, height: 240 },
+  poole: { x: 720, y: 60, width: 320, height: 240 },
+  'the-cell': { x: 1060, y: 60, width: 380, height: 240 },
+  burl: { x: 380, y: 340, width: 320, height: 240 },
+  nadya: { x: 720, y: 340, width: 320, height: 240 },
+  delmore: { x: 1060, y: 340, width: 380, height: 240 },
+  apparatus: { x: 720, y: 620, width: 320, height: 180 },
+};
+
+const KANBAN_ZONE = { x: 30, y: 60, width: 320, height: 740 };
+const FINAL_OUTPUT_ZONE = { x: 1060, y: 620, width: 380, height: 180 };
+
+const ITEM_COLORS: Record<string, string> = {
+  sticky: '#fff9c4',
+  headline: '#bbdefb',
+  visual: '#e1bee7',
+  mockup: '#ffcdd2',
+  strategy: '#c8e6c9',
+  framework: '#ffe0b2',
+  draft: '#f5f5f5',
+  approval: '#a5d6a7',
+  board: '#263238',
+  concept: '#b2ebf2',
+};
+
+const INITIAL_TASKS: KanbanTask[] = [
+  { id: 'task-1', title: 'Analyze brief & find truth', assignee: 'mike', status: 'todo', phase: 1 },
+  { id: 'task-2', title: 'Extract human tension', assignee: 'mike', status: 'todo', phase: 1 },
+  { id: 'task-3', title: 'Build strategic framework', assignee: 'poole', status: 'todo', phase: 2 },
+  { id: 'task-4', title: 'Define consumer barrier', assignee: 'poole', status: 'todo', phase: 2 },
+  { id: 'task-5', title: 'Create strategic reframe', assignee: 'poole', status: 'todo', phase: 2 },
+  { id: 'task-6', title: 'Write headline Option A', assignee: 'the-cell', status: 'todo', phase: 3 },
+  { id: 'task-7', title: 'Write headline Option B', assignee: 'the-cell', status: 'todo', phase: 3 },
+  { id: 'task-8', title: 'Write headline Option C', assignee: 'the-cell', status: 'todo', phase: 3 },
+  { id: 'task-9', title: 'Vote on copy direction', assignee: 'the-cell', status: 'todo', phase: 3 },
+  { id: 'task-10', title: 'Define visual language', assignee: 'burl', status: 'todo', phase: 4 },
+  { id: 'task-11', title: 'Set typography system', assignee: 'burl', status: 'todo', phase: 4 },
+  { id: 'task-12', title: 'Create art direction', assignee: 'burl', status: 'todo', phase: 4 },
+  { id: 'task-13', title: 'Lock production schedule', assignee: 'nadya', status: 'todo', phase: 5 },
+  { id: 'task-14', title: 'Prepare client deck', assignee: 'delmore', status: 'todo', phase: 6 },
+  { id: 'task-15', title: 'Assemble final campaign', assignee: 'apparatus', status: 'todo', phase: 7 },
+  { id: 'task-16', title: 'Generate production code', assignee: 'apparatus', status: 'todo', phase: 7 },
+];
+
+const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({ 
+  brief, 
+  generatedAd: _generatedAd,
+  onComplete: _onComplete 
+}) => {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [agents, setAgents] = useState<AgentState[]>([]);
+  const [workItems, setWorkItems] = useState<WorkItem[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [tasks, setTasks] = useState<KanbanTask[]>(INITIAL_TASKS);
+  const [isRunning, setIsRunning] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState(0);
+  const [phaseLabel, setPhaseLabel] = useState('Ready to begin');
+  const [finalAdCode, setFinalAdCode] = useState('');
+  const [showCodePanel, setShowCodePanel] = useState(false);
+  
+  // Initialize with better starting position to show work areas
+  const [canvasOffset, setCanvasOffset] = useState<Position>({ x: 50, y: 20 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<Position>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(0.75);
+  
+  // Drag state for work items
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 });
+  
+  const workflowRef = useRef<NodeJS.Timeout[]>([]);
+  const typingRef = useRef<NodeJS.Timeout[]>([]);
+  const workItemIdRef = useRef(0);
+  const chatIdRef = useRef(0);
+  
+  // Store brief in a ref to always get the latest value in callbacks
+  const briefRef = useRef(brief);
+  briefRef.current = brief;
+
+  // Initialize agents
+  useEffect(() => {
+    const initialAgents: AgentState[] = CHARACTERS.map(char => ({
+      id: char.id as CharacterId,
+      position: {
+        x: WORK_ZONES[char.id as CharacterId]?.x + (WORK_ZONES[char.id as CharacterId]?.width || 0) / 2 || 500,
+        y: WORK_ZONES[char.id as CharacterId]?.y + (WORK_ZONES[char.id as CharacterId]?.height || 0) / 2 || 300,
+      },
+      targetPosition: {
+        x: WORK_ZONES[char.id as CharacterId]?.x + (WORK_ZONES[char.id as CharacterId]?.width || 0) / 2 || 500,
+        y: WORK_ZONES[char.id as CharacterId]?.y + (WORK_ZONES[char.id as CharacterId]?.height || 0) / 2 || 300,
+      },
+      status: 'idle',
+      action: '',
+      currentPhase: 0,
+      workZone: WORK_ZONES[char.id as CharacterId] || { x: 500, y: 300, width: 200, height: 150 },
+      isActive: false,
+    }));
+    setAgents(initialAgents);
+  }, []);
+
+  // Generate creative content using API with smart fallbacks
+  const generateCreativeContent = useCallback(async (prompt: string, _maxTokens: number = 150): Promise<string> => {
+    const openai = getOpenAI();
+    
+    // Smart fallback content based on prompt type
+    const generateFallback = () => {
+      const briefWords = (briefRef.current || '').toLowerCase().split(' ').filter(w => w.length > 3);
+      const product = briefWords[0] || 'product';
+      
+      if (prompt.includes('human tension') || prompt.includes('REAL human tension')) {
+        return `People buy ${product} to feel in control. What they actually want is permission to stop trying so hard.`;
+      }
+      if (prompt.includes('psychological conflict')) {
+        return `They secretly want someone else to make the decision for them.`;
+      }
+      if (prompt.includes('BARRIER')) {
+        return `They believe they should already know how to do this perfectly.`;
+      }
+      if (prompt.includes('REFRAME')) {
+        return `But what if the whole point was never getting it perfect?`;
+      }
+      if (prompt.includes('Option A') || prompt.includes('conventional headline')) {
+        return `${product.charAt(0).toUpperCase() + product.slice(1)}. For when good enough isn't.`;
+      }
+      if (prompt.includes('Option B') || prompt.includes('provocative headline')) {
+        return `You've been doing it wrong. That's okay.`;
+      }
+      if (prompt.includes('Option C') || prompt.includes('deeply strange')) {
+        return `Your ${product} remembers what you forgot you wanted.`;
+      }
+      if (prompt.includes('VISUAL LANGUAGE')) {
+        return `• Color: #F5F5F0 (aged paper) + #1a1a1a (near-black)\n• Mood: Sunday morning, coffee gone cold\n• Feel: Museum catalog meets confession`;
+      }
+      if (prompt.includes('TYPOGRAPHY')) {
+        return `Helvetica Neue Light, 48/54pt\nGenerous letter-spacing\n120px margins minimum`;
+      }
+      if (prompt.includes('KEY VISUAL')) {
+        return `A single hand, slightly out of focus, reaching for something just out of frame. Natural light. No styling.`;
+      }
+      if (prompt.includes('CLIENT-FRIENDLY')) {
+        return `• "Culturally resonant storytelling"\n• "Authentic consumer connection"\n• "Disruptively minimal execution"`;
+      }
+      if (prompt.includes('FINAL approved headline')) {
+        return `You already knew. You just needed someone to say it.`;
+      }
+      return `[Creative insight for ${product}]`;
+    };
+    
+    if (!openai) {
+      // Use intelligent fallbacks when API is not available
+      return generateFallback();
+    }
+    
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a creative director at an award-winning ad agency known for Swiss-style minimalism meets absurdist wit. Your work is:
+- DECEPTIVELY SIMPLE: Headlines that seem obvious but reveal deeper truth
+- UNCOMFORTABLY HONEST: Acknowledge what everyone thinks but won't say
+- VISUALLY SPARSE: Massive whitespace, single powerful image, Helvetica
+- TONALLY DEADPAN: Dry humor, no exclamation marks, matter-of-fact surrealism
+
+Output ONLY the creative content. No explanations. No preamble. Just the work.`
+          },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: _maxTokens,
+        temperature: 0.9,
+      });
+      return response.choices[0]?.message?.content || generateFallback();
+    } catch (error) {
+      console.error('API error:', error);
+      return generateFallback();
+    }
+  }, []);
+
+  // Generate agent conversation about merged ideas
+  const generateMergeConversation = useCallback(async (item1: WorkItem, item2: WorkItem): Promise<void> => {
+    const agent1 = getCharacterInfo(item1.createdBy);
+    const agent2 = getCharacterInfo(item2.createdBy);
+    
+    const openai = getOpenAI();
+    if (!openai) {
+      addChatMessage(item1.createdBy, `Interesting. ${agent2.name.split(' ')[0]}'s idea about "${item2.content.slice(0, 30)}..." could work with mine.`);
+      addChatMessage(item2.createdBy, `I disagree. My approach is fundamentally different.`);
+      return;
+    }
+    
+    try {
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are writing dialogue between two ad agency creatives. ${agent1.name} (${agent1.role}) created: "${item1.content}". ${agent2.name} (${agent2.role}) created: "${item2.content}". They must discuss how to merge these ideas. Be witty, slightly adversarial, but ultimately productive. Output as JSON: {"agent1": "first line", "agent2": "response", "agent1_reply": "counter", "resolution": "how they agree to proceed"}`
+          },
+          { role: 'user', content: 'Generate their conversation.' }
+        ],
+        max_tokens: 300,
+        temperature: 0.9,
+      });
+      
+      const text = response.choices[0]?.message?.content || '';
+      try {
+        const dialogue = JSON.parse(text);
+        addChatMessage(item1.createdBy, dialogue.agent1);
+        setTimeout(() => addChatMessage(item2.createdBy, dialogue.agent2), 1500);
+        setTimeout(() => addChatMessage(item1.createdBy, dialogue.agent1_reply), 3000);
+        setTimeout(() => addChatMessage(item2.createdBy, dialogue.resolution), 4500);
+      } catch {
+        addChatMessage(item1.createdBy, `What if we combined "${item1.content.slice(0, 20)}..." with your approach?`);
+        setTimeout(() => addChatMessage(item2.createdBy, `That could work. Let me think about it.`), 1500);
+      }
+    } catch (error) {
+      console.error('Merge conversation error:', error);
+    }
+  }, []);
+
+  // Generate campaign image using DALL-E (available for future use)
+  const _generateCampaignImage = useCallback(async (imagePrompt: string): Promise<string | null> => {
+    const openai = getOpenAI();
+    if (!openai) return null;
+    
+    try {
+      const response = await openai.images.generate({
+        model: 'dall-e-3',
+        prompt: `Award-winning advertising campaign photograph. ${imagePrompt}. Style: documentary realism, muted colors, editorial quality, no text overlays, no logos. Shot on medium format film. High fashion meets documentary photography.`,
+        n: 1,
+        size: '1024x1024',
+        quality: 'standard',
+      });
+      return response.data?.[0]?.url || null;
+    } catch (error) {
+      console.error('Image generation error:', error);
+      return null;
+    }
+  }, []);
+
+  // Canvas panning
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0 && !draggedItem) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - canvasOffset.x, y: e.clientY - canvasOffset.y });
+    }
+  }, [canvasOffset, draggedItem]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!canvasRef.current) return;
+    
+    if (isPanning && !draggedItem) {
+      setCanvasOffset({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y,
+      });
+    }
+    
+    if (draggedItem) {
+      // Get canvas container position
+      const containerRect = canvasRef.current.getBoundingClientRect();
+      
+      // Calculate mouse position relative to the canvas content
+      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
+      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
+      
+      // Apply drag offset to get item position
+      const newX = mouseXInCanvas - dragOffset.x;
+      const newY = mouseYInCanvas - dragOffset.y;
+      
+      setWorkItems(prev => prev.map(item => 
+        item.id === draggedItem 
+          ? { ...item, position: { x: newX, y: newY }, isDragging: true }
+          : item
+      ));
+    }
+  }, [isPanning, panStart, draggedItem, canvasOffset, zoom, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+    
+    if (draggedItem) {
+      // Check for collision with other items
+      const draggedItemData = workItems.find(item => item.id === draggedItem);
+      if (draggedItemData) {
+        const collidingItem = workItems.find(item => {
+          if (item.id === draggedItem) return false;
+          if (item.createdBy === draggedItemData.createdBy) return false;
+          
+          const dx = Math.abs(item.position.x - draggedItemData.position.x);
+          const dy = Math.abs(item.position.y - draggedItemData.position.y);
+          return dx < 150 && dy < 80;
+        });
+        
+        if (collidingItem) {
+          generateMergeConversation(draggedItemData, collidingItem);
+        }
+      }
+      
+      setWorkItems(prev => prev.map(item => 
+        item.id === draggedItem ? { ...item, isDragging: false } : item
+      ));
+      setDraggedItem(null);
+    }
+  }, [draggedItem, workItems, generateMergeConversation]);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05;
+    setZoom(prev => Math.min(2, Math.max(0.3, prev * zoomFactor)));
+  }, []);
+
+  // Work item drag handlers - fixed calibration
+  const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!canvasRef.current) return;
+    
+    const item = workItems.find(i => i.id === itemId);
+    if (item) {
+      // Get canvas container position
+      const containerRect = canvasRef.current.getBoundingClientRect();
+      
+      // Calculate mouse position in canvas coordinates
+      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
+      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
+      
+      // Offset is the difference between mouse position and item position
+      setDragOffset({
+        x: mouseXInCanvas - item.position.x,
+        y: mouseYInCanvas - item.position.y,
+      });
+      setDraggedItem(itemId);
+    }
+  }, [workItems, zoom, canvasOffset]);
+
+  const updateTaskStatus = useCallback((taskId: string, newStatus: KanbanTask['status']) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ));
+  }, []);
+
+  const addChatMessage = useCallback((from: CharacterId, content: string, to?: CharacterId) => {
+    const msg: ChatMessage = {
+      id: `chat-${chatIdRef.current++}`,
+      from,
+      to,
+      content,
+      timestamp: Date.now(),
+    };
+    setChatMessages(prev => [...prev.slice(-20), msg]);
+  }, []);
+
+  const createWorkItem = useCallback((
+    agentId: CharacterId, 
+    type: WorkItem['type'], 
+    content: string, 
+    position: Position,
+    phase: number,
+    shouldType: boolean = false
+  ): string => {
+    const id = `item-${workItemIdRef.current++}`;
+    const item: WorkItem = {
+      id,
+      type,
+      content,
+      position,
+      color: ITEM_COLORS[type],
+      createdBy: agentId,
+      timestamp: Date.now(),
+      phase,
+      isTyping: shouldType,
+      displayedContent: shouldType ? '' : content,
+    };
+    setWorkItems(prev => [...prev, item]);
+    
+    if (shouldType && content.length > 0) {
+      let charIndex = 0;
+      const typeInterval = setInterval(() => {
+        charIndex += 2;
+        setWorkItems(prev => prev.map(wi => 
+          wi.id === id 
+            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
+            : wi
+        ));
+        if (charIndex >= content.length) {
+          clearInterval(typeInterval);
+        }
+      }, 30);
+      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
+    }
+    
+    return id;
+  }, []);
+
+  const moveAgentTo = useCallback((agentId: CharacterId, target: Position, status: AgentState['status'], action: string) => {
+    setAgents(prev => prev.map(agent => 
+      agent.id === agentId 
+        ? { ...agent, targetPosition: target, status, action, isActive: true }
+        : agent
+    ));
+  }, []);
+
+  // Smooth agent position updates
+  useEffect(() => {
+    let animationId: number;
+    const animate = () => {
+      setAgents(prev => prev.map(agent => {
+        const dx = agent.targetPosition.x - agent.position.x;
+        const dy = agent.targetPosition.y - agent.position.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 2) {
+          return {
+            ...agent,
+            position: {
+              x: agent.position.x + dx * 0.08,
+              y: agent.position.y + dy * 0.08,
+            },
+          };
+        }
+        return agent;
+      }));
+      animationId = requestAnimationFrame(animate);
+    };
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, []);
+
+  // Generate final ad code with complete campaign suite
+  const generateFinalAdCode = useCallback((headline: string, product: string) => {
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const campaignId = Math.random().toString(36).substr(2, 6).toUpperCase();
+    
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${product.toUpperCase()} — Campaign Dossier</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 40px;
+      line-height: 1.6;
+    }
+    .campaign-dossier {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .dossier-header {
+      border-bottom: 1px solid #333;
+      padding-bottom: 30px;
+      margin-bottom: 40px;
+    }
+    .dossier-number {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .campaign-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #8f8;
+      margin-bottom: 20px;
+    }
+    .tagline {
+      font-size: 32px;
+      font-weight: 300;
+      color: #fff;
+      max-width: 600px;
+      line-height: 1.3;
+    }
+    .section {
+      margin-bottom: 60px;
+    }
+    .section-title {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #666;
+      border-bottom: 1px solid #222;
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+    }
+    .deliverables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    .deliverable {
+      background: #111;
+      border: 1px solid #222;
+      overflow: hidden;
+    }
+    .deliverable-header {
+      padding: 15px 20px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #222;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .deliverable-type {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #888;
+    }
+    .deliverable-format {
+      font-size: 9px;
+      color: #4a9;
+    }
+    .deliverable-preview {
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+    }
+    .deliverable-preview.portrait {
+      aspect-ratio: 9/16;
+    }
+    .deliverable-preview.square {
+      aspect-ratio: 1/1;
+    }
+    .preview-headline {
+      font-size: 18px;
+      font-weight: 300;
+      color: #fff;
+      text-align: center;
+      max-width: 80%;
+    }
+    .preview-brand {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 8px;
+      letter-spacing: 3px;
+      color: #555;
+    }
+    .deliverable-specs {
+      padding: 15px 20px;
+      background: #0f0f0f;
+      font-size: 10px;
+      color: #666;
+    }
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .video-frames {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+    }
+    .video-frame {
+      aspect-ratio: 16/9;
+      background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      text-align: center;
+    }
+    .frame-number {
+      font-size: 8px;
+      color: #4a9;
+      margin-bottom: 5px;
+    }
+    .frame-desc {
+      font-size: 8px;
+      color: #888;
+    }
+    .social-preview {
+      background: #fff;
+      color: #1a1a1a;
+      padding: 20px;
+    }
+    .social-handle {
+      font-size: 10px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .social-copy {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .social-engagement {
+      margin-top: 15px;
+      font-size: 9px;
+      color: #888;
+    }
+    .ooh-preview {
+      position: relative;
+      background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+    }
+    .ooh-context {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23333" width="100" height="100"/><rect fill="%23555" x="20" y="20" width="60" height="60" rx="2"/></svg>');
+      background-size: 100px;
+      opacity: 0.1;
+    }
+    .footer {
+      margin-top: 60px;
+      padding-top: 30px;
+      border-top: 1px solid #222;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="campaign-dossier">
+    <header class="dossier-header">
+      <div class="dossier-number">DOSSIER #${campaignId} — ${timestamp}</div>
+      <div class="campaign-title">${product} CAMPAIGN</div>
+      <h1 class="tagline">"${headline}"</h1>
+    </header>
+
+    <!-- HERO PRINT AD -->
+    <section class="section">
+      <div class="section-title">001 — HERO PRINT EXECUTION</div>
+      <div class="deliverables-grid">
+        <div class="deliverable">
+          <div class="deliverable-header">
+            <span class="deliverable-type">PRINT — MAGAZINE SPREAD</span>
+            <span class="deliverable-format">420×297mm</span>
+          </div>
+          <div class="deliverable-preview">
+            <p class="preview-headline">${headline}</p>
+            <span class="preview-brand">${product.toUpperCase()}</span>
+          </div>
+          <div class="deliverable-specs">
+            <div class="spec-row"><span>Format</span><span>Double Page Spread</span></div>
+            <div class="spec-row"><span>Color Space</span><span>CMYK / 300dpi</span></div>
+            <div class="spec-row"><span>Placement</span><span>Premium Editorial</span></div>
+          </div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-header">
+            <span class="deliverable-type">PRINT — POSTER</span>
+            <span class="deliverable-format">A1 Portrait</span>
+          </div>
+          <div class="deliverable-preview portrait">
+            <p class="preview-headline" style="font-size: 14px;">${headline}</p>
+            <span class="preview-brand">${product.toUpperCase()}</span>
+          </div>
+          <div class="deliverable-specs">
+            <div class="spec-row"><span>Format</span><span>594×841mm</span></div>
+            <div class="spec-row"><span>Paper</span><span>Uncoated 200gsm</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIDEO STORYBOARD -->
+    <section class="section">
+      <div class="section-title">002 — :30 VIDEO SPOT — STORYBOARD</div>
+      <div class="deliverable">
+        <div class="deliverable-header">
+          <span class="deliverable-type">VIDEO — BROADCAST + DIGITAL</span>
+          <span class="deliverable-format">1920×1080 / 30fps</span>
+        </div>
+        <div class="video-frames">
+          <div class="video-frame">
+            <span class="frame-number">00:00</span>
+            <span class="frame-desc">Black screen. Ambient sound.</span>
+          </div>
+          <div class="video-frame">
+            <span class="frame-number">00:05</span>
+            <span class="frame-desc">Slow fade. Subject appears.</span>
+          </div>
+          <div class="video-frame">
+            <span class="frame-number">00:12</span>
+            <span class="frame-desc">Close-up. The moment.</span>
+          </div>
+          <div class="video-frame">
+            <span class="frame-number">00:18</span>
+            <span class="frame-desc">Pull back. Context revealed.</span>
+          </div>
+          <div class="video-frame">
+            <span class="frame-number">00:22</span>
+            <span class="frame-desc">Text appears: "${headline.slice(0, 20)}..."</span>
+          </div>
+          <div class="video-frame">
+            <span class="frame-number">00:26</span>
+            <span class="frame-desc">Beat. Silence.</span>
+          </div>
+          <div class="video-frame">
+            <span class="frame-number">00:28</span>
+            <span class="frame-desc">Logo. End frame.</span>
+          </div>
+          <div class="video-frame">
+            <span class="frame-number">00:30</span>
+            <span class="frame-desc">${product.toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="deliverable-specs">
+          <div class="spec-row"><span>Audio</span><span>VO + Ambient</span></div>
+          <div class="spec-row"><span>Mood</span><span>Contemplative / Unexpected</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOCIAL MEDIA -->
+    <section class="section">
+      <div class="section-title">003 — SOCIAL MEDIA ACTIVATION</div>
+      <div class="deliverables-grid">
+        <div class="deliverable">
+          <div class="deliverable-header">
+            <span class="deliverable-type">INSTAGRAM — FEED</span>
+            <span class="deliverable-format">1080×1080</span>
+          </div>
+          <div class="deliverable-preview square social-preview">
+            <div class="social-handle">@${product.toLowerCase().replace(/\s/g, '')}</div>
+            <div class="social-copy">${headline}</div>
+            <div class="social-engagement">♡ 12.4K    💬 847    ↗ 2.1K</div>
+          </div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-header">
+            <span class="deliverable-type">INSTAGRAM — STORY</span>
+            <span class="deliverable-format">1080×1920</span>
+          </div>
+          <div class="deliverable-preview portrait">
+            <p class="preview-headline" style="font-size: 14px;">${headline}</p>
+            <span class="preview-brand">Swipe up ↑</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OOH -->
+    <section class="section">
+      <div class="section-title">004 — OUT OF HOME</div>
+      <div class="deliverables-grid">
+        <div class="deliverable">
+          <div class="deliverable-header">
+            <span class="deliverable-type">BILLBOARD — 48 SHEET</span>
+            <span class="deliverable-format">6096×3048mm</span>
+          </div>
+          <div class="deliverable-preview ooh-preview">
+            <div class="ooh-context"></div>
+            <p class="preview-headline">${headline}</p>
+            <span class="preview-brand">${product.toUpperCase()}</span>
+          </div>
+          <div class="deliverable-specs">
+            <div class="spec-row"><span>Placement</span><span>Urban High-Traffic</span></div>
+            <div class="spec-row"><span>Duration</span><span>4 weeks</span></div>
+          </div>
+        </div>
+        <div class="deliverable">
+          <div class="deliverable-header">
+            <span class="deliverable-type">BUS SHELTER</span>
+            <span class="deliverable-format">1800×1200mm</span>
+          </div>
+          <div class="deliverable-preview">
+            <p class="preview-headline" style="font-size: 16px;">${headline}</p>
+            <span class="preview-brand">${product.toUpperCase()}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>THE FERAL CREATIVE COLLECTIVE — ADHDAI</span>
+      <span>CAMPAIGN #${campaignId}</span>
+      <span>${timestamp}</span>
+    </footer>
+  </div>
+</body>
+</html>`;
+  }, []);
+
+  // Run the workflow with API-generated content
+  const runWorkflow = useCallback(async () => {
+    // Always use the ref to get the latest brief value
+    const currentBrief = briefRef.current;
+    if (!currentBrief) return;
+    
+    let delay = 0;
+    
+    workflowRef.current.forEach(t => clearTimeout(t));
+    typingRef.current.forEach(t => clearInterval(t));
+    workflowRef.current = [];
+    typingRef.current = [];
+
+    const schedule = (fn: () => void, ms: number) => {
+      const timeout = setTimeout(fn, delay + ms);
+      workflowRef.current.push(timeout);
+      return timeout;
+    };
+
+    // ===== PHASE 1: INTAKE (Mike Slab) =====
+    schedule(() => {
+      setCurrentPhase(1);
+      setPhaseLabel('PHASE 1: STRATEGIC INTAKE');
+      updateTaskStatus('task-1', 'in-progress');
+      moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Analyzing brief...');
+      addChatMessage('mike', `*lights cigarette* Alright, let's see what we got here. "${currentBrief}" — that's what they SAID they want. Let me find out what they actually need.`);
+    }, 0);
+
+    schedule(async () => {
+      const insight = await generateCreativeContent(
+        `Brief: "${currentBrief}". As Mike Slab, a cynical ex-insurance fraud investigator turned account planner, identify the REAL human tension beneath this brief. What uncomfortable truth about consumers does this product address? Be brutally honest in 2 sentences.`
+      );
+      createWorkItem('mike', 'sticky', insight, { x: 400, y: 100 }, 1, true);
+      addChatMessage('mike', `There it is. *taps folder* The real job under the job. Client thinks they're selling one thing, but people are buying something else entirely.`);
+      updateTaskStatus('task-1', 'done');
+      updateTaskStatus('task-2', 'in-progress');
+    }, 2000);
+
+    schedule(async () => {
+      const tension = await generateCreativeContent(
+        `Brief: "${currentBrief}". What is the psychological conflict consumers face? What do they secretly want but won't admit? One powerful sentence.`
+      );
+      createWorkItem('mike', 'concept', `HUMAN TENSION:\n${tension}`, { x: 480, y: 180 }, 1, true);
+      addChatMessage('mike', `@poole Got the case file ready. Human tension is locked. Do your... *waves hand dismissively* ...architecture thing.`);
+      updateTaskStatus('task-2', 'done');
+    }, 5000);
+
+    delay = 7000;
+
+    // ===== PHASE 2: STRATEGY (Dr. Poole) =====
+    schedule(() => {
+      setCurrentPhase(2);
+      setPhaseLabel('PHASE 2: STRATEGIC FRAMEWORK');
+      updateTaskStatus('task-3', 'in-progress');
+      moveAgentTo('poole', { x: 820, y: 140 }, 'thinking', 'Building framework...');
+      addChatMessage('poole', `Ah yes, the architecture of wanting reveals itself. *adjusts glasses* Let me apply the Poole System™ to this particular consumer topology.`);
+    }, 0);
+
+    schedule(async () => {
+      const barrier = await generateCreativeContent(
+        `Brief: "${currentBrief}". What is the BARRIER preventing consumers from engaging with this product/brand? What mental block must be overcome? One sentence, starting with "They believe..."`
+      );
+      createWorkItem('poole', 'framework', `BARRIER:\n${barrier}`, { x: 740, y: 100 }, 2, true);
+      addChatMessage('poole', `The consumer's psychographic resistance vector is now mapped. Notice how the desire-obstacle axis creates a tension quadrant...`);
+      updateTaskStatus('task-3', 'done');
+      updateTaskStatus('task-4', 'in-progress');
+    }, 2000);
+
+    schedule(async () => {
+      const reframe = await generateCreativeContent(
+        `Brief: "${currentBrief}". Create a REFRAME - a new way to see this product that makes it irresistible. How do we flip the script? One sentence, starting with "But what if..."`
+      );
+      createWorkItem('poole', 'strategy', `REFRAME:\n${reframe}`, { x: 820, y: 170 }, 2, true);
+      addChatMessage('poole', `*draws elaborate diagram* Behold: the Strategic Reframe. When we pivot the perception axis, consumption becomes inevitable. @the-cell The framework awaits your textual intervention.`);
+      updateTaskStatus('task-4', 'done');
+      updateTaskStatus('task-5', 'in-progress');
+      updateTaskStatus('task-5', 'done');
+    }, 5000);
+
+    delay += 7000;
+
+    // ===== PHASE 3: COPY (The Cell) =====
+    schedule(() => {
+      setCurrentPhase(3);
+      setPhaseLabel('PHASE 3: COPY DEVELOPMENT');
+      updateTaskStatus('task-6', 'in-progress');
+      moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Vera writing Option A...');
+      addChatMessage('the-cell', `[VERA]: The Cell has reviewed Poole's framework. I'll draft the conventional approach first — the one the client expects. [GJON]: I'll write the one they need. [THURSDAY]: *says nothing, already writing*`);
+    }, 0);
+
+    schedule(async () => {
+      const optionA = await generateCreativeContent(
+        `Brief: "${currentBrief}". Write OPTION A - a compelling but conventional headline for this product. Swiss-style minimalism. Under 10 words. Just the headline, nothing else.`
+      );
+      createWorkItem('the-cell', 'headline', `OPTION A (Vera):\n\n"${optionA}"`, { x: 1080, y: 90 }, 3, true);
+      addChatMessage('the-cell', `[VERA]: Option A submitted. Clean, direct, won't scare anyone. —The Cell`);
+      updateTaskStatus('task-6', 'done');
+      updateTaskStatus('task-7', 'in-progress');
+      moveAgentTo('the-cell', { x: 1220, y: 180 }, 'typing', 'Gjon writing Option B...');
+    }, 3000);
+
+    schedule(async () => {
+      const optionB = await generateCreativeContent(
+        `Brief: "${currentBrief}". Write OPTION B - a more provocative headline that challenges assumptions. Make people pause. Under 12 words. Just the headline.`
+      );
+      createWorkItem('the-cell', 'headline', `OPTION B (Gjon):\n\n"${optionB}"`, { x: 1200, y: 150 }, 3, true);
+      addChatMessage('the-cell', `[GJON]: Option B. This one has teeth. [VERA]: Too aggressive. [GJON]: That's why it works.`);
+      updateTaskStatus('task-7', 'done');
+      updateTaskStatus('task-8', 'in-progress');
+    }, 6000);
+
+    schedule(async () => {
+      const optionC = await generateCreativeContent(
+        `Brief: "${currentBrief}". Write OPTION C - a deeply strange, uncomfortable headline that reveals an unexpected truth. Deranged but logical. Under 15 words. Just the headline.`
+      );
+      createWorkItem('the-cell', 'headline', `OPTION C (Thursday):\n\n"${optionC}"`, { x: 1140, y: 220 }, 3, true);
+      addChatMessage('the-cell', `[THURSDAY]: *slides paper across table without speaking* [VERA]: ...Thursday, this is unhinged. [GJON]: It's perfect. [CELL VOTE: Option C wins 2-1]`);
+      updateTaskStatus('task-8', 'done');
+      updateTaskStatus('task-9', 'in-progress');
+    }, 9000);
+
+    schedule(() => {
+      createWorkItem('the-cell', 'approval', '✓ VOTE: C wins 2-1\nThursday always wins.', { x: 1280, y: 260 }, 3, false);
+      addChatMessage('the-cell', `[COLLECTIVE STATEMENT]: The Cell has spoken. Option C carries. @burl — Make it beautiful. Make it wrong. Make it true. —The Cell`);
+      updateTaskStatus('task-9', 'done');
+    }, 11000);
+
+    delay += 13000;
+
+    // ===== PHASE 4: VISUAL (Burl) =====
+    schedule(() => {
+      setCurrentPhase(4);
+      setPhaseLabel('PHASE 4: ART DIRECTION');
+      updateTaskStatus('task-10', 'in-progress');
+      moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Defining visual language...');
+      addChatMessage('burl', `*shuffles through paint swatches* Alright. I've been thinking about these pictures. The copy's got teeth — the visual needs to match. Not pretty. Honest.`);
+    }, 0);
+
+    schedule(async () => {
+      const visual = await generateCreativeContent(
+        `Brief: "${currentBrief}". As an art director, describe the VISUAL LANGUAGE for this campaign in exactly 3 bullet points. Be specific about colors (hex codes), typography, and mood. Swiss-style minimalism.`
+      );
+      createWorkItem('burl', 'visual', visual, { x: 400, y: 380 }, 4, true);
+      addChatMessage('burl', `See, here's my theory on color for this one... *gestures at swatch* This ain't about what looks good. It's about what feels right in your gut.`);
+      updateTaskStatus('task-10', 'done');
+      updateTaskStatus('task-11', 'in-progress');
+    }, 2000);
+
+    schedule(async () => {
+      const typography = await generateCreativeContent(
+        `For this ad campaign based on "${currentBrief}", specify the TYPOGRAPHY SYSTEM: Primary font, size hierarchy, and spacing philosophy. Be precise. 3 lines max.`
+      );
+      createWorkItem('burl', 'mockup', `TYPOGRAPHY:\n${typography}`, { x: 500, y: 450 }, 4, true);
+      updateTaskStatus('task-11', 'done');
+      updateTaskStatus('task-12', 'in-progress');
+    }, 5000);
+
+    schedule(async () => {
+      const artDirection = await generateCreativeContent(
+        `Brief: "${currentBrief}". Describe the KEY VISUAL for the hero ad. What single image captures the essence? Be specific and unexpected. 2 sentences.`
+      );
+      createWorkItem('burl', 'visual', `KEY VISUAL:\n${artDirection}`, { x: 420, y: 520 }, 4, true);
+      addChatMessage('burl', `There. That's the picture. *taps layout* Don't let anyone make it prettier. @nadya — when can we shoot?`);
+      updateTaskStatus('task-12', 'done');
+    }, 8000);
+
+    delay += 10000;
+
+    // ===== PHASE 5: PRODUCTION (Nadya) =====
+    schedule(() => {
+      setCurrentPhase(5);
+      setPhaseLabel('PHASE 5: PRODUCTION');
+      updateTaskStatus('task-13', 'in-progress');
+      moveAgentTo('nadya', { x: 820, y: 440 }, 'clicking', 'Scheduling...');
+      addChatMessage('nadya', `*lights cigarette* Schedule. Everything is ASAP, yes? Tell me the date. I make it happen. No excuses. Only results.`);
+    }, 0);
+
+    schedule(() => {
+      const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString();
+      createWorkItem('nadya', 'sticky', `SHOOT: ${tomorrow}\nDELIVERY: +48hrs\nNO DELAYS.`, { x: 740, y: 380 }, 5, false);
+      createWorkItem('nadya', 'approval', '⏱ LOCKED', { x: 840, y: 440 }, 5, false);
+      addChatMessage('nadya', `Schedule is locked. *stubs out cigarette* Valentina Tereshkova did not orbit Earth to have us miss deadlines. @delmore — make them understand.`);
+      updateTaskStatus('task-13', 'done');
+    }, 3000);
+
+    delay += 5000;
+
+    // ===== PHASE 6: CLIENT (Delmore) =====
+    schedule(() => {
+      setCurrentPhase(6);
+      setPhaseLabel('PHASE 6: CLIENT TRANSLATION');
+      updateTaskStatus('task-14', 'in-progress');
+      moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Client deck...');
+      addChatMessage('delmore', `*adjusts short-sleeve button-down, offers hard candy* Now, the client... they need to feel comfortable with what we've made. Let me put this in terms they can bring to their board.`);
+    }, 0);
+
+    schedule(async () => {
+      const clientSpeak = await generateCreativeContent(
+        `Translate this ad campaign for "${currentBrief}" into CLIENT-FRIENDLY language. Use buzzwords like "authentic", "disruptive", "culturally relevant". 3 bullet points that say nothing but sound impressive.`
+      );
+      createWorkItem('delmore', 'draft', `CLIENT DECK:\n${clientSpeak}`, { x: 1100, y: 380 }, 6, true);
+      addChatMessage('delmore', `*hands over laminated pamphlet* Here's the deck. They'll love it. Or they'll be confused. Either way, they'll approve it. @apparatus — compile the final dossier.`);
+      updateTaskStatus('task-14', 'done');
+    }, 3000);
+
+    delay += 5000;
+
+    // ===== PHASE 7: FINAL (Apparatus) =====
+    schedule(() => {
+      setCurrentPhase(7);
+      setPhaseLabel('PHASE 7: FINAL ASSEMBLY');
+      updateTaskStatus('task-15', 'in-progress');
+      moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling...');
+      addChatMessage('apparatus', `RECEIVING DOCUMENTS — timestamp ${new Date().toISOString().slice(0, 19)}. COMPILING FINAL DOSSIER. Please stand by.`);
+    }, 0);
+
+    schedule(async () => {
+      const finalHeadline = await generateCreativeContent(
+        `Brief: "${currentBrief}". Write the FINAL approved headline for this campaign. It should be memorable, slightly unsettling, and true. Under 12 words. Just the headline.`
+      );
+      
+      const words = currentBrief.split(' ').filter(w => w.length > 3);
+      const product = words[0] || 'PRODUCT';
+      
+      createWorkItem('apparatus', 'board', `FINAL AD:\n\n"${finalHeadline}"\n\n— ${product.toUpperCase()}`, { x: 760, y: 660 }, 7, true);
+      
+      const code = generateFinalAdCode(finalHeadline, product);
+      setFinalAdCode(code);
+      
+      createWorkItem('apparatus', 'approval', `✓ CODE READY\n${product}.html`, { x: FINAL_OUTPUT_ZONE.x + 40, y: FINAL_OUTPUT_ZONE.y + 40 }, 7, false);
+      
+      addChatMessage('apparatus', `ASSEMBLY COMPLETE — All documents processed. The work exists now in its final form. It is neither good nor bad — it simply is. READY FOR REVIEW—`);
+      updateTaskStatus('task-15', 'done');
+      updateTaskStatus('task-16', 'done');
+    }, 4000);
+
+    schedule(() => {
+      setPhaseLabel('✓ CAMPAIGN COMPLETE');
+      addChatMessage('apparatus', `DOSSIER ARCHIVED — ${new Date().toISOString().slice(0, 10)}. The brief has been answered. The work is done. We wait — as we always do — for the next question.`);
+      setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
+    }, 7000);
+
+  }, [generateCreativeContent, moveAgentTo, addChatMessage, createWorkItem, updateTaskStatus, generateFinalAdCode]);
+
+  // Use ref to always access the latest runWorkflow function
+  const runWorkflowRef = useRef(runWorkflow);
+  runWorkflowRef.current = runWorkflow;
+  
+  const handleStart = useCallback(() => {
+    setIsRunning(true);
+    setWorkItems([]);
+    setChatMessages([]);
+    setTasks(INITIAL_TASKS);
+    setCurrentPhase(0);
+    setPhaseLabel('Starting...');
+    setFinalAdCode('');
+    setShowCodePanel(false);
+    
+    setAgents(prev => prev.map(agent => ({
+      ...agent,
+      status: 'idle',
+      action: '',
+      isActive: false,
+      position: {
+        x: agent.workZone.x + agent.workZone.width / 2,
+        y: agent.workZone.y + agent.workZone.height / 2,
+      },
+      targetPosition: {
+        x: agent.workZone.x + agent.workZone.width / 2,
+        y: agent.workZone.y + agent.workZone.height / 2,
+      },
+    })));
+    
+    // Use ref to always call the latest version of runWorkflow
+    setTimeout(() => runWorkflowRef.current(), 500);
+  }, []);
+
+  const handleReset = () => {
+    setIsRunning(false);
+    workflowRef.current.forEach(t => clearTimeout(t));
+    typingRef.current.forEach(t => clearInterval(t));
+    setWorkItems([]);
+    setChatMessages([]);
+    setTasks(INITIAL_TASKS);
+    setCurrentPhase(0);
+    setPhaseLabel('Ready to begin');
+    setFinalAdCode('');
+    setShowCodePanel(false);
+    setAgents(prev => prev.map(agent => ({
+      ...agent,
+      status: 'idle',
+      action: '',
+      isActive: false,
+      position: {
+        x: agent.workZone.x + agent.workZone.width / 2,
+        y: agent.workZone.y + agent.workZone.height / 2,
+      },
+      targetPosition: {
+        x: agent.workZone.x + agent.workZone.width / 2,
+        y: agent.workZone.y + agent.workZone.height / 2,
+      },
+    })));
+  };
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(finalAdCode);
+    addChatMessage('apparatus', 'CODE COPIED.');
+  };
+
+  const getCharacterInfo = (agentId: CharacterId) => {
+    return CHARACTERS.find(c => c.id === agentId) || CHARACTERS[0];
+  };
+
+  const taskCounts = {
+    todo: tasks.filter(t => t.status === 'todo').length,
+    inProgress: tasks.filter(t => t.status === 'in-progress').length,
+    done: tasks.filter(t => t.status === 'done').length,
+  };
+
+  return (
+    <div className="canvas-workspace-v2">
+      {/* Control Bar */}
+      <div className="controls-bar">
+        <div className="controls-left">
+          {!isRunning ? (
+            <button className="control-btn start-btn" onClick={handleStart} disabled={!brief}>
+              ▶ START
+            </button>
+          ) : (
+            <button className="control-btn pause-btn" onClick={handleReset}>
+              ⏹ STOP
+            </button>
+          )}
+          <button className="control-btn reset-btn" onClick={handleReset}>
+            ↺ RESET
+          </button>
+        </div>
+        
+        <div className="controls-center">
+          <div className="phase-indicator">{phaseLabel}</div>
+          <span className="item-count">{workItems.length} items • {chatMessages.length} messages</span>
+        </div>
+        
+        <div className="controls-right">
+          <span className="task-summary">
+            {taskCounts.todo} todo • {taskCounts.inProgress} active • {taskCounts.done} done
+          </span>
+          <span className="zoom-level">{Math.round(zoom * 100)}%</span>
+        </div>
+      </div>
+
+      {/* Main Canvas */}
+      <div 
+        className={`canvas-container ${isPanning ? 'panning' : ''} ${draggedItem ? 'dragging-item' : ''}`}
+        ref={canvasRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
+      >
+        <div 
+          className="canvas-content"
+          style={{
+            transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${zoom})`,
+            transformOrigin: '0 0',
+          }}
+        >
+          {/* KANBAN BOARD */}
+          <div 
+            className="kanban-board-canvas"
+            style={{
+              left: KANBAN_ZONE.x,
+              top: KANBAN_ZONE.y,
+              width: KANBAN_ZONE.width,
+              height: KANBAN_ZONE.height,
+            }}
+          >
+            <div className="kanban-header">
+              <span>📋 TASKS</span>
+              <span className="kanban-phase">Phase {currentPhase}/7</span>
+            </div>
+            
+            <div className="kanban-column">
+              <div className="column-header todo-header">
+                <span>TO DO</span>
+                <span className="column-count">{taskCounts.todo}</span>
+              </div>
+              <div className="column-tasks">
+                {tasks.filter(t => t.status === 'todo').map(task => {
+                  const char = getCharacterInfo(task.assignee);
+                  return (
+                    <div key={task.id} className="kanban-task" style={{ borderLeftColor: char.color }}>
+                      <span className="task-emoji">{char.emoji}</span>
+                      <span className="task-title">{task.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="kanban-column">
+              <div className="column-header progress-header">
+                <span>IN PROGRESS</span>
+                <span className="column-count">{taskCounts.inProgress}</span>
+              </div>
+              <div className="column-tasks">
+                {tasks.filter(t => t.status === 'in-progress').map(task => {
+                  const char = getCharacterInfo(task.assignee);
+                  return (
+                    <div key={task.id} className="kanban-task active" style={{ borderLeftColor: char.color }}>
+                      <span className="task-emoji">{char.emoji}</span>
+                      <span className="task-title">{task.title}</span>
+                      <span className="task-working">⏳</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="kanban-column">
+              <div className="column-header done-header">
+                <span>DONE</span>
+                <span className="column-count">{taskCounts.done}</span>
+              </div>
+              <div className="column-tasks">
+                {tasks.filter(t => t.status === 'done').map(task => {
+                  const char = getCharacterInfo(task.assignee);
+                  return (
+                    <div key={task.id} className="kanban-task done" style={{ borderLeftColor: char.color }}>
+                      <span className="task-emoji">{char.emoji}</span>
+                      <span className="task-title">{task.title}</span>
+                      <span className="task-check">✓</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Work Zone Labels - positioned at corners */}
+          {Object.entries(WORK_ZONES).map(([agentId, zone]) => {
+            const char = getCharacterInfo(agentId as CharacterId);
+            const agent = agents.find(a => a.id === agentId);
+            const isActive = agent?.isActive;
+            return (
+              <div
+                key={`zone-${agentId}`}
+                className={`work-zone ${isActive ? 'active' : ''}`}
+                style={{
+                  left: zone.x,
+                  top: zone.y,
+                  width: zone.width,
+                  height: zone.height,
+                  borderColor: isActive ? char.color : char.color + '20',
+                }}
+              >
+                <span 
+                  className="zone-label-corner" 
+                  style={{ 
+                    color: '#fff', 
+                    backgroundColor: char.color,
+                  }}
+                >
+                  {char.emoji} {char.name.split(' ')[0]}
+                </span>
+              </div>
+            );
+          })}
+
+          {/* FINAL OUTPUT ZONE */}
+          <div 
+            className={`final-output-zone ${finalAdCode ? 'ready' : ''}`}
+            style={{
+              left: FINAL_OUTPUT_ZONE.x,
+              top: FINAL_OUTPUT_ZONE.y,
+              width: FINAL_OUTPUT_ZONE.width,
+              height: FINAL_OUTPUT_ZONE.height,
+            }}
+          >
+            <div className="final-output-header">
+              <span>📦 OUTPUT</span>
+              {finalAdCode && (
+                <button className="view-code-btn" onClick={() => setShowCodePanel(true)}>
+                  VIEW CODE
+                </button>
+              )}
+            </div>
+            <div className="final-output-content">
+              {finalAdCode ? (
+                <div className="output-ready">
+                  <span className="output-status">✓ READY</span>
+                  <span className="output-filename">campaign.html</span>
+                </div>
+              ) : (
+                <span className="output-waiting">Waiting...</span>
+              )}
+            </div>
+          </div>
+
+          {/* Work Items - DRAGGABLE */}
+          {workItems.map(item => {
+            const char = getCharacterInfo(item.createdBy);
+            return (
+              <div
+                key={item.id}
+                className={`work-item ${item.type} ${item.isTyping ? 'typing' : ''} ${item.isDragging ? 'dragging' : ''}`}
+                style={{
+                  left: item.position.x,
+                  top: item.position.y,
+                  backgroundColor: item.color,
+                  borderLeftColor: char.color,
+                  cursor: 'grab',
+                  zIndex: item.isDragging ? 1000 : 10,
+                }}
+                onMouseDown={(e) => handleItemMouseDown(e, item.id)}
+              >
+                <pre className="item-content">{item.displayedContent || item.content}{item.isTyping && <span className="cursor">|</span>}</pre>
+                <div className="item-author" style={{ backgroundColor: char.color }}>
+                  {char.emoji}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Agent Cursors */}
+          {agents.map(agent => {
+            const char = getCharacterInfo(agent.id);
+            if (!agent.isActive) return null;
+            return (
+              <div
+                key={agent.id}
+                className={`agent-cursor-v2 ${agent.status} active`}
+                style={{
+                  left: agent.position.x,
+                  top: agent.position.y,
+                }}
+              >
+                <svg className="cursor-svg" width="20" height="20" viewBox="0 0 24 24">
+                  <path
+                    d="M5.65 2.65L19.35 12L12 14L9 21L5.65 2.65Z"
+                    fill={char.color}
+                    stroke="#fff"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+                
+                {agent.action && (
+                  <div className="cursor-action-label" style={{ backgroundColor: char.color }}>
+                    {agent.action}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Drag hint */}
+        <div className="canvas-hint">Drag items to combine ideas • Scroll to zoom • Drag canvas to pan</div>
+      </div>
+
+      {/* Chat Panel */}
+      <div className="chat-panel">
+        <div className="chat-header">
+          <span className="chat-title">💬 AGENT CHAT</span>
+          <span className="chat-phase">Phase {currentPhase}/7</span>
+        </div>
+        <div className="chat-messages">
+          {chatMessages.map(msg => {
+            const char = getCharacterInfo(msg.from);
+            return (
+              <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
+                <div className="chat-sender">
+                  <span className="chat-emoji">{char.emoji}</span>
+                  <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
+                </div>
+                <div className="chat-content">{msg.content}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Code Panel */}
+      {showCodePanel && (
+        <div className="code-panel-overlay" onClick={() => setShowCodePanel(false)}>
+          <div className="code-panel" onClick={e => e.stopPropagation()}>
+            <div className="code-panel-header">
+              <span>📦 CAMPAIGN CODE</span>
+              <div className="code-panel-actions">
+                <button className="copy-btn" onClick={copyCode}>📋 COPY</button>
+                <button className="close-btn" onClick={() => setShowCodePanel(false)}>✕</button>
+              </div>
+            </div>
+            <div className="code-panel-content">
+              <pre className="code-block">{finalAdCode}</pre>
+            </div>
+            <div className="code-panel-footer">
+              Save as .html and open in browser
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CanvasWorkspace;

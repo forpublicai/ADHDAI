@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Task, Character, Phase } from '../types';
 import { PHASES } from '../constants';
 import './KanbanBoard.css';
@@ -9,6 +10,8 @@ interface KanbanBoardProps {
 }
 
 export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanBoardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   const getCharacter = (id: string | null) => {
     if (!id) return null;
     return characters.find(c => c.id === id);
@@ -20,16 +23,28 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
 
   const todos = tasks.filter(t => t.status === 'todo');
   const inProgress = tasks.filter(t => t.status === 'in-progress');
+  const blocked = tasks.filter(t => t.status === 'blocked');
   const done = tasks.filter(t => t.status === 'done');
 
   return (
-    <div className="kanban-board">
-      <div className="kanban-header">
-        <h3>Task Board</h3>
-        <div className="current-phase">
-          Current: {getPhaseName(currentPhase)}
+    <>
+      {isExpanded && <div className="kanban-overlay" onClick={() => setIsExpanded(false)} />}
+      <div className={`kanban-board ${isExpanded ? 'expanded' : ''}`}>
+        <div className="kanban-header">
+          <div className="kanban-header-top">
+            <h3>Task Board</h3>
+            <button 
+              className="expand-button" 
+              onClick={() => setIsExpanded(!isExpanded)}
+              title={isExpanded ? 'Collapse board' : 'Expand board'}
+            >
+              {isExpanded ? '✕' : '⤢'}
+            </button>
+          </div>
+          <div className="current-phase">
+            Current: {getPhaseName(currentPhase)}
+          </div>
         </div>
-      </div>
       <div className="kanban-columns">
         <div className="kanban-column">
           <div className="column-header">To Do</div>
@@ -58,8 +73,22 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
             {inProgress.map(task => {
               const character = getCharacter(task.assignedTo);
               return (
-                <div key={task.id} className="kanban-task">
+                <div key={task.id} className="kanban-task in-progress">
                   <div className="task-title">{task.title}</div>
+                  {task.progress !== undefined && (
+                    <div className="task-progress">
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${task.progress}%` }}></div>
+                      </div>
+                      <span className="progress-text">{task.progress}%</span>
+                    </div>
+                  )}
+                  {task.workProduct && (
+                    <div className="task-work-product in-progress-work">
+                      <div className="work-product-label">Working on:</div>
+                      <div className="work-product-content">{task.workProduct}</div>
+                    </div>
+                  )}
                   {character && (
                     <div className="task-assignee" style={{ color: character.color }}>
                       {character.emoji} {character.name}
@@ -70,6 +99,38 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
             })}
           </div>
         </div>
+        {blocked.length > 0 && (
+          <div className="kanban-column">
+            <div className="column-header">Blocked</div>
+            <div className="column-content">
+              {blocked.map(task => {
+                const character = getCharacter(task.assignedTo);
+                return (
+                  <div key={task.id} className="kanban-task blocked">
+                    <div className="task-title">{task.title}</div>
+                    {task.conflicts && task.conflicts.length > 0 && (
+                      <div className="task-conflicts">
+                        {task.conflicts.map((conflict, idx) => {
+                          const conflictChar = getCharacter(conflict.with);
+                          return (
+                            <div key={idx} className="conflict-indicator">
+                              ⚠️ Conflict with {conflictChar?.name || conflict.with}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {character && (
+                      <div className="task-assignee" style={{ color: character.color }}>
+                        {character.emoji} {character.name}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="kanban-column">
           <div className="column-header">Done</div>
           <div className="column-content">
@@ -78,9 +139,32 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
               return (
                 <div key={task.id} className="kanban-task done">
                   <div className="task-title">{task.title}</div>
+                  {task.workProduct && (
+                    <div className="task-work-product">
+                      <div className="work-product-label">Output:</div>
+                      <div className="work-product-content">{task.workProduct}</div>
+                    </div>
+                  )}
+                  {task.conflicts && task.conflicts.length > 0 && (
+                    <div className="task-conflicts">
+                      {task.conflicts.map((conflict, idx) => {
+                        const conflictChar = getCharacter(conflict.with);
+                        return (
+                          <div key={idx} className="conflict-resolved">
+                            ✓ Resolved with {conflictChar?.name || conflict.with}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   {character && (
                     <div className="task-assignee" style={{ color: character.color }}>
                       {character.emoji} {character.name}
+                    </div>
+                  )}
+                  {task.completedAt && (
+                    <div className="task-timestamp">
+                      {new Date(task.completedAt).toLocaleTimeString()}
                     </div>
                   )}
                 </div>
@@ -90,5 +174,6 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
         </div>
       </div>
     </div>
+    </>
   );
 }

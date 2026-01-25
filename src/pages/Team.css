@@ -1,0 +1,364 @@
+.team-page {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 0;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.team-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  z-index: 1000;
+  padding: 0;
+}
+
+.team-nav .nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.team-nav .nav-logo {
+  font-size: 18px;
+  font-weight: 400;
+  color: #000000;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.team-nav .nav-links {
+  display: flex;
+  gap: 32px;
+}
+
+.team-nav .nav-link {
+  font-size: 16px;
+  font-weight: 400;
+  color: #000000;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: opacity 0.2s ease;
+}
+
+.team-nav .nav-link:hover {
+  opacity: 0.6;
+}
+
+.team-nav .nav-link.active {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.team-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.team-header {
+  padding: 160px 40px 80px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.team-title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 72px;
+  font-weight: 400;
+  margin-bottom: 16px;
+  color: #000000;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.team-subtitle {
+  font-size: 20px;
+  font-weight: 400;
+  margin: 0 0 32px 0;
+  color: #666666;
+  letter-spacing: 0.01em;
+  font-style: italic;
+}
+
+.team-intro {
+  font-size: 20px;
+  color: #000000;
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 720px;
+}
+
+.team-grid {
+  padding: 0;
+}
+
+.team-member {
+  padding: 80px 40px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.team-member:last-child {
+  border-bottom: none;
+}
+
+.member-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.member-emoji {
+  width: 72px;
+  height: 72px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.member-identity {
+  padding-top: 4px;
+}
+
+.member-name {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 36px;
+  font-weight: 400;
+  margin: 0 0 8px 0;
+  color: #000000;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.member-role {
+  font-size: 16px;
+  color: #666666;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.member-quote {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 24px;
+  font-weight: 300;
+  color: #000000;
+  margin: 0 0 40px 0;
+  padding: 0;
+  border: none;
+  font-style: italic;
+  line-height: 1.5;
+  max-width: 680px;
+}
+
+.member-bio {
+  margin-bottom: 40px;
+}
+
+.member-bio p {
+  font-size: 18px;
+  color: #000000;
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 680px;
+  margin-bottom: 20px;
+}
+
+.member-bio p:last-child {
+  margin-bottom: 0;
+}
+
+.member-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.member-traits,
+.member-history {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.detail-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000000;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #666666;
+  font-weight: 300;
+}
+
+.trait-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trait-tag {
+  font-size: 13px;
+  color: #000000;
+  background: #f5f5f5;
+  padding: 4px 12px;
+  border: 1px solid #e5e5e5;
+  font-weight: 400;
+}
+
+.team-coda {
+  padding: 80px 40px;
+  border-top: 1px solid #e5e5e5;
+  background: #fafafa;
+}
+
+.team-coda h2 {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  margin-bottom: 32px;
+  color: #000000;
+  letter-spacing: -0.02em;
+}
+
+.team-coda p {
+  font-size: 18px;
+  color: #000000;
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 680px;
+  margin-bottom: 24px;
+}
+
+.team-coda p:last-of-type {
+  margin-bottom: 40px;
+}
+
+.coda-signature {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 16px;
+  color: #000000;
+  font-style: italic;
+}
+
+.signature-date {
+  font-size: 14px;
+  color: #666666;
+  font-style: normal;
+}
+
+.team-footer {
+  border-top: 1px solid #e5e5e5;
+  padding: 60px 40px;
+}
+
+.team-footer .footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.team-footer p {
+  font-size: 14px;
+  color: #666666;
+  font-weight: 300;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .team-nav .nav-container {
+    padding: 20px 24px;
+  }
+  
+  .team-nav .nav-links {
+    gap: 20px;
+  }
+  
+  .team-header {
+    padding: 120px 24px 60px;
+  }
+  
+  .team-title {
+    font-size: 48px;
+  }
+  
+  .team-subtitle {
+    font-size: 18px;
+  }
+  
+  .team-intro {
+    font-size: 18px;
+  }
+  
+  .team-member {
+    padding: 60px 24px;
+  }
+  
+  .member-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .member-emoji {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+  
+  .member-name {
+    font-size: 28px;
+  }
+  
+  .member-quote {
+    font-size: 20px;
+  }
+  
+  .member-bio p {
+    font-size: 16px;
+  }
+  
+  .member-traits,
+  .member-history {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .detail-label {
+    min-width: auto;
+  }
+  
+  .team-coda {
+    padding: 60px 24px;
+  }
+  
+  .team-coda h2 {
+    font-size: 28px;
+  }
+  
+  .team-coda p {
+    font-size: 16px;
+  }
+  
+  .team-footer {
+    padding: 40px 24px;
+  }
+}
+

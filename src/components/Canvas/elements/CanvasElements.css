@@ -1,0 +1,643 @@
+/* ================================================
+   CANVAS ELEMENTS - Shared Styles
+   ================================================ */
+
+.canvas-element {
+  position: absolute;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.canvas-element.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.typing-cursor {
+  display: inline;
+  animation: blink 0.6s infinite;
+  color: #000;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ================================================
+   STICKY NOTE
+   ================================================ */
+
+.sticky-note {
+  padding: 16px;
+  border-radius: 2px;
+  box-shadow: 
+    0 4px 12px var(--note-shadow, rgba(0,0,0,0.15)),
+    0 1px 3px rgba(0,0,0,0.1);
+  transform-origin: top left;
+  min-height: 100px;
+}
+
+.sticky-note.visible {
+  transform: scale(1) rotate(-1deg);
+}
+
+.sticky-note:nth-child(even).visible {
+  transform: scale(1) rotate(1deg);
+}
+
+.sticky-note-content {
+  position: relative;
+  z-index: 1;
+}
+
+.sticky-note-text {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.sticky-note-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  font-size: 11px;
+  color: #666;
+}
+
+.author-emoji {
+  font-size: 14px;
+}
+
+.author-name {
+  font-weight: 500;
+}
+
+.sticky-note-fold {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.1) 50%);
+}
+
+/* ================================================
+   TEXT BLOCK
+   ================================================ */
+
+.text-block {
+  background: white;
+  padding: 20px;
+  border-radius: 4px;
+  border-left: 4px solid #000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.text-block-headline {
+  border-left-width: 4px;
+}
+
+.text-block-headline .text-block-text {
+  font-family: 'Courier Prime', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.text-block-body .text-block-text {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.text-block-tagline .text-block-text {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 15px;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.text-block-label .text-block-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+}
+
+.text-block-option-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.text-block-content {
+  position: relative;
+}
+
+.text-block-text {
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.text-block-author {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 12px;
+}
+
+.text-block.selected {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+.text-block-checkmark {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  background: #22c55e;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+/* ================================================
+   ARROW
+   ================================================ */
+
+.arrow {
+  pointer-events: none;
+}
+
+.arrow-svg {
+  overflow: visible;
+}
+
+.arrow-line-animated {
+  stroke-dasharray: 8, 4;
+  animation: arrowFlow 1s linear infinite;
+}
+
+@keyframes arrowFlow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* ================================================
+   DIAGRAM BOX
+   ================================================ */
+
+.diagram-box {
+  background: white;
+  border: 2px solid;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.diagram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid;
+  background: #fafafa;
+}
+
+.diagram-title {
+  font-family: 'Courier Prime', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+  color: #333;
+}
+
+.diagram-author {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.diagram-content {
+  padding: 20px;
+}
+
+/* Framework diagram */
+.diagram-framework {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.framework-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  background: #f0f0f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+  padding: 10px 14px;
+  background: #f8f8f8;
+  border-radius: 4px;
+  border-left: 3px solid #ddd;
+}
+
+.step-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.step-arrow {
+  font-size: 18px;
+  color: #999;
+  margin-left: -8px;
+}
+
+/* Flowchart diagram */
+.diagram-flowchart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.flowchart-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.node-box {
+  padding: 12px 24px;
+  background: #f0f0f0;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.node-connector {
+  font-size: 16px;
+  color: #999;
+  margin: 4px 0;
+}
+
+/* Building indicator */
+.diagram-building-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border-top: 1px solid #eee;
+}
+
+.building-dot {
+  width: 8px;
+  height: 8px;
+  background: #999;
+  border-radius: 50%;
+  animation: buildingPulse 1.2s infinite ease-in-out;
+}
+
+.building-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.building-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes buildingPulse {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* ================================================
+   AD FRAME
+   ================================================ */
+
+.ad-frame {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-frame-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #1a1a1a;
+  color: white;
+}
+
+.ad-frame-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ad-frame-dimensions {
+  font-family: 'Courier Prime', monospace;
+  font-size: 11px;
+  color: #888;
+}
+
+.ad-frame-content {
+  flex: 1;
+  position: relative;
+  padding: 32px;
+  background: #F7F6F4;
+  overflow: hidden;
+}
+
+.ad-frame-paper {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.ad-frame-headline {
+  font-family: 'Courier Prime', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.ad-frame-body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 16px;
+  max-width: 85%;
+}
+
+.ad-frame-tagline {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.ad-frame-visual {
+  background: #f0f0f0;
+  border: 1px dashed #ccc;
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.ad-frame-image {
+  margin-bottom: 16px;
+}
+
+.ad-frame-image img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.image-placeholder {
+  background: #f0f0f0;
+  border: 1px dashed #ccc;
+  padding: 40px;
+  text-align: center;
+  color: #888;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+}
+
+.ad-frame-logo {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1a1a1a;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 2px solid #ddd;
+}
+
+.ad-frame-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+}
+
+.ad-frame-client {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+}
+
+.ad-frame-status {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #999;
+}
+
+/* Drop zones during assembly */
+.ad-frame-drop-zones {
+  position: absolute;
+  inset: 32px;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.drop-zone span {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.headline-zone {
+  min-height: 60px;
+}
+
+.visual-zone {
+  min-height: 100px;
+}
+
+.body-zone {
+  min-height: 80px;
+}
+
+.tagline-zone {
+  min-height: 40px;
+}
+
+.ad-frame.assembling .ad-frame-content {
+  background: repeating-linear-gradient(
+    -45deg,
+    #F7F6F4,
+    #F7F6F4 10px,
+    #f0f0f0 10px,
+    #f0f0f0 20px
+  );
+}
+
+.ad-frame-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+.ad-frame-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+  font-family: 'Courier Prime', monospace;
+  font-size: 14px;
+}
+
+.ad-frame-author {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+}
+
+/* ================================================
+   HIGHLIGHTED STATE (for all elements)
+   ================================================ */
+
+.canvas-element.highlighted {
+  animation: highlightPulse 0.8s ease-out;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5), 0 4px 16px rgba(0,0,0,0.15);
+}
+
+@keyframes highlightPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7), 0 4px 16px rgba(0,0,0,0.15);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0), 0 4px 16px rgba(0,0,0,0.15);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5), 0 4px 16px rgba(0,0,0,0.15);
+  }
+}
+
+/* ================================================
+   STICKY NOTE VOTES
+   ================================================ */
+
+.sticky-note-votes {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #22c55e;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+/* ================================================
+   TEXT BLOCK PRE FORMATTING
+   ================================================ */
+
+.text-block-content pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+

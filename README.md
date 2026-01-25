@@ -56,6 +56,28 @@ ADHDAI uses prompt engineering, constraint inversion, and deliberate misalignmen
 
 Details will evolve. Some parts may be automated. Some may be curated. Some may remain intentionally opaque.
 
+## Setup
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Set up OpenAI API key:
+   - Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+   - Create a `.env` file in the root directory:
+     ```
+     VITE_OPENAI_API_KEY=your_openai_api_key_here
+     ```
+   - The app will use a fallback template-based generator if no API key is provided
+
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+Note: The app requires an OpenAI API key to generate dynamic ads based on your brief. Without it, the app will use a fallback template generator.
+
 ## Status
 
 Early-stage, experimental, unstable.

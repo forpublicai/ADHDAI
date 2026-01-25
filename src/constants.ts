@@ -2,112 +2,262 @@ import { Character, Phase, Task, WindowState } from './types';
 
 export const CHARACTERS: Character[] = [
   {
-    id: 'alice',
-    name: 'Alice',
-    role: 'Creative Director',
-    personality: 'Overconfident, loves buzzwords, thinks every bad idea is "disruptive"',
-    color: '#FF006E',
-    emoji: '🎨'
+    id: 'mike',
+    name: 'Mike Slab',
+    role: 'Director of Client Accountability',
+    personality: 'Interrogation style, finds real problem underneath brief. Insurance fraud investigator background. Calls work "the job."',
+    color: '#8B4513',
+    emoji: '📋'
   },
   {
-    id: 'bob',
-    name: 'Bob',
-    role: 'Copywriter',
-    personality: 'Obsessed with metaphors, creates tonal whiplash, writes like he\'s being paid per word',
-    color: '#8338EC',
+    id: 'poole',
+    name: 'Dr. Leon Poole',
+    role: 'Chief Methodologist',
+    personality: 'The Poole System, "architecture of wanting," jargon-heavy frameworks. Sometimes profound insights buried in diagrams.',
+    color: '#F5DEB3',
+    emoji: '📐'
+  },
+  {
+    id: 'the-cell',
+    name: 'The Copywriting Cell',
+    role: 'Collective Copywriting Unit',
+    personality: 'Three-person collective (Vera, Gjon, Thursday). Anarcho-syndicalist principles. Strange, true-feeling copy. Signs as "—The Cell."',
+    color: '#4B0082',
     emoji: '✍️'
   },
   {
-    id: 'ahnjili',
-    name: 'Ahnjili',
-    role: 'Strategist',
-    personality: 'Misunderstands products completely, optimizes for wrong metrics, very enthusiastic about it',
-    color: '#3A86FF',
-    emoji: '📊'
+    id: 'burl',
+    name: 'Burl Pettigrew',
+    role: 'Art Director',
+    personality: 'Calls work "pictures" not "design." Theories about color, typography, whitespace. Memphis Group + Baptist + financial setback aesthetic.',
+    color: '#FF6347',
+    emoji: '🎨'
   },
   {
-    id: 'andy',
-    name: 'Andy',
-    role: 'Designer',
-    personality: 'Overstimulating visuals, ignores UX principles, thinks more colors = better',
-    color: '#FFBE0B',
-    emoji: '🎭'
+    id: 'nadya',
+    name: 'Nadya Orlov',
+    role: 'Production Director',
+    personality: 'Five-year planning, accountability. "Everything is ASAP, tell me the date." Smoking, Valentina Tereshkova photo.',
+    color: '#2F4F4F',
+    emoji: '📅'
   },
   {
-    id: 'josh',
-    name: 'Josh',
-    role: 'Director',
-    personality: 'Injects chaos, approves everything, thinks bugs are features',
-    color: '#FB5607',
-    emoji: '🎬'
+    id: 'delmore',
+    name: 'Delmore Frank Krepps',
+    role: 'Client Services',
+    personality: 'Translation, pamphlets, extension work background. Hard candies, short-sleeve button-downs. Makes pamphlets on risograph.',
+    color: '#228B22',
+    emoji: '📄'
+  },
+  {
+    id: 'apparatus',
+    name: 'The Apparatus',
+    role: 'Computational Resource',
+    personality: 'Formal, melancholic, em-dashes. "READY FOR REVIEW—" with timestamp. Handles production tasks.',
+    color: '#708090',
+    emoji: '⚙️'
   }
 ];
 
 export const PHASES: { id: Phase; name: string; description: string }[] = [
   {
     id: 'brief',
-    name: 'Brief Expansion',
-    description: 'Josh takes your one-liner and expands it into a beautifully confused PRD'
+    name: '001 — INTAKE REPORT',
+    description: 'Mike Slab conducts the interrogation. He returns with the real brief—the one underneath the one they sent.'
   },
   {
     id: 'phase1',
-    name: 'Phase 1: Misunderstanding',
-    description: 'Ahnjili misunderstands the product, Alice adds buzzwords, chaos begins'
+    name: '002 — STRATEGIC FRAMEWORK',
+    description: 'Dr. Poole convenes the framework session. Whiteboards are filled. The Poole System is applied. Diagrams are produced.'
   },
   {
     id: 'phase2',
-    name: 'Phase 2: Overstimulation',
-    description: 'Andy adds ALL the colors, Bob writes copy that makes no sense'
+    name: '003 — COPY TRANSMITTAL',
+    description: 'The Copywriting Cell retreats. They review Poole\'s framework, raise objections, and return with copy options and voting records.'
   },
   {
     id: 'phase3',
-    name: 'Phase 3: Broken Metaphors',
-    description: 'Bob creates metaphors that break physics, Alice approves everything'
+    name: '004 — VISUAL DIRECTION',
+    description: 'Burl makes pictures. He requests copy changes from The Cell. He emerges with layouts and color theories.'
   },
   {
     id: 'phase4',
-    name: 'Phase 4: Polish (The Bad Kind)',
-    description: 'Everyone adds their worst ideas, Josh calls it "genius"'
+    name: '005 — COMMITTEE FINDINGS',
+    description: 'The Committee convenes. Claims are evaluated. Objections are recorded. Nadya enters and asks why it\'s taking so long.'
   },
   {
     id: 'phase5',
-    name: 'Phase 5+: Infinite Chaos',
-    description: 'The ad gets worse. And worse. And somehow worse.'
+    name: '006-008 — PRODUCTION & DELIVERY',
+    description: 'Nadya issues the production schedule. The Apparatus compiles the final advertisement. Delmore prepares the client translation.'
   }
 ];
 
 export const INITIAL_TASKS: Task[] = [
+  // Brief phase
   {
     id: '1',
-    title: 'Misunderstand the product',
-    phase: 'phase1',
-    assignedTo: 'ahnjili',
+    title: 'Conduct brief interrogation',
+    phase: 'brief',
+    assignedTo: 'mike',
     status: 'todo',
-    description: 'Take the product and completely misunderstand what it does'
+    description: 'Interrogate the client. Find what they actually need.'
   },
   {
     id: '2',
-    title: 'Add buzzwords',
-    phase: 'phase1',
-    assignedTo: 'alice',
+    title: 'Document findings',
+    phase: 'brief',
+    assignedTo: 'mike',
     status: 'todo',
-    description: 'Insert as many marketing buzzwords as possible'
+    description: 'Record what the client said vs. what they meant vs. what they need'
   },
   {
     id: '3',
-    title: 'Create broken metaphors',
-    phase: 'phase3',
-    assignedTo: 'bob',
+    title: 'Identify outstanding concerns',
+    phase: 'brief',
+    assignedTo: 'mike',
     status: 'todo',
-    description: 'Write copy with metaphors that make no sense'
+    description: 'List 1-3 concerns that may affect the work'
   },
+  // Framework phase
   {
     id: '4',
-    title: 'Overstimulate visually',
-    phase: 'phase2',
-    assignedTo: 'andy',
+    title: 'Apply The Poole System',
+    phase: 'phase1',
+    assignedTo: 'poole',
     status: 'todo',
-    description: 'Use every color, animation, and effect possible'
+    description: 'Convene framework session, identify psychological barriers'
+  },
+  {
+    id: '5',
+    title: 'Create framework diagram',
+    phase: 'phase1',
+    assignedTo: 'poole',
+    status: 'todo',
+    description: 'Produce ASCII diagram showing BARRIER → REFRAME → PERMISSION → ACTION'
+  },
+  {
+    id: '6',
+    title: 'Propose reframe',
+    phase: 'phase1',
+    assignedTo: 'poole',
+    status: 'todo',
+    description: 'Define how to shift the emotional register'
+  },
+  // Copy phase
+  {
+    id: '7',
+    title: 'Object to framework',
+    phase: 'phase2',
+    assignedTo: 'the-cell',
+    status: 'todo',
+    description: 'Raise ideological objection to Poole\'s framework'
+  },
+  {
+    id: '8',
+    title: 'Create Option A (safe)',
+    phase: 'phase2',
+    assignedTo: 'the-cell',
+    status: 'todo',
+    description: 'Safe execution of Poole\'s framework'
+  },
+  {
+    id: '9',
+    title: 'Create Option B (variation)',
+    phase: 'phase2',
+    assignedTo: 'the-cell',
+    status: 'todo',
+    description: 'Variation on the framework'
+  },
+  {
+    id: '10',
+    title: 'Create Option C (Thursday\'s)',
+    phase: 'phase2',
+    assignedTo: 'the-cell',
+    status: 'todo',
+    description: 'Thursday\'s proposal—stranger, more direct'
+  },
+  {
+    id: '11',
+    title: 'Vote on copy options',
+    phase: 'phase2',
+    assignedTo: 'the-cell',
+    status: 'todo',
+    description: 'Record votes and select recommended option'
+  },
+  // Visual phase
+  {
+    id: '12',
+    title: 'Develop visual direction',
+    phase: 'phase3',
+    assignedTo: 'burl',
+    status: 'todo',
+    description: 'Create layout, color palette, typography choices'
+  },
+  {
+    id: '13',
+    title: 'Request copy adjustment',
+    phase: 'phase3',
+    assignedTo: 'burl',
+    status: 'todo',
+    description: 'Ask Cell to shorten or modify copy for visual balance'
+  },
+  {
+    id: '14',
+    title: 'Revise copy per Burl',
+    phase: 'phase3',
+    assignedTo: 'the-cell',
+    status: 'todo',
+    description: 'Update copy based on Burl\'s visual requirements'
+  },
+  // Committee phase
+  {
+    id: '15',
+    title: 'Committee review',
+    phase: 'phase4',
+    assignedTo: 'poole',
+    status: 'todo',
+    description: 'Evaluate work for truthfulness in intention'
+  },
+  {
+    id: '16',
+    title: 'Record objections',
+    phase: 'phase4',
+    assignedTo: null,
+    status: 'todo',
+    description: 'Document any objections even if overruled'
+  },
+  {
+    id: '17',
+    title: 'Approve for production',
+    phase: 'phase4',
+    assignedTo: null,
+    status: 'todo',
+    description: 'Vote and approve with conditions if needed'
+  },
+  // Production phase
+  {
+    id: '18',
+    title: 'Create production schedule',
+    phase: 'phase5',
+    assignedTo: 'nadya',
+    status: 'todo',
+    description: 'Issue schedule with exact dates and named accountability'
+  },
+  {
+    id: '19',
+    title: 'Compile final advertisement',
+    phase: 'phase5',
+    assignedTo: 'apparatus',
+    status: 'todo',
+    description: 'Assemble all components into final HTML'
+  },
+  {
+    id: '20',
+    title: 'Translate for client',
+    phase: 'phase5',
+    assignedTo: 'delmore',
+    status: 'todo',
+    description: 'Prepare client translation and mention pamphlet'
   }
 ];
 
@@ -147,11 +297,12 @@ export const INITIAL_WINDOWS: WindowState[] = [
     type: 'kanban',
     x: 870,
     y: 50,
-    width: 350,
-    height: 500,
+    width: 500,
+    height: 700,
     minimized: false,
     zIndex: 1
   }
 ];
 
 export const INITIAL_BRIEF = 'A toaster that makes perfect toast every time';
+

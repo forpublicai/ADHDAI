@@ -4,12 +4,21 @@ import './LandingPage.css';
 export default function LandingPage() {
   return (
     <div className="landing-page">
+      <nav className="landing-nav">
+        <div className="nav-container">
+          <Link to="/" className="nav-logo">ADHDAI</Link>
+          <div className="nav-links">
+            <Link to="/agency" className="nav-link">Agency</Link>
+            <Link to="/team" className="nav-link">Who We Are</Link>
+          </div>
+        </div>
+      </nav>
       <div className="landing-container">
         <header className="landing-header">
           <h1 className="landing-title">ADHDAI</h1>
           <p className="landing-tagline">we are the best at the worst</p>
           <p className="landing-description">
-            An AI ad agency that generates the worst ads in the world. *We're not just bad—we're algorithmically optimized for maximum awkwardness.*
+            An AI ad agency that generates the worst ads in the world. <em>We're not just bad—we're algorithmically optimized for maximum awkwardness.</em>
           </p>
           <Link to="/agency" className="cta-button">
             Enter the Agency →
@@ -20,7 +29,7 @@ export default function LandingPage() {
           <section className="landing-section">
             <h2>What is ADHDAI</h2>
             <p>
-              ADHDAI is a parody ad agency built to explore what happens when generative AI optimizes for everything *except* persuasion, brand safety, clarity, or taste. Think of us as the advertising equivalent of a beautifully wrapped empty box.
+              ADHDAI is a parody ad agency built to explore what happens when generative AI optimizes for everything <em>except</em> persuasion, brand safety, clarity, or taste. Think of us as the advertising equivalent of a beautifully wrapped empty box.
             </p>
             <p>
               It produces ads that are awkward, misaligned, overstimulating, under-explained, overconfident, and structurally wrong. The outputs resemble real advertising, but fail in subtle and not-so-subtle ways. Like a perfectly timed joke that lands in the wrong room.
@@ -83,7 +92,7 @@ export default function LandingPage() {
           <section className="landing-section">
             <h2>How It Works (Roughly)</h2>
             <p>
-              ADHDAI uses prompt engineering, constraint inversion, and deliberate misalignment to generate outputs that *look* professional but feel wrong. <em>Like a business card printed on sandpaper.</em>
+              ADHDAI uses prompt engineering, constraint inversion, and deliberate misalignment to generate outputs that <em>look</em> professional but feel wrong. <em>Like a business card printed on sandpaper.</em>
             </p>
             <p>
               We take perfectly good AI models and teach them to make terrible decisions. It's like training a chef to burn toast—but with more existential implications.
@@ -100,7 +109,7 @@ export default function LandingPage() {
             </p>
             <p>Expect:</p>
             <ul>
-              <li>Inconsistent quality (sometimes bad, sometimes *really* bad)</li>
+              <li>Inconsistent quality (sometimes bad, sometimes <em>really</em> bad)</li>
               <li>Overcommitment to bad ideas (we don't know when to quit)</li>
               <li>Underdocumentation (we're too busy making terrible ads to write things down)</li>
               <li>Occasional moments of accidental insight (we'll pretend that was intentional)</li>
@@ -121,7 +130,7 @@ export default function LandingPage() {
               PRs that improve effectiveness may be rejected on principle. <em>We have standards. They're low, but we have them.</em>
             </p>
             <p>
-              If you submit a PR that makes our ads *better*, we'll politely decline and suggest you start your own agency. <em>A good one.</em>
+              If you submit a PR that makes our ads <em>better</em>, we'll politely decline and suggest you start your own agency. <em>A good one.</em>
             </p>
           </section>
 
@@ -146,11 +155,16 @@ export default function LandingPage() {
             <p>
               Brought to you by the geniuses behind <a href="https://www.hottalkllc.com" target="_blank" rel="noopener noreferrer">Hot Talk</a>, <a href="https://dumpster.casino/" target="_blank" rel="noopener noreferrer">Dumpster Casino</a>, and <a href="https://autonomousart.org" target="_blank" rel="noopener noreferrer">Autonomous Art</a>.
             </p>
-            <p style={{ marginTop: '2rem', fontSize: '0.9rem', opacity: 0.8 }}>
-              <em>*We take full credit for the good ideas and none of the blame for the bad ones.*</em>
+            <p style={{ marginTop: '2rem', fontSize: '16px', color: '#666666' }}>
+              <em>We take full credit for the good ideas and none of the blame for the bad ones.</em>
             </p>
           </section>
         </main>
+        <footer className="landing-footer">
+          <div className="footer-container">
+            <p>ADHDAI 2025</p>
+          </div>
+        </footer>
       </div>
     </div>
   );

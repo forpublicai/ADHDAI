@@ -6,6 +6,76 @@ interface ChatSidebarProps {
   characters: Character[];
 }
 
+/**
+ * Formats message content for better readability
+ * Converts markdown-style formatting to readable plain text
+ */
+function formatMessageContent(content: string): JSX.Element {
+  // Split by double newlines to preserve paragraph breaks
+  const paragraphs = content.split(/\n\n+/);
+  
+  return (
+    <div className="formatted-content">
+      {paragraphs.map((para, idx) => {
+        // Skip empty paragraphs
+        if (!para.trim()) return null;
+        
+        // Check if it's a header (starts with ###)
+        if (para.trim().startsWith('###')) {
+          const headerText = para.replace(/^###\s*/, '').replace(/\*\*/g, '').trim();
+          return (
+            <h4 key={idx} className="message-header-text">
+              {headerText}
+            </h4>
+          );
+        }
+        
+        // Check if it's a bold section (starts with **)
+        if (para.trim().startsWith('**') && para.includes('**')) {
+          const parts = para.split(/(\*\*[^*]+\*\*)/g);
+          return (
+            <div key={idx} className="message-paragraph">
+              {parts.map((part, partIdx) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  const boldText = part.replace(/\*\*/g, '');
+                  return <strong key={partIdx} className="message-bold">{boldText}</strong>;
+                }
+                return <span key={partIdx}>{part}</span>;
+              })}
+            </div>
+          );
+        }
+        
+        // Check if it's a list item (starts with - or *)
+        if (para.trim().startsWith('-') || para.trim().startsWith('*')) {
+          const items = para.split(/\n(?=-|\*)/).filter(item => item.trim());
+          return (
+            <ul key={idx} className="message-list">
+              {items.map((item, itemIdx) => {
+                const cleanItem = item.replace(/^[-*]\s+/, '').trim();
+                return <li key={itemIdx} className="message-list-item">{cleanItem}</li>;
+              })}
+            </ul>
+          );
+        }
+        
+        // Regular paragraph
+        return (
+          <p key={idx} className="message-paragraph">
+            {para.split(/(\*\*[^*]+\*\*)/g).map((part, partIdx) => {
+              if (part.startsWith('**') && part.endsWith('**')) {
+                const boldText = part.replace(/\*\*/g, '');
+                return <strong key={partIdx} className="message-bold">{boldText}</strong>;
+              }
+              return <span key={partIdx}>{part}</span>;
+            })}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ChatSidebar({ messages, characters }: ChatSidebarProps) {
   const getCharacter = (id: string) => characters.find(c => c.id === id);
 
@@ -33,7 +103,9 @@ export default function ChatSidebar({ messages, characters }: ChatSidebarProps) 
                   </span>
                   <span className="message-role">{character.role}</span>
                 </div>
-                <div className="message-content">{message.content}</div>
+                <div className="message-content">
+                  {formatMessageContent(message.content)}
+                </div>
                 {message.code && (
                   <div className="message-code-preview">
                     <code>{message.code.substring(0, 100)}...</code>

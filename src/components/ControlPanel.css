@@ -1,37 +1,37 @@
 .control-panel {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 350px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  top: 0;
+  right: 0;
+  width: 400px;
+  background: #ffffff;
+  border-left: 1px solid #e5e5e5;
   z-index: 1000;
-  padding: 24px;
+  padding: 120px 40px 40px;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .control-header {
-  margin-bottom: 20px;
-  text-align: center;
+  margin-bottom: 48px;
+  text-align: left;
 }
 
 .control-header h2 {
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #FF006E, #8338EC, #3A86FF);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: #000000;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  line-height: 1.2;
 }
 
 .tagline {
-  font-size: 14px;
-  font-style: italic;
-  color: #6c757d;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+  font-style: normal;
+  letter-spacing: 0.01em;
 }
 
 .control-content {
@@ -47,31 +47,40 @@
 }
 
 .control-section label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #495057;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #000000;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
 }
 
 .brief-input {
-  padding: 12px;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-  background: white;
+  padding: 12px 0;
+  border: none;
+  border-bottom: 1px solid #e5e5e5;
+  border-radius: 0;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+  background: transparent;
+  color: #000000;
+  font-weight: 300;
+  width: 100%;
 }
 
 .brief-input:focus {
-  border-color: #667eea;
+  border-bottom-color: #000000;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .brief-input:disabled {
-  background: #f8f9fa;
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+.brief-input::placeholder {
+  color: #999999;
+  font-weight: 300;
 }
 
 .phase-indicator {
@@ -81,22 +90,24 @@
 }
 
 .phase-label {
-  font-size: 12px;
-  color: #6c757d;
-  font-weight: 500;
+  font-size: 14px;
+  color: #666666;
+  font-weight: 400;
 }
 
 .phase-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #0A0E27;
+  font-size: 18px;
+  font-weight: 400;
+  color: #000000;
+  letter-spacing: -0.01em;
 }
 
 .phase-description {
-  font-size: 12px;
-  color: #6c757d;
-  line-height: 1.5;
-  margin-top: 4px;
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.7;
+  margin-top: 8px;
+  font-weight: 300;
 }
 
 .control-actions {
@@ -106,31 +117,32 @@
 .btn-primary,
 .btn-secondary {
   width: 100%;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 16px 32px;
+  border-radius: 0;
+  font-size: 16px;
+  font-weight: 400;
   cursor: pointer;
-  transition: all 0.2s;
-  border: none;
+  transition: all 0.2s ease;
+  border: 1px solid #000000;
+  letter-spacing: 0.02em;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #FF006E, #8338EC);
-  color: white;
+  background: #000000;
+  color: #ffffff;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 0, 110, 0.3);
+  background: #ffffff;
+  color: #000000;
 }
 
 .btn-secondary {
-  background: #6c757d;
-  color: white;
+  background: #ffffff;
+  color: #000000;
 }
 
 .btn-secondary:hover {
-  background: #5a6268;
-  transform: translateY(-2px);
+  background: #000000;
+  color: #ffffff;
 }
