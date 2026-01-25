@@ -244,47 +244,120 @@ Output ONLY the creative content. No explanations. No preamble. Just the work.`
     }
   }, []);
 
-  // Generate agent conversation about merged ideas
+  // Generate agent conversation about merged ideas AND create new combined work item
   const generateMergeConversation = useCallback(async (item1: WorkItem, item2: WorkItem): Promise<void> => {
     const agent1 = getCharacterInfo(item1.createdBy);
     const agent2 = getCharacterInfo(item2.createdBy);
+    const currentBrief = briefRef.current;
     
     const openai = getOpenAI();
-    if (!openai) {
-      addChatMessage(item1.createdBy, `Interesting. ${agent2.name.split(' ')[0]}'s idea about "${item2.content.slice(0, 30)}..." could work with mine.`);
-      addChatMessage(item2.createdBy, `I disagree. My approach is fundamentally different.`);
-      return;
-    }
     
-    try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are writing dialogue between two ad agency creatives. ${agent1.name} (${agent1.role}) created: "${item1.content}". ${agent2.name} (${agent2.role}) created: "${item2.content}". They must discuss how to merge these ideas. Be witty, slightly adversarial, but ultimately productive. Output as JSON: {"agent1": "first line", "agent2": "response", "agent1_reply": "counter", "resolution": "how they agree to proceed"}`
-          },
-          { role: 'user', content: 'Generate their conversation.' }
-        ],
-        max_tokens: 300,
-        temperature: 0.9,
-      });
-      
-      const text = response.choices[0]?.message?.content || '';
-      try {
-        const dialogue = JSON.parse(text);
-        addChatMessage(item1.createdBy, dialogue.agent1);
-        setTimeout(() => addChatMessage(item2.createdBy, dialogue.agent2), 1500);
-        setTimeout(() => addChatMessage(item1.createdBy, dialogue.agent1_reply), 3000);
-        setTimeout(() => addChatMessage(item2.createdBy, dialogue.resolution), 4500);
-      } catch {
-        addChatMessage(item1.createdBy, `What if we combined "${item1.content.slice(0, 20)}..." with your approach?`);
-        setTimeout(() => addChatMessage(item2.createdBy, `That could work. Let me think about it.`), 1500);
+    // Generate the merged idea
+    const generateMergedIdea = async (): Promise<string> => {
+      if (!openai) {
+        // Fallback: combine key phrases
+        const words1 = item1.content.split(' ').slice(0, 5).join(' ');
+        const words2 = item2.content.split(' ').slice(0, 5).join(' ');
+        return `MERGED CONCEPT:\n${words1}... meets ${words2}...\n\nA synthesis of strategic tension and creative execution.`;
       }
-    } catch (error) {
-      console.error('Merge conversation error:', error);
-    }
-  }, []);
+      
+      try {
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a senior creative director synthesizing two ideas into one powerful new concept for an ad campaign. Brief: "${currentBrief}". 
+              
+Idea 1 from ${agent1.name}: "${item1.content}"
+Idea 2 from ${agent2.name}: "${item2.content}"
+
+Create a NEW merged concept that takes the best of both. Be specific and creative. Output in this format:
+MERGED CONCEPT: [title]
+
+[2-3 sentences describing the merged idea]
+
+KEY ELEMENTS:
+• [element from idea 1]
+• [element from idea 2]  
+• [new element from synthesis]`
+            },
+            { role: 'user', content: 'Create the merged concept.' }
+          ],
+          max_tokens: 200,
+          temperature: 0.8,
+        });
+        return response.choices[0]?.message?.content || 'MERGED CONCEPT:\nA synthesis of both approaches.';
+      } catch {
+        return `MERGED CONCEPT:\nCombining ${agent1.name.split(' ')[0]}'s insight with ${agent2.name.split(' ')[0]}'s direction.`;
+      }
+    };
+    
+    // Generate the dialogue
+    const generateDialogue = async (): Promise<{agent1: string, agent2: string, agent1_reply: string, resolution: string}> => {
+      const defaultDialogue = {
+        agent1: `*studies ${agent2.name.split(' ')[0]}'s work* There's something here. What if we pushed the ${item2.content.slice(0, 20)}... angle harder?`,
+        agent2: `Interesting. But my approach needs the tension from yours. The "${item1.content.slice(0, 20)}..." is the key.`,
+        agent1_reply: `So we're saying... both. But elevated. I can see it.`,
+        resolution: `*nods* Let's build it. The new version is stronger than either alone.`
+      };
+      
+      if (!openai) return defaultDialogue;
+      
+      try {
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are writing dialogue between two ad agency creatives who are EXCITED about merging their ideas. ${agent1.name} (${agent1.role}) created: "${item1.content}". ${agent2.name} (${agent2.role}) created: "${item2.content}". They see potential in combining them. Be witty, creative, and build to an "aha!" moment. Output as JSON: {"agent1": "first line observing the other's work", "agent2": "response seeing the connection", "agent1_reply": "building on the synthesis", "resolution": "the breakthrough moment"}`
+            },
+            { role: 'user', content: 'Generate their excited collaboration dialogue.' }
+          ],
+          max_tokens: 300,
+          temperature: 0.9,
+        });
+        
+        const text = response.choices[0]?.message?.content || '';
+        return JSON.parse(text);
+      } catch {
+        return defaultDialogue;
+      }
+    };
+    
+    // Execute both in parallel
+    const [mergedIdea, dialogue] = await Promise.all([
+      generateMergedIdea(),
+      generateDialogue()
+    ]);
+    
+    // Play out the conversation
+    addChatMessage(item1.createdBy, dialogue.agent1);
+    
+    setTimeout(() => addChatMessage(item2.createdBy, dialogue.agent2), 1500);
+    
+    setTimeout(() => addChatMessage(item1.createdBy, dialogue.agent1_reply), 3000);
+    
+    setTimeout(() => {
+      addChatMessage(item2.createdBy, dialogue.resolution);
+      
+      // Create the merged work item at the midpoint between the two items
+      const midX = (item1.position.x + item2.position.x) / 2;
+      const midY = Math.max(item1.position.y, item2.position.y) + 120;
+      
+      createWorkItem(
+        item1.createdBy, // Credit the initiator
+        'concept', // Use concept type for merged ideas
+        mergedIdea,
+        { x: midX, y: midY },
+        currentPhase,
+        true // Type it out
+      );
+      
+      addChatMessage('apparatus', `MERGER LOGGED — New concept synthesized from ${agent1.name.split(' ')[0]} × ${agent2.name.split(' ')[0]} collaboration.`);
+    }, 4500);
+    
+  }, [addChatMessage, createWorkItem, currentPhase, getCharacterInfo]);
 
   // Canvas panning
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
