@@ -930,9 +930,8 @@ KEY ELEMENTS:
 </html>`;
   }, []);
 
-  // Run the workflow with API-generated content
+  // Run the workflow with collaborative, non-linear agent interactions
   const runWorkflow = useCallback(async () => {
-    // Always use the ref to get the latest brief value
     const currentBrief = briefRef.current;
     if (!currentBrief) return;
     
@@ -949,206 +948,338 @@ KEY ELEMENTS:
       return timeout;
     };
 
-    // ===== PHASE 1: INTAKE (Mike Slab) =====
+    // ===== OPENING: Multiple agents notice the brief =====
     schedule(() => {
       setCurrentPhase(1);
-      setPhaseLabel('PHASE 1: STRATEGIC INTAKE');
+      setPhaseLabel('COLLABORATIVE INTAKE');
       updateTaskStatus('task-1', 'in-progress');
-      moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Analyzing brief...');
-      addChatMessage('mike', `*lights cigarette* Alright, let's see what we got here. "${currentBrief}" — that's what they SAID they want. Let me find out what they actually need.`);
+      
+      // Multiple agents start looking at brief
+      moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Reading brief...');
+      moveAgentTo('poole', { x: 520, y: 180 }, 'thinking', 'Observing...');
+      
+      addChatMessage('mike', `*lights cigarette, spreads case file on table* Alright everyone, gather round. We got a live one: "${currentBrief}"`);
     }, 0);
 
+    schedule(() => {
+      addChatMessage('poole', `*peers over Mike's shoulder* Fascinating. I already see three potential perception architectures forming...`);
+      moveAgentTo('the-cell', { x: 560, y: 140 }, 'reviewing', 'Reviewing brief...');
+    }, 3000);
+
+    schedule(() => {
+      addChatMessage('the-cell', `[VERA]: We're listening. [GJON]: *crosses arms* Let's see what the suits actually need. [THURSDAY]: *stares at wall*`);
+    }, 5000);
+
+    // Mike's initial analysis - others watching
     schedule(async () => {
       const insight = await generateCreativeContent(
-        `Brief: "${currentBrief}". As Mike Slab, a cynical ex-insurance fraud investigator turned account planner, identify the REAL human tension beneath this brief. What uncomfortable truth about consumers does this product address? Be brutally honest in 2 sentences.`
+        `Brief: "${currentBrief}". As Mike Slab, identify the REAL human tension beneath this brief. What uncomfortable truth does this address? Be brutally honest in 2 sentences.`
       );
       createWorkItem('mike', 'sticky', insight, { x: 400, y: 100 }, 1, true);
-      addChatMessage('mike', `There it is. *taps folder* The real job under the job. Client thinks they're selling one thing, but people are buying something else entirely.`);
+      addChatMessage('mike', `*taps folder* There's the real job. Not what they asked for. What they actually need.`);
       updateTaskStatus('task-1', 'done');
-      updateTaskStatus('task-2', 'in-progress');
-    }, 2000);
+    }, 7000);
 
+    // Poole reacts, moves to Mike's work
+    schedule(() => {
+      moveAgentTo('poole', { x: 420, y: 130 }, 'reviewing', 'Examining Mike\'s insight...');
+      addChatMessage('poole', `*adjusts glasses, leans in to read* Hmm. Crude, but there's structural validity here. The tension topology is... usable.`);
+    }, 11000);
+
+    // Burl wanders over early
+    schedule(() => {
+      moveAgentTo('burl', { x: 450, y: 200 }, 'thinking', 'Thinking about visuals...');
+      addChatMessage('burl', `*squints at Mike's sticky note* Already got pictures forming in my head. Something raw. Documentary feeling.`);
+    }, 14000);
+
+    // Mike adds human tension, others comment
     schedule(async () => {
+      updateTaskStatus('task-2', 'in-progress');
       const tension = await generateCreativeContent(
         `Brief: "${currentBrief}". What is the psychological conflict consumers face? What do they secretly want but won't admit? One powerful sentence.`
       );
       createWorkItem('mike', 'concept', `HUMAN TENSION:\n${tension}`, { x: 480, y: 180 }, 1, true);
-      addChatMessage('mike', `@poole Got the case file ready. Human tension is locked. Do your... *waves hand dismissively* ...architecture thing.`);
+    }, 17000);
+
+    schedule(() => {
+      addChatMessage('the-cell', `[GJON]: *reads over Burl's shoulder* That tension. I can work with that. [VERA]: Don't get ahead of yourself. [THURSDAY]: *already scribbling*`);
       updateTaskStatus('task-2', 'done');
-    }, 5000);
+    }, 20000);
 
-    delay = 7000;
+    delay = 22000;
 
-    // ===== PHASE 2: STRATEGY (Dr. Poole) =====
+    // ===== STRATEGY: Poole builds framework while others kibitz =====
     schedule(() => {
       setCurrentPhase(2);
-      setPhaseLabel('PHASE 2: STRATEGIC FRAMEWORK');
+      setPhaseLabel('STRATEGIC FRAMEWORK');
       updateTaskStatus('task-3', 'in-progress');
-      moveAgentTo('poole', { x: 820, y: 140 }, 'thinking', 'Building framework...');
-      addChatMessage('poole', `Ah yes, the architecture of wanting reveals itself. *adjusts glasses* Let me apply the Poole System™ to this particular consumer topology.`);
+      moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building framework...');
+      addChatMessage('poole', `*clears throat* If I may... the Poole System™ demands we map the consumer desire-obstacle matrix. Stand back, please.`);
     }, 0);
 
-    schedule(async () => {
-      const barrier = await generateCreativeContent(
-        `Brief: "${currentBrief}". What is the BARRIER preventing consumers from engaging with this product/brand? What mental block must be overcome? One sentence, starting with "They believe..."`
-      );
-      createWorkItem('poole', 'framework', `BARRIER:\n${barrier}`, { x: 740, y: 100 }, 2, true);
-      addChatMessage('poole', `The consumer's psychographic resistance vector is now mapped. Notice how the desire-obstacle axis creates a tension quadrant...`);
-      updateTaskStatus('task-3', 'done');
-      updateTaskStatus('task-4', 'in-progress');
-    }, 2000);
-
-    schedule(async () => {
-      const reframe = await generateCreativeContent(
-        `Brief: "${currentBrief}". Create a REFRAME - a new way to see this product that makes it irresistible. How do we flip the script? One sentence, starting with "But what if..."`
-      );
-      createWorkItem('poole', 'strategy', `REFRAME:\n${reframe}`, { x: 820, y: 170 }, 2, true);
-      addChatMessage('poole', `*draws elaborate diagram* Behold: the Strategic Reframe. When we pivot the perception axis, consumption becomes inevitable. @the-cell The framework awaits your textual intervention.`);
-      updateTaskStatus('task-4', 'done');
-      updateTaskStatus('task-5', 'in-progress');
-      updateTaskStatus('task-5', 'done');
-    }, 5000);
-
-    delay += 7000;
-
-    // ===== PHASE 3: COPY (The Cell) =====
+    // Mike moves to watch Poole, makes comment
     schedule(() => {
-      setCurrentPhase(3);
-      setPhaseLabel('PHASE 3: COPY DEVELOPMENT');
-      updateTaskStatus('task-6', 'in-progress');
-      moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Vera writing Option A...');
-      addChatMessage('the-cell', `[VERA]: The Cell has reviewed Poole's framework. I'll draft the conventional approach first — the one the client expects. [GJON]: I'll write the one they need. [THURSDAY]: *says nothing, already writing*`);
-    }, 0);
-
-    schedule(async () => {
-      const optionA = await generateCreativeContent(
-        `Brief: "${currentBrief}". Write OPTION A - a compelling but conventional headline for this product. Swiss-style minimalism. Under 10 words. Just the headline, nothing else.`
-      );
-      createWorkItem('the-cell', 'headline', `OPTION A (Vera):\n\n"${optionA}"`, { x: 1080, y: 90 }, 3, true);
-      addChatMessage('the-cell', `[VERA]: Option A submitted. Clean, direct, won't scare anyone. —The Cell`);
-      updateTaskStatus('task-6', 'done');
-      updateTaskStatus('task-7', 'in-progress');
-      moveAgentTo('the-cell', { x: 1220, y: 180 }, 'typing', 'Gjon writing Option B...');
+      moveAgentTo('mike', { x: 780, y: 200 }, 'reviewing', 'Watching Poole...');
+      addChatMessage('mike', `*leans against wall* Here we go with the diagrams again...`);
     }, 3000);
 
     schedule(async () => {
+      const barrier = await generateCreativeContent(
+        `Brief: "${currentBrief}". What BARRIER prevents consumers from engaging? What mental block must be overcome? One sentence starting with "They believe..."`
+      );
+      createWorkItem('poole', 'framework', `BARRIER:\n${barrier}`, { x: 740, y: 100 }, 2, true);
+      addChatMessage('poole', `*draws arrow with flourish* The barrier is identified. See how it intersects with Mike's tension point?`);
+      updateTaskStatus('task-3', 'done');
+    }, 6000);
+
+    // The Cell gets impatient, moves over
+    schedule(() => {
+      moveAgentTo('the-cell', { x: 860, y: 180 }, 'reviewing', 'Getting impatient...');
+      addChatMessage('the-cell', `[GJON]: Poole, we don't need a PhD dissertation. Just tell us what angle to write. [VERA]: Let him finish. [GJON]: He never finishes.`);
+      updateTaskStatus('task-4', 'in-progress');
+    }, 9000);
+
+    schedule(async () => {
+      const reframe = await generateCreativeContent(
+        `Brief: "${currentBrief}". Create a REFRAME - how do we flip the script on this product? One sentence starting with "But what if..."`
+      );
+      createWorkItem('poole', 'strategy', `REFRAME:\n${reframe}`, { x: 820, y: 170 }, 2, true);
+      addChatMessage('poole', `*steps back triumphantly* The reframe. When we pivot perception, consumption becomes inevitable.`);
+    }, 12000);
+
+    // Burl comments on strategy
+    schedule(() => {
+      moveAgentTo('burl', { x: 880, y: 140 }, 'thinking', 'Visualizing reframe...');
+      addChatMessage('burl', `*nods slowly* That reframe... I can see it. One image. Big. Confrontational. No gradient nonsense.`);
+      updateTaskStatus('task-4', 'done');
+      updateTaskStatus('task-5', 'done');
+    }, 15000);
+
+    delay += 17000;
+
+    // ===== COPY: Cell writes while others hover and critique =====
+    schedule(() => {
+      setCurrentPhase(3);
+      setPhaseLabel('COPY DEVELOPMENT');
+      updateTaskStatus('task-6', 'in-progress');
+      moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Vera drafting...');
+      addChatMessage('the-cell', `[VERA]: Alright, I'll start conventional. The safe option. [GJON]: *sighs* Predictable. [THURSDAY]: *stares at ceiling*`);
+    }, 0);
+
+    // Poole follows to "supervise"
+    schedule(() => {
+      moveAgentTo('poole', { x: 1140, y: 200 }, 'reviewing', 'Supervising copy...');
+      addChatMessage('poole', `*hovers* Remember, the reframe must be present in every word choice. The semiotics of—`);
+      addChatMessage('the-cell', `[GJON]: Poole. Please. Let us write.`);
+    }, 3000);
+
+    schedule(async () => {
+      const optionA = await generateCreativeContent(
+        `Brief: "${currentBrief}". Write OPTION A - compelling but conventional headline. Swiss-style minimalism. Under 10 words. Just the headline.`
+      );
+      createWorkItem('the-cell', 'headline', `OPTION A (Vera):\n\n"${optionA}"`, { x: 1080, y: 90 }, 3, true);
+      addChatMessage('the-cell', `[VERA]: Option A. Clean. Safe. Client won't have a heart attack.`);
+      updateTaskStatus('task-6', 'done');
+      updateTaskStatus('task-7', 'in-progress');
+    }, 6000);
+
+    // Burl moves in to see copy
+    schedule(() => {
+      moveAgentTo('burl', { x: 1100, y: 150 }, 'reviewing', 'Reading Option A...');
+      addChatMessage('burl', `*reads Option A* I can work with this. But it's missing... something. Where's the gut punch?`);
+      moveAgentTo('the-cell', { x: 1220, y: 180 }, 'typing', 'Gjon writing...');
+    }, 9000);
+
+    schedule(async () => {
       const optionB = await generateCreativeContent(
-        `Brief: "${currentBrief}". Write OPTION B - a more provocative headline that challenges assumptions. Make people pause. Under 12 words. Just the headline.`
+        `Brief: "${currentBrief}". Write OPTION B - provocative headline that challenges assumptions. Under 12 words. Just the headline.`
       );
       createWorkItem('the-cell', 'headline', `OPTION B (Gjon):\n\n"${optionB}"`, { x: 1200, y: 150 }, 3, true);
-      addChatMessage('the-cell', `[GJON]: Option B. This one has teeth. [VERA]: Too aggressive. [GJON]: That's why it works.`);
+      addChatMessage('the-cell', `[GJON]: Option B. This one bites. [VERA]: That's too aggressive! [GJON]: That's why it WORKS.`);
       updateTaskStatus('task-7', 'done');
+    }, 12000);
+
+    // Mike wanders over to see the fight
+    schedule(() => {
+      moveAgentTo('mike', { x: 1160, y: 220 }, 'reviewing', 'Watching Cell argue...');
+      addChatMessage('mike', `*watches the Cell argue* I love this part. Like watching cats in a bag.`);
       updateTaskStatus('task-8', 'in-progress');
-    }, 6000);
+    }, 15000);
 
     schedule(async () => {
       const optionC = await generateCreativeContent(
-        `Brief: "${currentBrief}". Write OPTION C - a deeply strange, uncomfortable headline that reveals an unexpected truth. Deranged but logical. Under 15 words. Just the headline.`
+        `Brief: "${currentBrief}". Write OPTION C - deeply strange, uncomfortable headline that reveals unexpected truth. Deranged but logical. Under 15 words.`
       );
       createWorkItem('the-cell', 'headline', `OPTION C (Thursday):\n\n"${optionC}"`, { x: 1140, y: 220 }, 3, true);
-      addChatMessage('the-cell', `[THURSDAY]: *slides paper across table without speaking* [VERA]: ...Thursday, this is unhinged. [GJON]: It's perfect. [CELL VOTE: Option C wins 2-1]`);
+      addChatMessage('the-cell', `[THURSDAY]: *slides paper across table without looking up* [VERA]: ...What the— [GJON]: *reads it twice* [VERA]: Thursday, this is unhinged.`);
       updateTaskStatus('task-8', 'done');
+    }, 18000);
+
+    // Everyone reacts to Thursday's option
+    schedule(() => {
+      addChatMessage('burl', `*squints at Option C* ...That's the one. That's the picture I've been seeing.`);
+      addChatMessage('poole', `*adjusts glasses* Structurally unsound... yet somehow it maps perfectly to the reframe. Remarkable.`);
+      addChatMessage('mike', `Kid's got something. That's the kind of line that makes people uncomfortable. Good uncomfortable.`);
       updateTaskStatus('task-9', 'in-progress');
-    }, 9000);
+    }, 21000);
 
     schedule(() => {
       createWorkItem('the-cell', 'approval', '✓ VOTE: C wins 2-1\nThursday always wins.', { x: 1280, y: 260 }, 3, false);
-      addChatMessage('the-cell', `[COLLECTIVE STATEMENT]: The Cell has spoken. Option C carries. @burl — Make it beautiful. Make it wrong. Make it true. —The Cell`);
+      addChatMessage('the-cell', `[CELL VOTE]: Option C carries. 2-1. [VERA]: I still think— [GJON]: It's decided. @burl — make it ugly-beautiful.`);
       updateTaskStatus('task-9', 'done');
-    }, 11000);
+    }, 24000);
 
-    delay += 13000;
+    delay += 26000;
 
-    // ===== PHASE 4: VISUAL (Burl) =====
+    // ===== VISUAL: Burl works while others interrupt =====
     schedule(() => {
       setCurrentPhase(4);
-      setPhaseLabel('PHASE 4: ART DIRECTION');
+      setPhaseLabel('ART DIRECTION');
       updateTaskStatus('task-10', 'in-progress');
       moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Defining visual language...');
-      addChatMessage('burl', `*shuffles through paint swatches* Alright. I've been thinking about these pictures. The copy's got teeth — the visual needs to match. Not pretty. Honest.`);
+      addChatMessage('burl', `*spreads out swatches, photos* Alright. Everyone back up. I need to think in pictures.`);
     }, 0);
+
+    // Nadya appears early, checking timeline
+    schedule(() => {
+      moveAgentTo('nadya', { x: 520, y: 480 }, 'clicking', 'Checking timeline...');
+      addChatMessage('nadya', `*checks watch* Burl. How long for visuals? I have schedule to build.`);
+      addChatMessage('burl', `*doesn't look up* When it's done, Nadya. Art doesn't punch a clock.`);
+      addChatMessage('nadya', `*lights cigarette* It does in this agency.`);
+    }, 3000);
 
     schedule(async () => {
       const visual = await generateCreativeContent(
-        `Brief: "${currentBrief}". As an art director, describe the VISUAL LANGUAGE for this campaign in exactly 3 bullet points. Be specific about colors (hex codes), typography, and mood. Swiss-style minimalism.`
+        `Brief: "${currentBrief}". Describe VISUAL LANGUAGE in 3 bullet points: colors (hex codes), typography, mood. Swiss-style minimalism.`
       );
       createWorkItem('burl', 'visual', visual, { x: 400, y: 380 }, 4, true);
-      addChatMessage('burl', `See, here's my theory on color for this one... *gestures at swatch* This ain't about what looks good. It's about what feels right in your gut.`);
+      addChatMessage('burl', `*pins swatch to wall* There. That color. It's not pretty. It's honest.`);
       updateTaskStatus('task-10', 'done');
+    }, 6000);
+
+    // Poole comes to validate
+    schedule(() => {
+      moveAgentTo('poole', { x: 440, y: 420 }, 'reviewing', 'Examining colors...');
+      addChatMessage('poole', `*examines color choices* Interesting. The chromatic tension mirrors the psychological framework. Was this intentional?`);
+      addChatMessage('burl', `*shrugs* I just paint what I see, professor.`);
       updateTaskStatus('task-11', 'in-progress');
-    }, 2000);
+    }, 9000);
 
     schedule(async () => {
       const typography = await generateCreativeContent(
-        `For this ad campaign based on "${currentBrief}", specify the TYPOGRAPHY SYSTEM: Primary font, size hierarchy, and spacing philosophy. Be precise. 3 lines max.`
+        `For "${currentBrief}" campaign: TYPOGRAPHY SYSTEM with primary font, size hierarchy, spacing philosophy. 3 lines max.`
       );
       createWorkItem('burl', 'mockup', `TYPOGRAPHY:\n${typography}`, { x: 500, y: 450 }, 4, true);
       updateTaskStatus('task-11', 'done');
       updateTaskStatus('task-12', 'in-progress');
-    }, 5000);
+    }, 12000);
+
+    // The Cell visits to see visual direction
+    schedule(() => {
+      moveAgentTo('the-cell', { x: 480, y: 500 }, 'reviewing', 'Reviewing visual direction...');
+      addChatMessage('the-cell', `[VERA]: The type is good. Clean. [GJON]: Make sure it doesn't undercut Thursday's line. [THURSDAY]: *nods once, leaves*`);
+    }, 15000);
 
     schedule(async () => {
       const artDirection = await generateCreativeContent(
         `Brief: "${currentBrief}". Describe the KEY VISUAL for the hero ad. What single image captures the essence? Be specific and unexpected. 2 sentences.`
       );
       createWorkItem('burl', 'visual', `KEY VISUAL:\n${artDirection}`, { x: 420, y: 520 }, 4, true);
-      addChatMessage('burl', `There. That's the picture. *taps layout* Don't let anyone make it prettier. @nadya — when can we shoot?`);
+      addChatMessage('burl', `*steps back from layout* There. That's the picture. Don't let anyone prettify it.`);
       updateTaskStatus('task-12', 'done');
-    }, 8000);
+    }, 18000);
 
-    delay += 10000;
+    delay += 20000;
 
-    // ===== PHASE 5: PRODUCTION (Nadya) =====
+    // ===== PRODUCTION: Nadya takes control, others protest =====
     schedule(() => {
       setCurrentPhase(5);
-      setPhaseLabel('PHASE 5: PRODUCTION');
+      setPhaseLabel('PRODUCTION');
       updateTaskStatus('task-13', 'in-progress');
-      moveAgentTo('nadya', { x: 820, y: 440 }, 'clicking', 'Scheduling...');
-      addChatMessage('nadya', `*lights cigarette* Schedule. Everything is ASAP, yes? Tell me the date. I make it happen. No excuses. Only results.`);
+      moveAgentTo('nadya', { x: 820, y: 440 }, 'clicking', 'Locking schedule...');
+      addChatMessage('nadya', `*slams calendar on table* Schedule time. Everyone, deadlines are not suggestions. They are law.`);
     }, 0);
+
+    // Mike protests
+    schedule(() => {
+      moveAgentTo('mike', { x: 780, y: 480 }, 'reviewing', 'Checking dates...');
+      addChatMessage('mike', `*looks at dates* Nadya, these timelines are... aggressive.`);
+      addChatMessage('nadya', `Valentina Tereshkova orbited Earth in '63. You can make deadline in '26.`);
+    }, 3000);
 
     schedule(() => {
       const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString();
       createWorkItem('nadya', 'sticky', `SHOOT: ${tomorrow}\nDELIVERY: +48hrs\nNO DELAYS.`, { x: 740, y: 380 }, 5, false);
       createWorkItem('nadya', 'approval', '⏱ LOCKED', { x: 840, y: 440 }, 5, false);
-      addChatMessage('nadya', `Schedule is locked. *stubs out cigarette* Valentina Tereshkova did not orbit Earth to have us miss deadlines. @delmore — make them understand.`);
+      addChatMessage('nadya', `*stubs cigarette* Schedule is law. Break it at your peril. @delmore — client expects smooth translation.`);
       updateTaskStatus('task-13', 'done');
-    }, 3000);
+    }, 6000);
 
-    delay += 5000;
+    delay += 8000;
 
-    // ===== PHASE 6: CLIENT (Delmore) =====
+    // ===== CLIENT PREP: Delmore while others mock the process =====
     schedule(() => {
       setCurrentPhase(6);
-      setPhaseLabel('PHASE 6: CLIENT TRANSLATION');
+      setPhaseLabel('CLIENT TRANSLATION');
       updateTaskStatus('task-14', 'in-progress');
-      moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Client deck...');
-      addChatMessage('delmore', `*adjusts short-sleeve button-down, offers hard candy* Now, the client... they need to feel comfortable with what we've made. Let me put this in terms they can bring to their board.`);
+      moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Preparing client deck...');
+      addChatMessage('delmore', `*adjusts collar, distributes hard candies* Now friends, the client needs to feel... comfortable. Let me translate.`);
     }, 0);
+
+    // Mike and Cell watch with amusement
+    schedule(() => {
+      moveAgentTo('mike', { x: 1140, y: 480 }, 'reviewing', 'Watching translation...');
+      addChatMessage('mike', `*accepts candy* Watch this. Delmore's about to turn our knife into a pillow.`);
+      moveAgentTo('the-cell', { x: 1200, y: 500 }, 'reviewing', 'Observing...');
+      addChatMessage('the-cell', `[GJON]: How does he do it without lying? [VERA]: It's an art form.`);
+    }, 3000);
 
     schedule(async () => {
       const clientSpeak = await generateCreativeContent(
-        `Translate this ad campaign for "${currentBrief}" into CLIENT-FRIENDLY language. Use buzzwords like "authentic", "disruptive", "culturally relevant". 3 bullet points that say nothing but sound impressive.`
+        `Translate this campaign for "${currentBrief}" into CLIENT-SPEAK. Use buzzwords: "authentic", "disruptive", "culturally relevant". 3 impressive-sounding bullet points.`
       );
       createWorkItem('delmore', 'draft', `CLIENT DECK:\n${clientSpeak}`, { x: 1100, y: 380 }, 6, true);
-      addChatMessage('delmore', `*hands over laminated pamphlet* Here's the deck. They'll love it. Or they'll be confused. Either way, they'll approve it. @apparatus — compile the final dossier.`);
+      addChatMessage('delmore', `*slides deck across* There. They'll nod through the whole thing. Won't understand a word. But they'll approve it.`);
       updateTaskStatus('task-14', 'done');
-    }, 3000);
+    }, 6000);
 
-    delay += 5000;
+    // Poole admires the translation
+    schedule(() => {
+      moveAgentTo('poole', { x: 1160, y: 420 }, 'reviewing', 'Admiring translation...');
+      addChatMessage('poole', `*reads deck* Remarkable. You've preserved the strategic architecture while removing all threatening clarity. Masterful.`);
+      addChatMessage('delmore', `*offers another candy* It's just talking to people, Dr. Poole. @apparatus — we're ready for final assembly.`);
+    }, 9000);
 
-    // ===== PHASE 7: FINAL (Apparatus) =====
+    delay += 11000;
+
+    // ===== FINAL ASSEMBLY: Everyone gathers for the output =====
     schedule(() => {
       setCurrentPhase(7);
-      setPhaseLabel('PHASE 7: FINAL ASSEMBLY');
+      setPhaseLabel('FINAL ASSEMBLY');
       updateTaskStatus('task-15', 'in-progress');
       moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling...');
-      addChatMessage('apparatus', `RECEIVING DOCUMENTS — timestamp ${new Date().toISOString().slice(0, 19)}. COMPILING FINAL DOSSIER. Please stand by.`);
+      addChatMessage('apparatus', `INITIATING FINAL COMPILATION — timestamp ${new Date().toISOString().slice(0, 19)}. All agents please confirm inputs.`);
     }, 0);
+
+    // Everyone gathers around the Apparatus
+    schedule(() => {
+      moveAgentTo('mike', { x: 760, y: 680 }, 'reviewing', 'Watching compilation...');
+      moveAgentTo('poole', { x: 880, y: 680 }, 'reviewing', 'Verifying framework...');
+      moveAgentTo('burl', { x: 760, y: 740 }, 'reviewing', 'Checking visuals...');
+      moveAgentTo('the-cell', { x: 880, y: 740 }, 'reviewing', 'Confirming copy...');
+      addChatMessage('mike', `*lights final cigarette* Here it comes. The moment of truth.`);
+    }, 3000);
+
+    schedule(() => {
+      moveAgentTo('nadya', { x: 920, y: 700 }, 'clicking', 'Timing...');
+      moveAgentTo('delmore', { x: 720, y: 700 }, 'reviewing', 'Preparing...');
+      addChatMessage('nadya', `*checks watch* Apparatus has 47 seconds. Then we're over deadline.`);
+      addChatMessage('delmore', `*clutches deck* I'm ready to explain whatever comes out.`);
+    }, 5000);
 
     schedule(async () => {
       const finalHeadline = await generateCreativeContent(
-        `Brief: "${currentBrief}". Write the FINAL approved headline for this campaign. It should be memorable, slightly unsettling, and true. Under 12 words. Just the headline.`
+        `Brief: "${currentBrief}". Write the FINAL approved headline. Memorable, slightly unsettling, true. Under 12 words. Just the headline.`
       );
       
       const words = currentBrief.split(' ').filter(w => w.length > 3);
@@ -1159,18 +1290,30 @@ KEY ELEMENTS:
       const code = generateFinalAdCode(finalHeadline, product);
       setFinalAdCode(code);
       
-      createWorkItem('apparatus', 'approval', `✓ CODE READY\n${product}.html`, { x: FINAL_OUTPUT_ZONE.x + 40, y: FINAL_OUTPUT_ZONE.y + 40 }, 7, false);
-      
-      addChatMessage('apparatus', `ASSEMBLY COMPLETE — All documents processed. The work exists now in its final form. It is neither good nor bad — it simply is. READY FOR REVIEW—`);
+      addChatMessage('apparatus', `COMPILATION COMPLETE — The dossier is assembled. The work exists. It simply... is.`);
+    }, 8000);
+
+    // Final reactions from everyone
+    schedule(() => {
+      createWorkItem('apparatus', 'approval', `✓ CODE READY\n${currentBrief.split(' ')[0] || 'CAMPAIGN'}.html`, { x: FINAL_OUTPUT_ZONE.x + 40, y: FINAL_OUTPUT_ZONE.y + 40 }, 7, false);
+      addChatMessage('mike', `*nods slowly* That'll do. That'll do.`);
+      addChatMessage('burl', `*stares at final layout* The picture came together. Somehow it always does.`);
+      addChatMessage('the-cell', `[VERA]: It's... not what I expected. [GJON]: It never is. [THURSDAY]: *small smile*`);
       updateTaskStatus('task-15', 'done');
       updateTaskStatus('task-16', 'done');
-    }, 4000);
+    }, 11000);
+
+    schedule(() => {
+      addChatMessage('poole', `*removes glasses, cleans them* The framework held. The system works.`);
+      addChatMessage('nadya', `*checks watch* Under deadline. *rare smile* Acceptable.`);
+      addChatMessage('delmore', `*pockets remaining candies* I'll take it from here. The client will love it. They won't know why. But they will.`);
+    }, 14000);
 
     schedule(() => {
       setPhaseLabel('✓ CAMPAIGN COMPLETE');
-      addChatMessage('apparatus', `DOSSIER ARCHIVED — ${new Date().toISOString().slice(0, 10)}. The brief has been answered. The work is done. We wait — as we always do — for the next question.`);
+      addChatMessage('apparatus', `DOSSIER ARCHIVED — ${new Date().toISOString().slice(0, 10)}. The brief has been answered. We wait now — as we always do — for the next question. END TRANSMISSION —`);
       setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
-    }, 7000);
+    }, 17000);
 
   }, [generateCreativeContent, moveAgentTo, addChatMessage, createWorkItem, updateTaskStatus, generateFinalAdCode]);
 
