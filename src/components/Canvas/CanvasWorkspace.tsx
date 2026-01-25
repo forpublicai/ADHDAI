@@ -1261,8 +1261,8 @@ KEY ELEMENTS:
     const oohFolder = zip.folder('04_OOH');
     const docsFolder = zip.folder('05_DOCUMENTATION');
     
-    // Helper to generate and fetch image
-    const generateImage = async (prompt: string, filename: string): Promise<{url: string, blob: Blob} | null> => {
+    // Helper to generate and fetch image using base64 to avoid CORS issues
+    const generateImage = async (prompt: string, filename: string): Promise<{blob: Blob} | null> => {
       if (!openai) return null;
       try {
         const response = await openai.images.generate({
@@ -1271,12 +1271,19 @@ KEY ELEMENTS:
           n: 1,
           size: '1024x1024',
           quality: 'standard',
+          response_format: 'b64_json', // Get base64 directly to avoid CORS
         });
-        const imageUrl = response.data?.[0]?.url;
-        if (imageUrl) {
-          const imageResponse = await fetch(imageUrl);
-          const blob = await imageResponse.blob();
-          return { url: imageUrl, blob };
+        const b64Data = response.data?.[0]?.b64_json;
+        if (b64Data) {
+          // Convert base64 to blob
+          const byteCharacters = atob(b64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'image/png' });
+          return { blob };
         }
       } catch (error) {
         console.error(`Failed to generate ${filename}:`, error);
