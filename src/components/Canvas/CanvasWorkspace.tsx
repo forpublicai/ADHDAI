@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import OpenAI from 'openai';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 import { CHARACTERS } from '../../constants';
 import { CharacterId } from '../../types';
 import './CanvasWorkspace.css';
@@ -144,6 +146,11 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const briefRef = useRef(brief);
   briefRef.current = brief;
 
+  // Helper to get character info (defined early as it has no dependencies)
+  const getCharacterInfo = useCallback((agentId: CharacterId) => {
+    return CHARACTERS.find(c => c.id === agentId) || CHARACTERS[0];
+  }, []);
+
   // Initialize agents
   useEffect(() => {
     const initialAgents: AgentState[] = CHARACTERS.map(char => ({
@@ -242,6 +249,153 @@ Output ONLY the creative content. No explanations. No preamble. Just the work.`
       console.error('API error:', error);
       return generateFallback();
     }
+  }, []);
+
+  // Canvas panning
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0 && !draggedItem) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - canvasOffset.x, y: e.clientY - canvasOffset.y });
+    }
+  }, [canvasOffset, draggedItem]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!canvasRef.current) return;
+    
+    if (isPanning && !draggedItem) {
+      setCanvasOffset({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y,
+      });
+    }
+    
+    if (draggedItem) {
+      // Get canvas container position
+      const containerRect = canvasRef.current.getBoundingClientRect();
+      
+      // Calculate mouse position relative to the canvas content
+      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
+      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
+      
+      // Apply drag offset to get item position
+      const newX = mouseXInCanvas - dragOffset.x;
+      const newY = mouseYInCanvas - dragOffset.y;
+      
+      setWorkItems(prev => prev.map(item => 
+        item.id === draggedItem 
+          ? { ...item, position: { x: newX, y: newY }, isDragging: true }
+          : item
+      ));
+    }
+  }, [isPanning, panStart, draggedItem, canvasOffset, zoom, dragOffset]);
+
+  // Handle wheel for panning (scroll), pinch for zoom
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    // Check if it's a pinch gesture (ctrlKey is true for pinch-to-zoom on trackpads)
+    if (e.ctrlKey) {
+      e.preventDefault();
+      const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05;
+      setZoom(prev => Math.min(2, Math.max(0.3, prev * zoomFactor)));
+    } else {
+      // Regular scroll = pan the canvas
+      e.preventDefault();
+      setCanvasOffset(prev => ({
+        x: prev.x - e.deltaX,
+        y: prev.y - e.deltaY,
+      }));
+    }
+  }, []);
+
+  // Work item drag handlers - fixed calibration
+  const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!canvasRef.current) return;
+    
+    const item = workItems.find(i => i.id === itemId);
+    if (item) {
+      // Get canvas container position
+      const containerRect = canvasRef.current.getBoundingClientRect();
+      
+      // Calculate mouse position in canvas coordinates
+      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
+      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
+      
+      // Offset is the difference between mouse position and item position
+      setDragOffset({
+        x: mouseXInCanvas - item.position.x,
+        y: mouseYInCanvas - item.position.y,
+      });
+      setDraggedItem(itemId);
+    }
+  }, [workItems, zoom, canvasOffset]);
+
+  const updateTaskStatus = useCallback((taskId: string, newStatus: KanbanTask['status']) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ));
+  }, []);
+
+  const addChatMessage = useCallback((from: CharacterId, content: string, to?: CharacterId) => {
+    const msg: ChatMessage = {
+      id: `chat-${chatIdRef.current++}`,
+      from,
+      to,
+      content,
+      timestamp: Date.now(),
+    };
+    setChatMessages(prev => [...prev.slice(-20), msg]);
+  }, []);
+
+  const createWorkItem = useCallback((
+    agentId: CharacterId, 
+    type: WorkItem['type'], 
+    content: string, 
+    position: Position,
+    phase: number,
+    shouldType: boolean = false
+  ): string => {
+    const id = `item-${workItemIdRef.current++}`;
+    const item: WorkItem = {
+      id,
+      type,
+      content,
+      position,
+      color: ITEM_COLORS[type],
+      createdBy: agentId,
+      timestamp: Date.now(),
+      phase,
+      isTyping: shouldType,
+      displayedContent: shouldType ? '' : content,
+    };
+    setWorkItems(prev => [...prev, item]);
+    
+    if (shouldType && content.length > 0) {
+      let charIndex = 0;
+      const typeInterval = setInterval(() => {
+        charIndex += 2;
+        setWorkItems(prev => prev.map(wi => 
+          wi.id === id 
+            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
+            : wi
+        ));
+        if (charIndex >= content.length) {
+          clearInterval(typeInterval);
+        }
+      }, 30);
+      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
+    }
+    
+    return id;
+  }, []);
+
+  const moveAgentTo = useCallback((agentId: CharacterId, target: Position, status: AgentState['status'], action: string) => {
+    setAgents(prev => prev.map(agent => 
+      agent.id === agentId 
+        ? { ...agent, targetPosition: target, status, action, isActive: true }
+        : agent
+    ));
   }, []);
 
   // Generate agent conversation about merged ideas AND create new combined work item
@@ -359,44 +513,7 @@ KEY ELEMENTS:
     
   }, [addChatMessage, createWorkItem, currentPhase, getCharacterInfo]);
 
-  // Canvas panning
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 0 && !draggedItem) {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - canvasOffset.x, y: e.clientY - canvasOffset.y });
-    }
-  }, [canvasOffset, draggedItem]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!canvasRef.current) return;
-    
-    if (isPanning && !draggedItem) {
-      setCanvasOffset({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y,
-      });
-    }
-    
-    if (draggedItem) {
-      // Get canvas container position
-      const containerRect = canvasRef.current.getBoundingClientRect();
-      
-      // Calculate mouse position relative to the canvas content
-      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
-      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
-      
-      // Apply drag offset to get item position
-      const newX = mouseXInCanvas - dragOffset.x;
-      const newY = mouseYInCanvas - dragOffset.y;
-      
-      setWorkItems(prev => prev.map(item => 
-        item.id === draggedItem 
-          ? { ...item, position: { x: newX, y: newY }, isDragging: true }
-          : item
-      ));
-    }
-  }, [isPanning, panStart, draggedItem, canvasOffset, zoom, dragOffset]);
-
+  // Handle mouse up - detect collision for merging items
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
     
@@ -424,104 +541,6 @@ KEY ELEMENTS:
       setDraggedItem(null);
     }
   }, [draggedItem, workItems, generateMergeConversation]);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05;
-    setZoom(prev => Math.min(2, Math.max(0.3, prev * zoomFactor)));
-  }, []);
-
-  // Work item drag handlers - fixed calibration
-  const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
-    if (!canvasRef.current) return;
-    
-    const item = workItems.find(i => i.id === itemId);
-    if (item) {
-      // Get canvas container position
-      const containerRect = canvasRef.current.getBoundingClientRect();
-      
-      // Calculate mouse position in canvas coordinates
-      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
-      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
-      
-      // Offset is the difference between mouse position and item position
-      setDragOffset({
-        x: mouseXInCanvas - item.position.x,
-        y: mouseYInCanvas - item.position.y,
-      });
-      setDraggedItem(itemId);
-    }
-  }, [workItems, zoom, canvasOffset]);
-
-  const updateTaskStatus = useCallback((taskId: string, newStatus: KanbanTask['status']) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
-  }, []);
-
-  const addChatMessage = useCallback((from: CharacterId, content: string, to?: CharacterId) => {
-    const msg: ChatMessage = {
-      id: `chat-${chatIdRef.current++}`,
-      from,
-      to,
-      content,
-      timestamp: Date.now(),
-    };
-    setChatMessages(prev => [...prev.slice(-20), msg]);
-  }, []);
-
-  const createWorkItem = useCallback((
-    agentId: CharacterId, 
-    type: WorkItem['type'], 
-    content: string, 
-    position: Position,
-    phase: number,
-    shouldType: boolean = false
-  ): string => {
-    const id = `item-${workItemIdRef.current++}`;
-    const item: WorkItem = {
-      id,
-      type,
-      content,
-      position,
-      color: ITEM_COLORS[type],
-      createdBy: agentId,
-      timestamp: Date.now(),
-      phase,
-      isTyping: shouldType,
-      displayedContent: shouldType ? '' : content,
-    };
-    setWorkItems(prev => [...prev, item]);
-    
-    if (shouldType && content.length > 0) {
-      let charIndex = 0;
-      const typeInterval = setInterval(() => {
-        charIndex += 2;
-        setWorkItems(prev => prev.map(wi => 
-          wi.id === id 
-            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
-            : wi
-        ));
-        if (charIndex >= content.length) {
-          clearInterval(typeInterval);
-        }
-      }, 30);
-      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
-    }
-    
-    return id;
-  }, []);
-
-  const moveAgentTo = useCallback((agentId: CharacterId, target: Position, status: AgentState['status'], action: string) => {
-    setAgents(prev => prev.map(agent => 
-      agent.id === agentId 
-        ? { ...agent, targetPosition: target, status, action, isActive: true }
-        : agent
-    ));
-  }, []);
 
   // Smooth agent position updates
   useEffect(() => {
@@ -1220,9 +1239,365 @@ KEY ELEMENTS:
     addChatMessage('apparatus', 'CODE COPIED.');
   };
 
-  const getCharacterInfo = (agentId: CharacterId) => {
-    return CHARACTERS.find(c => c.id === agentId) || CHARACTERS[0];
-  };
+  // Generate and download ZIP with all deliverables
+  const downloadZip = useCallback(async () => {
+    const currentBrief = briefRef.current;
+    const product = currentBrief.split(' ').filter(w => w.length > 3)[0] || 'campaign';
+    const timestamp = new Date().toISOString().split('T')[0];
+    const campaignName = `${product.toLowerCase()}_campaign_${timestamp}`;
+    
+    addChatMessage('apparatus', 'COMPILING DELIVERABLES PACKAGE...');
+    
+    const zip = new JSZip();
+    
+    // Create folder structure
+    const printFolder = zip.folder('01_PRINT');
+    const videoFolder = zip.folder('02_VIDEO');
+    const socialFolder = zip.folder('03_SOCIAL');
+    const oohFolder = zip.folder('04_OOH');
+    const docsFolder = zip.folder('05_DOCUMENTATION');
+    
+    // 1. HTML Campaign Dossier (main file)
+    zip.file('campaign_dossier.html', finalAdCode);
+    
+    // 2. Print deliverables - generate actual files
+    // Magazine spread specifications
+    const magazineSpec = `PRINT SPECIFICATION — MAGAZINE SPREAD
+=====================================
+
+Campaign: ${product.toUpperCase()}
+Format: Double Page Spread
+Dimensions: 420mm × 297mm (A3 spread)
+Bleed: 3mm
+Color Space: CMYK
+Resolution: 300dpi
+
+HEADLINE:
+${workItems.find(w => w.type === 'headline')?.content || 'See campaign dossier for headline'}
+
+VISUAL DIRECTION:
+${workItems.find(w => w.type === 'visual')?.content || 'Documentary photography, muted tones, no text overlays'}
+
+TYPOGRAPHY:
+- Primary: Helvetica Neue Light
+- Size: 72pt headline / 14pt body
+- Color: #1a1a1a on #F5F5F0
+
+NOTES:
+- Massive negative space required
+- Single hero image, left page
+- Copy on right page, lower third
+- No logos larger than 24pt
+
+Generated by ADHDAI — The Feral Creative Collective
+`;
+    printFolder?.file('magazine_spread_spec.txt', magazineSpec);
+    
+    // A1 Poster specs
+    const posterSpec = `PRINT SPECIFICATION — A1 POSTER
+================================
+
+Campaign: ${product.toUpperCase()}
+Format: A1 Portrait
+Dimensions: 594mm × 841mm
+Bleed: 5mm
+Color Space: CMYK
+Resolution: 300dpi
+
+Paper Stock: Uncoated 200gsm
+Finish: Matte
+
+LAYOUT:
+- 120mm margins all sides
+- Headline centered, lower third
+- Brand mark bottom right, 40mm
+
+Generated by ADHDAI — The Feral Creative Collective
+`;
+    printFolder?.file('poster_a1_spec.txt', posterSpec);
+    
+    // 3. Video storyboard
+    const storyboard = `VIDEO STORYBOARD — :30 SPOT
+============================
+
+Campaign: ${product.toUpperCase()}
+Format: 1920×1080 / 30fps
+Duration: 30 seconds
+Aspect Ratios: 16:9 (broadcast), 1:1 (social), 9:16 (vertical)
+
+FRAME 1 — 00:00-00:05
+Visual: Black screen
+Audio: Ambient room tone, barely perceptible
+Copy: None
+
+FRAME 2 — 00:05-00:10
+Visual: Slow fade in. Single subject, center frame.
+Audio: Sound continues, slight shift
+Copy: None
+
+FRAME 3 — 00:10-00:15
+Visual: Close-up detail. The moment of recognition.
+Audio: Breath. Pause.
+Copy: None
+
+FRAME 4 — 00:15-00:20
+Visual: Pull back. Context revealed.
+Audio: Ambient returns, warmer
+Copy: None
+
+FRAME 5 — 00:20-00:25
+Visual: Subject in full context
+Audio: Music begins (minimal, piano)
+Copy: Headline fades in: "${workItems.find(w => w.type === 'headline')?.content?.slice(0, 50) || '[SEE CAMPAIGN HEADLINE]'}"
+
+FRAME 6 — 00:25-00:28
+Visual: Beat. Let it breathe.
+Audio: Music continues
+Copy: Headline holds
+
+FRAME 7 — 00:28-00:30
+Visual: Brand mark
+Audio: Music resolves
+Copy: ${product.toUpperCase()}
+
+---
+
+DIRECTOR'S NOTES:
+- No quick cuts
+- Let silence do the work
+- Documentary feel, not commercial
+- Color grade: muted, desaturated
+- Think Terrence Malick meets Swiss design
+
+Generated by ADHDAI — The Feral Creative Collective
+`;
+    videoFolder?.file('storyboard_30sec.txt', storyboard);
+    
+    // Video specs JSON for production
+    const videoSpecs = {
+      campaign: product.toUpperCase(),
+      format: {
+        broadcast: { width: 1920, height: 1080, fps: 30 },
+        social_square: { width: 1080, height: 1080, fps: 30 },
+        social_vertical: { width: 1080, height: 1920, fps: 30 }
+      },
+      duration_seconds: 30,
+      audio: {
+        voiceover: false,
+        music: "minimal, piano-based",
+        ambient: true
+      },
+      color_grade: "muted, desaturated, documentary",
+      pacing: "slow, contemplative"
+    };
+    videoFolder?.file('video_specs.json', JSON.stringify(videoSpecs, null, 2));
+    
+    // 4. Social media templates
+    const socialCopy = `SOCIAL MEDIA COPY DECK
+======================
+
+Campaign: ${product.toUpperCase()}
+Platforms: Instagram, Twitter/X, LinkedIn
+
+---
+
+INSTAGRAM FEED POST
+Dimensions: 1080×1080
+
+Caption:
+${workItems.find(w => w.type === 'headline')?.content || '[HEADLINE]'}
+
+Sometimes the answer was there all along.
+
+#${product.toLowerCase().replace(/\s/g, '')} #advertising #truth
+
+---
+
+INSTAGRAM STORY
+Dimensions: 1080×1920
+
+Frame 1: Headline only, centered
+Frame 2: Product/brand context
+Frame 3: Swipe up CTA
+
+---
+
+TWITTER/X
+Character limit: 280
+
+"${workItems.find(w => w.type === 'headline')?.content?.slice(0, 100) || '[HEADLINE]'}"
+
+— ${product}
+
+---
+
+LINKEDIN
+Professional context version
+
+We asked ourselves: what do people actually need from ${product.toLowerCase()}?
+
+The answer surprised us.
+
+${workItems.find(w => w.type === 'headline')?.content || '[HEADLINE]'}
+
+#advertising #brandstrategy #creativity
+
+Generated by ADHDAI — The Feral Creative Collective
+`;
+    socialFolder?.file('social_copy_deck.txt', socialCopy);
+    
+    // Social specs JSON
+    const socialSpecs = {
+      instagram_feed: { width: 1080, height: 1080, format: 'jpg/png' },
+      instagram_story: { width: 1080, height: 1920, format: 'jpg/png/mp4' },
+      instagram_reel: { width: 1080, height: 1920, format: 'mp4', max_duration: 90 },
+      twitter: { width: 1200, height: 675, format: 'jpg/png' },
+      linkedin: { width: 1200, height: 627, format: 'jpg/png' }
+    };
+    socialFolder?.file('social_specs.json', JSON.stringify(socialSpecs, null, 2));
+    
+    // 5. OOH specifications
+    const oohSpec = `OUT OF HOME SPECIFICATIONS
+==========================
+
+Campaign: ${product.toUpperCase()}
+
+---
+
+48-SHEET BILLBOARD
+Dimensions: 6096mm × 3048mm (20ft × 10ft)
+Resolution: 72dpi minimum (viewed from distance)
+Bleed: 25mm
+
+Placement: Urban high-traffic locations
+Duration: 4 weeks recommended
+Viewing distance: 50m+
+
+Design notes:
+- Maximum 7 words
+- High contrast required
+- Brand mark 10% of total area
+- No fine details (lost at distance)
+
+---
+
+BUS SHELTER (6-SHEET)
+Dimensions: 1800mm × 1200mm
+Resolution: 150dpi
+Bleed: 10mm
+
+Placement: Street level, transit hubs
+Viewing distance: 2-5m
+
+Design notes:
+- Can include more detail than billboard
+- QR code optional (bottom right)
+- Ensure readability in poor lighting
+
+---
+
+TRANSIT WRAP
+Vehicle: Standard city bus
+Coverage: Full wrap or super-side
+Material: Perforated vinyl for windows
+
+Special considerations:
+- Design must work with vehicle contours
+- Allow for doors, windows, wheel wells
+
+Generated by ADHDAI — The Feral Creative Collective
+`;
+    oohFolder?.file('ooh_specifications.txt', oohSpec);
+    
+    // 6. Documentation
+    const strategicBrief = `STRATEGIC BRIEF
+===============
+
+Client: ${product.toUpperCase()}
+Original Brief: "${currentBrief}"
+
+---
+
+HUMAN TENSION IDENTIFIED:
+${workItems.find(w => w.type === 'sticky' && w.createdBy === 'mike')?.content || '[See intake report]'}
+
+STRATEGIC FRAMEWORK:
+${workItems.find(w => w.type === 'framework')?.content || workItems.find(w => w.type === 'strategy')?.content || '[See strategic framework]'}
+
+CREATIVE DIRECTION:
+${workItems.find(w => w.type === 'headline')?.content || '[See copy deck]'}
+
+VISUAL LANGUAGE:
+${workItems.find(w => w.type === 'visual')?.content || '[See visual direction]'}
+
+---
+
+AGENCY: ADHDAI — The Feral Creative Collective
+DATE: ${new Date().toLocaleDateString()}
+VERSION: 1.0
+
+Generated by ADHDAI
+`;
+    docsFolder?.file('strategic_brief.txt', strategicBrief);
+    
+    // Work log
+    const workLog = workItems.map(item => {
+      const agent = CHARACTERS.find(c => c.id === item.createdBy);
+      return `[${new Date(item.timestamp).toLocaleTimeString()}] ${agent?.name || item.createdBy}: ${item.content.slice(0, 100)}...`;
+    }).join('\n\n');
+    docsFolder?.file('work_log.txt', `CREATIVE WORK LOG\n${'='.repeat(50)}\n\n${workLog}`);
+    
+    // Chat transcript
+    const chatLog = chatMessages.map(msg => {
+      const agent = CHARACTERS.find(c => c.id === msg.from);
+      return `[${new Date(msg.timestamp).toLocaleTimeString()}] ${agent?.name || msg.from}: ${msg.content}`;
+    }).join('\n\n');
+    docsFolder?.file('chat_transcript.txt', `AGENT CHAT TRANSCRIPT\n${'='.repeat(50)}\n\n${chatLog}`);
+    
+    // README
+    const readme = `${product.toUpperCase()} CAMPAIGN DELIVERABLES
+${'='.repeat(50)}
+
+Generated by ADHDAI — The Feral Creative Collective
+Date: ${new Date().toLocaleString()}
+
+FOLDER STRUCTURE:
+-----------------
+01_PRINT/      - Print specifications and specs
+02_VIDEO/      - Video storyboard and specs
+03_SOCIAL/     - Social media copy deck and specs
+04_OOH/        - Out of home specifications
+05_DOCUMENTATION/ - Strategic brief, work log, chat transcript
+
+campaign_dossier.html - Open in browser for full visual presentation
+
+HOW TO USE:
+-----------
+1. Open campaign_dossier.html in any web browser for the visual overview
+2. Use spec files in each folder to brief production partners
+3. JSON files contain technical specifications for developers
+
+NOTES:
+------
+- All specifications follow industry standards
+- Dimensions are in millimeters unless otherwise noted
+- Color values are provided in hex (for digital) and CMYK percentages (for print)
+- This package is intended as a creative brief, not final production files
+
+For production-ready files, please engage with appropriate vendors using these specifications.
+
+---
+THE FERAL CREATIVE COLLECTIVE
+"We are the best at the worst"
+`;
+    zip.file('README.txt', readme);
+    
+    // Generate and download
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, `${campaignName}.zip`);
+    
+    addChatMessage('apparatus', `DELIVERABLES PACKAGE READY — ${campaignName}.zip downloaded. Contains print specs, video storyboard, social copy deck, OOH specifications, and full documentation.`);
+  }, [finalAdCode, workItems, chatMessages, addChatMessage]);
 
   const taskCounts = {
     todo: tasks.filter(t => t.status === 'todo').length,
@@ -1469,7 +1844,7 @@ KEY ELEMENTS:
         </div>
 
         {/* Drag hint */}
-        <div className="canvas-hint">Drag items to combine ideas • Scroll to zoom • Drag canvas to pan</div>
+        <div className="canvas-hint">Drag items to combine ideas • Scroll to pan • Pinch to zoom • Drag canvas to pan</div>
       </div>
 
       {/* Chat Panel */}
@@ -1499,9 +1874,10 @@ KEY ELEMENTS:
         <div className="code-panel-overlay" onClick={() => setShowCodePanel(false)}>
           <div className="code-panel" onClick={e => e.stopPropagation()}>
             <div className="code-panel-header">
-              <span>📦 CAMPAIGN CODE</span>
+              <span>📦 CAMPAIGN DELIVERABLES</span>
               <div className="code-panel-actions">
-                <button className="copy-btn" onClick={copyCode}>📋 COPY</button>
+                <button className="download-btn" onClick={downloadZip}>📥 DOWNLOAD ZIP</button>
+                <button className="copy-btn" onClick={copyCode}>📋 COPY HTML</button>
                 <button className="close-btn" onClick={() => setShowCodePanel(false)}>✕</button>
               </div>
             </div>
@@ -1509,7 +1885,7 @@ KEY ELEMENTS:
               <pre className="code-block">{finalAdCode}</pre>
             </div>
             <div className="code-panel-footer">
-              Save as .html and open in browser
+              <strong>Download ZIP</strong> for full deliverables package (print specs, video storyboard, social copy, OOH specs) • Or copy HTML to preview in browser
             </div>
           </div>
         </div>
