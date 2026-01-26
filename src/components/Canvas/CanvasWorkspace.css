@@ -608,7 +608,7 @@
   border-left: 1px solid #333;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  position: relative;
 }
 
 .chat-header {
@@ -619,6 +619,7 @@
   background: #1a1a1a;
   border-bottom: 1px solid #222;
   flex-shrink: 0;
+  height: 44px;
 }
 
 .chat-title {
@@ -637,14 +638,17 @@
 }
 
 .chat-messages {
-  flex: 1;
-  overflow-y: auto;
+  position: absolute;
+  top: 44px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: scroll;
   overflow-x: hidden;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 0; /* Important for flex scroll */
 }
 
 .chat-message {
