@@ -1944,16 +1944,18 @@ THE FERAL CREATIVE COLLECTIVE
         </div>
       </div>
 
-      {/* Main Canvas */}
-      <div 
-        className={`canvas-container ${isPanning ? 'panning' : ''} ${draggedItem ? 'dragging-item' : ''}`}
-        ref={canvasRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-      >
+      {/* Main Content Area - Canvas + Chat Sidebar */}
+      <div className="main-content-area">
+        {/* Main Canvas */}
+        <div 
+          className={`canvas-container ${isPanning ? 'panning' : ''} ${draggedItem ? 'dragging-item' : ''}`}
+          ref={canvasRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+        >
         <div 
           className="canvas-content"
           style={{
@@ -2154,25 +2156,26 @@ THE FERAL CREATIVE COLLECTIVE
         <div className="canvas-hint">Drag items to combine ideas • Scroll to pan • Pinch to zoom • Drag canvas to pan</div>
       </div>
 
-      {/* Chat Panel */}
-      <div className="chat-panel">
-        <div className="chat-header">
-          <span className="chat-title">💬 AGENT CHAT</span>
-          <span className="chat-phase">Phase {currentPhase}/7</span>
-        </div>
-        <div className="chat-messages">
-          {chatMessages.map(msg => {
-            const char = getCharacterInfo(msg.from);
-            return (
-              <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
-                <div className="chat-sender">
-                  <span className="chat-emoji">{char.emoji}</span>
-                  <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
+      {/* Chat Panel - Right Sidebar */}
+        <div className="chat-panel">
+          <div className="chat-header">
+            <span className="chat-title">💬 AGENT CHAT</span>
+            <span className="chat-phase">Phase {currentPhase}/7</span>
+          </div>
+          <div className="chat-messages">
+            {chatMessages.map(msg => {
+              const char = getCharacterInfo(msg.from);
+              return (
+                <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
+                  <div className="chat-sender">
+                    <span className="chat-emoji">{char.emoji}</span>
+                    <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
+                  </div>
+                  <div className="chat-content">{msg.content}</div>
                 </div>
-                <div className="chat-content">{msg.content}</div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
