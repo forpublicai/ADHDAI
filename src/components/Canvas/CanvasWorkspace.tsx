@@ -142,6 +142,7 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const typingRef = useRef<NodeJS.Timeout[]>([]);
   const workItemIdRef = useRef(0);
   const chatIdRef = useRef(0);
+  const chatMessagesRef = useRef<HTMLDivElement>(null);
   
   // Store brief in a ref to always get the latest value in callbacks
   const briefRef = useRef(brief);
@@ -172,6 +173,13 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     }));
     setAgents(initialAgents);
   }, []);
+
+  // Auto-scroll chat to bottom when new messages arrive
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
   // Generate creative content using API with smart fallbacks
   const generateCreativeContent = useCallback(async (prompt: string, _maxTokens: number = 150): Promise<string> => {
@@ -2157,27 +2165,27 @@ THE FERAL CREATIVE COLLECTIVE
       </div>
 
       {/* Chat Panel - Right Sidebar */}
-        <div className="chat-panel">
-          <div className="chat-header">
-            <span className="chat-title">💬 AGENT CHAT</span>
-            <span className="chat-phase">Phase {currentPhase}/7</span>
-          </div>
-          <div className="chat-messages">
-            {chatMessages.map(msg => {
-              const char = getCharacterInfo(msg.from);
-              return (
-                <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
-                  <div className="chat-sender">
-                    <span className="chat-emoji">{char.emoji}</span>
-                    <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
-                  </div>
-                  <div className="chat-content">{msg.content}</div>
+      <div className="chat-panel">
+        <div className="chat-header">
+          <span className="chat-title">💬 AGENT CHAT</span>
+          <span className="chat-phase">Phase {currentPhase}/7</span>
+        </div>
+        <div className="chat-messages" ref={chatMessagesRef}>
+          {chatMessages.map(msg => {
+            const char = getCharacterInfo(msg.from);
+            return (
+              <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
+                <div className="chat-sender">
+                  <span className="chat-emoji">{char.emoji}</span>
+                  <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
                 </div>
-              );
-            })}
-          </div>
+                <div className="chat-content">{msg.content}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
+    </div>
 
       {/* Code Panel */}
       {showCodePanel && (
