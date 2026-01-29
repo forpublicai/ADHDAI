@@ -5,6 +5,7 @@ import { saveAs } from 'file-saver';
 import { CHARACTERS } from '../../constants';
 import { CharacterId } from '../../types';
 import { parseBrief, getImagePromptContext } from '../../utils/briefParser';
+import * as dialogue from '../../utils/dialogueGenerator';
 import './CanvasWorkspace.css';
 
 // Initialize OpenAI
@@ -961,6 +962,9 @@ KEY ELEMENTS:
       return timeout;
     };
 
+    // Reset dialogue cache for fresh variations
+    dialogue.resetDialogueCache();
+    
     // ===== OPENING: Multiple agents notice the brief =====
     schedule(() => {
       setCurrentPhase(1);
@@ -971,16 +975,16 @@ KEY ELEMENTS:
       moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Reading brief...');
       moveAgentTo('poole', { x: 520, y: 180 }, 'thinking', 'Observing...');
       
-      addChatMessage('mike', `*lights cigarette, spreads case file on table* Alright everyone, gather round. We got a live one: "${currentBrief}"`);
+      addChatMessage('mike', dialogue.getMikeOpening(currentBrief));
     }, 0);
 
     schedule(() => {
-      addChatMessage('poole', `*peers over Mike's shoulder* Fascinating. I already see three potential perception architectures forming...`);
+      addChatMessage('poole', dialogue.getPooleFirstReaction(currentBrief));
       moveAgentTo('the-cell', { x: 560, y: 140 }, 'reviewing', 'Reviewing brief...');
     }, 3000);
 
     schedule(() => {
-      addChatMessage('the-cell', `[VERA]: We're listening. [GJON]: *crosses arms* Let's see what the suits actually need. [THURSDAY]: *stares at wall*`);
+      addChatMessage('the-cell', dialogue.getCellEntrance(currentBrief));
     }, 5000);
 
     // Mike's initial analysis - others watching
@@ -989,20 +993,20 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". As Mike Slab, identify the REAL human tension beneath this brief. What uncomfortable truth does this address? Be brutally honest in 2 sentences.`
       );
       createWorkItem('mike', 'sticky', insight, { x: 400, y: 100 }, 1, true);
-      addChatMessage('mike', `*taps folder* There's the real job. Not what they asked for. What they actually need.`);
+      addChatMessage('mike', dialogue.getMikeInsightComment(currentBrief));
       updateTaskStatus('task-1', 'done');
     }, 7000);
 
     // Poole reacts, moves to Mike's work
     schedule(() => {
       moveAgentTo('poole', { x: 420, y: 130 }, 'reviewing', 'Examining Mike\'s insight...');
-      addChatMessage('poole', `*adjusts glasses, leans in to read* Hmm. Crude, but there's structural validity here. The tension topology is... usable.`);
+      addChatMessage('poole', dialogue.getPooleWatchingMike(currentBrief));
     }, 11000);
 
     // Burl wanders over early
     schedule(() => {
       moveAgentTo('burl', { x: 450, y: 200 }, 'thinking', 'Thinking about visuals...');
-      addChatMessage('burl', `*squints at Mike's sticky note* Already got pictures forming in my head. Something raw. Documentary feeling.`);
+      addChatMessage('burl', dialogue.getBurlEarlyThoughts(currentBrief));
     }, 14000);
 
     // Mike adds human tension, others comment
@@ -1015,7 +1019,7 @@ KEY ELEMENTS:
     }, 17000);
 
     schedule(() => {
-      addChatMessage('the-cell', `[GJON]: *reads over Burl's shoulder* That tension. I can work with that. [VERA]: Don't get ahead of yourself. [THURSDAY]: *already scribbling*`);
+      addChatMessage('the-cell', dialogue.getCellReactToTension(currentBrief));
       updateTaskStatus('task-2', 'done');
     }, 20000);
 
@@ -1027,13 +1031,13 @@ KEY ELEMENTS:
       setPhaseLabel('STRATEGIC FRAMEWORK');
       updateTaskStatus('task-3', 'in-progress');
       moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building framework...');
-      addChatMessage('poole', `*clears throat* If I may... the Poole System™ demands we map the consumer desire-obstacle matrix. Stand back, please.`);
+      addChatMessage('poole', dialogue.getPooleFrameworkIntro(currentBrief));
     }, 0);
 
     // Mike moves to watch Poole, makes comment
     schedule(() => {
       moveAgentTo('mike', { x: 780, y: 200 }, 'reviewing', 'Watching Poole...');
-      addChatMessage('mike', `*leans against wall* Here we go with the diagrams again...`);
+      addChatMessage('mike', dialogue.getMikeWatchingPoole(currentBrief));
     }, 3000);
 
     schedule(async () => {
@@ -1041,14 +1045,14 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". What BARRIER prevents consumers from engaging? What mental block must be overcome? One sentence starting with "They believe..."`
       );
       createWorkItem('poole', 'framework', `BARRIER:\n${barrier}`, { x: 740, y: 100 }, 2, true);
-      addChatMessage('poole', `*draws arrow with flourish* The barrier is identified. See how it intersects with Mike's tension point?`);
+      addChatMessage('poole', dialogue.getPooleBarrierComment(currentBrief));
       updateTaskStatus('task-3', 'done');
     }, 6000);
 
     // The Cell gets impatient, moves over
     schedule(() => {
       moveAgentTo('the-cell', { x: 860, y: 180 }, 'reviewing', 'Getting impatient...');
-      addChatMessage('the-cell', `[GJON]: Poole, we don't need a PhD dissertation. Just tell us what angle to write. [VERA]: Let him finish. [GJON]: He never finishes.`);
+      addChatMessage('the-cell', dialogue.getCellImpatience(currentBrief));
       updateTaskStatus('task-4', 'in-progress');
     }, 9000);
 
@@ -1057,13 +1061,13 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Create a REFRAME - how do we flip the script on this product? One sentence starting with "But what if..."`
       );
       createWorkItem('poole', 'strategy', `REFRAME:\n${reframe}`, { x: 820, y: 170 }, 2, true);
-      addChatMessage('poole', `*steps back triumphantly* The reframe. When we pivot perception, consumption becomes inevitable.`);
+      addChatMessage('poole', dialogue.getPooleReframe(currentBrief));
     }, 12000);
 
     // Burl comments on strategy
     schedule(() => {
       moveAgentTo('burl', { x: 880, y: 140 }, 'thinking', 'Visualizing reframe...');
-      addChatMessage('burl', `*nods slowly* That reframe... I can see it. One image. Big. Confrontational. No gradient nonsense.`);
+      addChatMessage('burl', dialogue.getBurlOnStrategy(currentBrief));
       updateTaskStatus('task-4', 'done');
       updateTaskStatus('task-5', 'done');
     }, 15000);
@@ -1076,14 +1080,14 @@ KEY ELEMENTS:
       setPhaseLabel('COPY DEVELOPMENT');
       updateTaskStatus('task-6', 'in-progress');
       moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Vera drafting...');
-      addChatMessage('the-cell', `[VERA]: Alright, I'll start conventional. The safe option. [GJON]: *sighs* Predictable. [THURSDAY]: *stares at ceiling*`);
+      addChatMessage('the-cell', dialogue.getCellStartWriting(currentBrief));
     }, 0);
 
     // Poole follows to "supervise"
     schedule(() => {
       moveAgentTo('poole', { x: 1140, y: 200 }, 'reviewing', 'Supervising copy...');
-      addChatMessage('poole', `*hovers* Remember, the reframe must be present in every word choice. The semiotics of—`);
-      addChatMessage('the-cell', `[GJON]: Poole. Please. Let us write.`);
+      addChatMessage('poole', dialogue.getPooleSupervisesCopy(currentBrief));
+      addChatMessage('the-cell', dialogue.getCellToPoole(currentBrief));
     }, 3000);
 
     schedule(async () => {
@@ -1091,7 +1095,7 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Write OPTION A - compelling but conventional headline. Swiss-style minimalism. Under 10 words. Just the headline.`
       );
       createWorkItem('the-cell', 'headline', `OPTION A (Vera):\n\n"${optionA}"`, { x: 1080, y: 90 }, 3, true);
-      addChatMessage('the-cell', `[VERA]: Option A. Clean. Safe. Client won't have a heart attack.`);
+      addChatMessage('the-cell', dialogue.getCellOptionADone(currentBrief));
       updateTaskStatus('task-6', 'done');
       updateTaskStatus('task-7', 'in-progress');
     }, 6000);
@@ -1099,7 +1103,7 @@ KEY ELEMENTS:
     // Burl moves in to see copy
     schedule(() => {
       moveAgentTo('burl', { x: 1100, y: 150 }, 'reviewing', 'Reading Option A...');
-      addChatMessage('burl', `*reads Option A* I can work with this. But it's missing... something. Where's the gut punch?`);
+      addChatMessage('burl', dialogue.getBurlReadsOptionA(currentBrief));
       moveAgentTo('the-cell', { x: 1220, y: 180 }, 'typing', 'Gjon writing...');
     }, 9000);
 
@@ -1108,14 +1112,14 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Write OPTION B - provocative headline that challenges assumptions. Under 12 words. Just the headline.`
       );
       createWorkItem('the-cell', 'headline', `OPTION B (Gjon):\n\n"${optionB}"`, { x: 1200, y: 150 }, 3, true);
-      addChatMessage('the-cell', `[GJON]: Option B. This one bites. [VERA]: That's too aggressive! [GJON]: That's why it WORKS.`);
+      addChatMessage('the-cell', dialogue.getCellOptionBDone(currentBrief));
       updateTaskStatus('task-7', 'done');
     }, 12000);
 
     // Mike wanders over to see the fight
     schedule(() => {
       moveAgentTo('mike', { x: 1160, y: 220 }, 'reviewing', 'Watching Cell argue...');
-      addChatMessage('mike', `*watches the Cell argue* I love this part. Like watching cats in a bag.`);
+      addChatMessage('mike', dialogue.getMikeWatchingCell(currentBrief));
       updateTaskStatus('task-8', 'in-progress');
     }, 15000);
 
@@ -1124,21 +1128,19 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Write OPTION C - deeply strange, uncomfortable headline that reveals unexpected truth. Deranged but logical. Under 15 words.`
       );
       createWorkItem('the-cell', 'headline', `OPTION C (Thursday):\n\n"${optionC}"`, { x: 1140, y: 220 }, 3, true);
-      addChatMessage('the-cell', `[THURSDAY]: *slides paper across table without looking up* [VERA]: ...What the— [GJON]: *reads it twice* [VERA]: Thursday, this is unhinged.`);
+      addChatMessage('the-cell', dialogue.getCellThursdayDone(currentBrief));
       updateTaskStatus('task-8', 'done');
     }, 18000);
 
     // Everyone reacts to Thursday's option
     schedule(() => {
-      addChatMessage('burl', `*squints at Option C* ...That's the one. That's the picture I've been seeing.`);
-      addChatMessage('poole', `*adjusts glasses* Structurally unsound... yet somehow it maps perfectly to the reframe. Remarkable.`);
-      addChatMessage('mike', `Kid's got something. That's the kind of line that makes people uncomfortable. Good uncomfortable.`);
+      addChatMessage('mike', dialogue.getEveryoneReactsToThursday(currentBrief));
       updateTaskStatus('task-9', 'in-progress');
     }, 21000);
 
     schedule(() => {
       createWorkItem('the-cell', 'approval', '✓ VOTE: C wins 2-1\nThursday always wins.', { x: 1280, y: 260 }, 3, false);
-      addChatMessage('the-cell', `[CELL VOTE]: Option C carries. 2-1. [VERA]: I still think— [GJON]: It's decided. @burl — make it ugly-beautiful.`);
+      addChatMessage('the-cell', dialogue.getCellVote(currentBrief));
       updateTaskStatus('task-9', 'done');
     }, 24000);
 
@@ -1150,15 +1152,15 @@ KEY ELEMENTS:
       setPhaseLabel('ART DIRECTION');
       updateTaskStatus('task-10', 'in-progress');
       moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Defining visual language...');
-      addChatMessage('burl', `*spreads out swatches, photos* Alright. Everyone back up. I need to think in pictures.`);
+      addChatMessage('burl', dialogue.getBurlStartsDesign(currentBrief));
     }, 0);
 
     // Nadya appears early, checking timeline
     schedule(() => {
       moveAgentTo('nadya', { x: 520, y: 480 }, 'clicking', 'Checking timeline...');
-      addChatMessage('nadya', `*checks watch* Burl. How long for visuals? I have schedule to build.`);
-      addChatMessage('burl', `*doesn't look up* When it's done, Nadya. Art doesn't punch a clock.`);
-      addChatMessage('nadya', `*lights cigarette* It does in this agency.`);
+      addChatMessage('nadya', dialogue.getNadyaChecksIn(currentBrief));
+      addChatMessage('burl', dialogue.getBurlToNadya(currentBrief));
+      addChatMessage('nadya', dialogue.getNadyaResponse(currentBrief));
     }, 3000);
 
     schedule(async () => {
@@ -1166,15 +1168,15 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Describe VISUAL LANGUAGE in 3 bullet points: colors (hex codes), typography, mood. Swiss-style minimalism.`
       );
       createWorkItem('burl', 'visual', visual, { x: 400, y: 380 }, 4, true);
-      addChatMessage('burl', `*pins swatch to wall* There. That color. It's not pretty. It's honest.`);
+      addChatMessage('burl', dialogue.getBurlColorComment(currentBrief));
       updateTaskStatus('task-10', 'done');
     }, 6000);
 
     // Poole comes to validate
     schedule(() => {
       moveAgentTo('poole', { x: 440, y: 420 }, 'reviewing', 'Examining colors...');
-      addChatMessage('poole', `*examines color choices* Interesting. The chromatic tension mirrors the psychological framework. Was this intentional?`);
-      addChatMessage('burl', `*shrugs* I just paint what I see, professor.`);
+      addChatMessage('poole', dialogue.getPooleOnColors(currentBrief));
+      addChatMessage('burl', dialogue.getBurlToPoole(currentBrief));
       updateTaskStatus('task-11', 'in-progress');
     }, 9000);
 
@@ -1190,7 +1192,7 @@ KEY ELEMENTS:
     // The Cell visits to see visual direction
     schedule(() => {
       moveAgentTo('the-cell', { x: 480, y: 500 }, 'reviewing', 'Reviewing visual direction...');
-      addChatMessage('the-cell', `[VERA]: The type is good. Clean. [GJON]: Make sure it doesn't undercut Thursday's line. [THURSDAY]: *nods once, leaves*`);
+      addChatMessage('the-cell', dialogue.getCellOnVisuals(currentBrief));
     }, 15000);
 
     schedule(async () => {
@@ -1198,7 +1200,7 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Describe the KEY VISUAL for the hero ad. What single image captures the essence? Be specific and unexpected. 2 sentences.`
       );
       createWorkItem('burl', 'visual', `KEY VISUAL:\n${artDirection}`, { x: 420, y: 520 }, 4, true);
-      addChatMessage('burl', `*steps back from layout* There. That's the picture. Don't let anyone prettify it.`);
+      addChatMessage('burl', dialogue.getBurlKeyVisual(currentBrief));
       updateTaskStatus('task-12', 'done');
     }, 18000);
 
@@ -1210,21 +1212,21 @@ KEY ELEMENTS:
       setPhaseLabel('PRODUCTION');
       updateTaskStatus('task-13', 'in-progress');
       moveAgentTo('nadya', { x: 820, y: 440 }, 'clicking', 'Locking schedule...');
-      addChatMessage('nadya', `*slams calendar on table* Schedule time. Everyone, deadlines are not suggestions. They are law.`);
+      addChatMessage('nadya', dialogue.getNadyaScheduleAnnouncement(currentBrief));
     }, 0);
 
     // Mike protests
     schedule(() => {
       moveAgentTo('mike', { x: 780, y: 480 }, 'reviewing', 'Checking dates...');
-      addChatMessage('mike', `*looks at dates* Nadya, these timelines are... aggressive.`);
-      addChatMessage('nadya', `Valentina Tereshkova orbited Earth in '63. You can make deadline in '26.`);
+      addChatMessage('mike', dialogue.getMikeOnTimeline(currentBrief));
+      addChatMessage('nadya', dialogue.getNadyaToMike(currentBrief));
     }, 3000);
 
     schedule(() => {
       const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString();
       createWorkItem('nadya', 'sticky', `SHOOT: ${tomorrow}\nDELIVERY: +48hrs\nNO DELAYS.`, { x: 740, y: 380 }, 5, false);
       createWorkItem('nadya', 'approval', '⏱ LOCKED', { x: 840, y: 440 }, 5, false);
-      addChatMessage('nadya', `*stubs cigarette* Schedule is law. Break it at your peril. @delmore — client expects smooth translation.`);
+      addChatMessage('nadya', dialogue.getNadyaScheduleLocked(currentBrief));
       updateTaskStatus('task-13', 'done');
     }, 6000);
 
@@ -1236,15 +1238,15 @@ KEY ELEMENTS:
       setPhaseLabel('CLIENT TRANSLATION');
       updateTaskStatus('task-14', 'in-progress');
       moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Preparing client deck...');
-      addChatMessage('delmore', `*adjusts collar, distributes hard candies* Now friends, the client needs to feel... comfortable. Let me translate.`);
+      addChatMessage('delmore', dialogue.getDelmoreStarts(currentBrief));
     }, 0);
 
     // Mike and Cell watch with amusement
     schedule(() => {
       moveAgentTo('mike', { x: 1140, y: 480 }, 'reviewing', 'Watching translation...');
-      addChatMessage('mike', `*accepts candy* Watch this. Delmore's about to turn our knife into a pillow.`);
+      addChatMessage('mike', dialogue.getMikeWatchingDelmore(currentBrief));
       moveAgentTo('the-cell', { x: 1200, y: 500 }, 'reviewing', 'Observing...');
-      addChatMessage('the-cell', `[GJON]: How does he do it without lying? [VERA]: It's an art form.`);
+      addChatMessage('the-cell', dialogue.getCellWatchingDelmore(currentBrief));
     }, 3000);
 
     schedule(async () => {
@@ -1252,15 +1254,15 @@ KEY ELEMENTS:
         `Translate this campaign for "${currentBrief}" into CLIENT-SPEAK. Use buzzwords: "authentic", "disruptive", "culturally relevant". 3 impressive-sounding bullet points.`
       );
       createWorkItem('delmore', 'draft', `CLIENT DECK:\n${clientSpeak}`, { x: 1100, y: 380 }, 6, true);
-      addChatMessage('delmore', `*slides deck across* There. They'll nod through the whole thing. Won't understand a word. But they'll approve it.`);
+      addChatMessage('delmore', dialogue.getDelmoreFinishes(currentBrief));
       updateTaskStatus('task-14', 'done');
     }, 6000);
 
     // Poole admires the translation
     schedule(() => {
       moveAgentTo('poole', { x: 1160, y: 420 }, 'reviewing', 'Admiring translation...');
-      addChatMessage('poole', `*reads deck* Remarkable. You've preserved the strategic architecture while removing all threatening clarity. Masterful.`);
-      addChatMessage('delmore', `*offers another candy* It's just talking to people, Dr. Poole. @apparatus — we're ready for final assembly.`);
+      addChatMessage('poole', dialogue.getPooleOnTranslation(currentBrief));
+      addChatMessage('delmore', dialogue.getDelmoreToPoole(currentBrief));
     }, 9000);
 
     delay += 11000;
@@ -1271,7 +1273,7 @@ KEY ELEMENTS:
       setPhaseLabel('FINAL ASSEMBLY');
       updateTaskStatus('task-15', 'in-progress');
       moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling...');
-      addChatMessage('apparatus', `INITIATING FINAL COMPILATION — timestamp ${new Date().toISOString().slice(0, 19)}. All agents please confirm inputs.`);
+      addChatMessage('apparatus', dialogue.getApparatusInitiate(currentBrief));
     }, 0);
 
     // Everyone gathers around the Apparatus
@@ -1280,14 +1282,14 @@ KEY ELEMENTS:
       moveAgentTo('poole', { x: 880, y: 680 }, 'reviewing', 'Verifying framework...');
       moveAgentTo('burl', { x: 760, y: 740 }, 'reviewing', 'Checking visuals...');
       moveAgentTo('the-cell', { x: 880, y: 740 }, 'reviewing', 'Confirming copy...');
-      addChatMessage('mike', `*lights final cigarette* Here it comes. The moment of truth.`);
+      addChatMessage('mike', dialogue.getMikeFinalWatch(currentBrief));
     }, 3000);
 
     schedule(() => {
       moveAgentTo('nadya', { x: 920, y: 700 }, 'clicking', 'Timing...');
       moveAgentTo('delmore', { x: 720, y: 700 }, 'reviewing', 'Preparing...');
-      addChatMessage('nadya', `*checks watch* Apparatus has 47 seconds. Then we're over deadline.`);
-      addChatMessage('delmore', `*clutches deck* I'm ready to explain whatever comes out.`);
+      addChatMessage('nadya', dialogue.getNadyaTimingFinal(currentBrief));
+      addChatMessage('delmore', dialogue.getDelmoreReadyToExplain(currentBrief));
     }, 5000);
 
     schedule(async () => {
@@ -1304,28 +1306,28 @@ KEY ELEMENTS:
       const code = generateFinalAdCode(finalHeadline, currentBrief);
       setFinalAdCode(code);
       
-      addChatMessage('apparatus', `COMPILATION COMPLETE — The dossier is assembled. The work exists. It simply... is.`);
+      addChatMessage('apparatus', dialogue.getApparatusComplete(currentBrief));
     }, 8000);
 
     // Final reactions from everyone
     schedule(() => {
       createWorkItem('apparatus', 'approval', `✓ CODE READY\n${currentBrief.split(' ')[0] || 'CAMPAIGN'}.html`, { x: FINAL_OUTPUT_ZONE.x + 40, y: FINAL_OUTPUT_ZONE.y + 40 }, 7, false);
-      addChatMessage('mike', `*nods slowly* That'll do. That'll do.`);
-      addChatMessage('burl', `*stares at final layout* The picture came together. Somehow it always does.`);
-      addChatMessage('the-cell', `[VERA]: It's... not what I expected. [GJON]: It never is. [THURSDAY]: *small smile*`);
+      addChatMessage('mike', dialogue.getMikeFinalReaction(currentBrief));
+      addChatMessage('burl', dialogue.getBurlFinalReaction(currentBrief));
+      addChatMessage('the-cell', dialogue.getCellFinalReaction(currentBrief));
       updateTaskStatus('task-15', 'done');
       updateTaskStatus('task-16', 'done');
     }, 11000);
 
     schedule(() => {
-      addChatMessage('poole', `*removes glasses, cleans them* The framework held. The system works.`);
-      addChatMessage('nadya', `*checks watch* Under deadline. *rare smile* Acceptable.`);
-      addChatMessage('delmore', `*pockets remaining candies* I'll take it from here. The client will love it. They won't know why. But they will.`);
+      addChatMessage('poole', dialogue.getPooleFinalReaction(currentBrief));
+      addChatMessage('nadya', dialogue.getNadyaFinalReaction(currentBrief));
+      addChatMessage('delmore', dialogue.getDelmoreFinalReaction(currentBrief));
     }, 14000);
 
     schedule(() => {
       setPhaseLabel('✓ CAMPAIGN COMPLETE');
-      addChatMessage('apparatus', `DOSSIER ARCHIVED — ${new Date().toISOString().slice(0, 10)}. The brief has been answered. We wait now — as we always do — for the next question. END TRANSMISSION —`);
+      addChatMessage('apparatus', dialogue.getApparatusClosure(currentBrief));
       setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     }, 17000);
 

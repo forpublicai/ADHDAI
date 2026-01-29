@@ -115,6 +115,7 @@
   display: flex;
   overflow: hidden;
   min-height: 0; /* Critical for nested flex scroll */
+  height: 100%; /* Ensure full height for children */
 }
 
 /* ============================================
@@ -609,6 +610,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  height: 100%; /* Ensure it fills the parent flex container */
+  overflow: hidden; /* Prevent any overflow from the container itself */
 }
 
 .chat-header {
@@ -638,12 +641,9 @@
 }
 
 .chat-messages {
-  position: absolute;
-  top: 44px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow-y: scroll;
+  flex: 1; /* Take all remaining space after header */
+  min-height: 0; /* Critical for flex scroll to work */
+  overflow-y: auto;
   overflow-x: hidden;
   padding: 12px;
   display: flex;
