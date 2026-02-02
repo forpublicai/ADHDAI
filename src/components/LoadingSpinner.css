@@ -1,0 +1,135 @@
+.loading-spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F7F6F4;
+  min-height: 200px;
+}
+
+.loading-spinner-container.full-page {
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.spinner-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.spinner-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid transparent;
+  border-top-color: #1a1a1a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-ring.delay-1 {
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+  border-top-color: #4a4a4a;
+  animation-duration: 1.2s;
+  animation-direction: reverse;
+}
+
+.spinner-ring.delay-2 {
+  width: 60%;
+  height: 60%;
+  top: 20%;
+  left: 20%;
+  border-top-color: #7a7a7a;
+  animation-duration: 0.8s;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-brand {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #1a1a1a;
+}
+
+.loading-message {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 14px;
+  color: #7a7a7a;
+  font-style: italic;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .spinner-ring,
+  .dot {
+    animation: none;
+  }
+  
+  .spinner-ring {
+    border: 2px solid #1a1a1a;
+  }
+  
+  .dot {
+    opacity: 1;
+  }
+}

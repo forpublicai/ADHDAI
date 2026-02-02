@@ -1,0 +1,178 @@
+/* Scenario Analysis Workspace - Additional Styles */
+
+.scenario-analysis-workspace {
+  background: linear-gradient(145deg, #0a0a0a 0%, #121212 100%);
+}
+
+/* Timeline Zones */
+.timeline-zone {
+  position: absolute;
+  border: 2px dashed;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.timeline-zone:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.timeline-label {
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Scenario Items */
+.work-item.scenario-item {
+  max-width: 220px;
+  border-left-width: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.work-item.scenario-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.work-item.scenario-item .item-author {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 6px;
+}
+
+/* Scenario Banner */
+.scenario-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(90deg, rgba(74, 144, 217, 0.15) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(74, 144, 217, 0.3);
+}
+
+.banner-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #4A90D9;
+}
+
+.banner-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+}
+
+.banner-meta {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+/* Analysis-specific chat styling */
+.scenario-analysis-workspace .chat-panel {
+  border-left-color: #4A90D9;
+}
+
+.scenario-analysis-workspace .chat-header {
+  background: linear-gradient(90deg, rgba(74, 144, 217, 0.2) 0%, transparent 100%);
+}
+
+/* Horizon colors for items */
+.work-item[data-horizon="1-year"] {
+  border-left-color: #ff5252;
+}
+
+.work-item[data-horizon="5-year"] {
+  border-left-color: #ff9800;
+}
+
+.work-item[data-horizon="10-year"] {
+  border-left-color: #ffeb3b;
+}
+
+.work-item[data-horizon="50-year"] {
+  border-left-color: #8bc34a;
+}
+
+/* Enhanced work item styling for scenarios */
+.scenario-analysis-workspace .work-item {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.scenario-analysis-workspace .work-item pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Progress animation for analysis */
+@keyframes analyzing {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.scenario-analysis-workspace .work-zone.active {
+  animation: analyzing 1.5s ease-in-out infinite;
+}
+
+/* Timeline zone specific styling */
+.timeline-zone[data-horizon="1-year"] {
+  border-color: #ff5252;
+}
+
+.timeline-zone[data-horizon="5-year"] {
+  border-color: #ff9800;
+}
+
+.timeline-zone[data-horizon="10-year"] {
+  border-color: #ffeb3b;
+}
+
+.timeline-zone[data-horizon="50-year"] {
+  border-color: #8bc34a;
+}
+
+/* Kanban styling for analysis workspace */
+.scenario-analysis-workspace .kanban-board-canvas {
+  background: linear-gradient(145deg, #111 0%, #0a0a0a 100%);
+}
+
+.scenario-analysis-workspace .kanban-header {
+  background: linear-gradient(90deg, rgba(74, 144, 217, 0.2) 0%, transparent 100%);
+}
+
+/* Phase indicator styling */
+.scenario-analysis-workspace .phase-indicator {
+  color: #4A90D9;
+}
+
+/* Controls bar styling */
+.scenario-analysis-workspace .controls-bar {
+  background: linear-gradient(90deg, #0f0f0f 0%, #151515 100%);
+  border-bottom: 1px solid rgba(74, 144, 217, 0.2);
+}
+
+.scenario-analysis-workspace .start-btn {
+  background: linear-gradient(145deg, #4A90D9 0%, #2563eb 100%);
+}
+
+.scenario-analysis-workspace .start-btn:hover {
+  box-shadow: 0 4px 20px rgba(74, 144, 217, 0.4);
+}
