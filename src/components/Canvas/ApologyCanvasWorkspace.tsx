@@ -624,12 +624,21 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
 
   // Download ZIP with all campaign assets
   const downloadZip = useCallback(async () => {
-    const openai = getOpenAI();
-    const zip = new JSZip();
-    const timestamp = new Date().toISOString().split('T')[0];
-    const folderName = `${company.name.toLowerCase().replace(/\s+/g, '_')}_apology_campaigns_${timestamp}`;
-    
-    addChatMessage('apparatus', 'COMPILING DELIVERABLES PACKAGE—Generating visual assets...');
+    try {
+      console.log('Starting ZIP download...', { campaigns: campaigns.length, company: company.name });
+      
+      if (campaigns.length === 0) {
+        console.error('No campaigns to download');
+        addChatMessage('apparatus', 'ERROR—No campaigns available to download.');
+        return;
+      }
+      
+      const openai = getOpenAI();
+      const zip = new JSZip();
+      const timestamp = new Date().toISOString().split('T')[0];
+      const folderName = `${company.name.toLowerCase().replace(/\s+/g, '_')}_apology_campaigns_${timestamp}`;
+      
+      addChatMessage('apparatus', 'COMPILING DELIVERABLES PACKAGE—Generating visual assets...');
     
     // Create main folder structure
     const mainFolder = zip.folder(folderName);
@@ -847,11 +856,17 @@ THE FERAL CREATIVE COLLECTIVE
     
     // Generate and download
     addChatMessage('apparatus', 'PACKAGING COMPLETE—Initiating download...');
+    console.log('Generating ZIP blob...');
     const content = await zip.generateAsync({ type: 'blob' });
+    console.log('ZIP generated, size:', content.size);
     saveAs(content, `${folderName}.zip`);
     
     addChatMessage('apparatus', `DELIVERABLES PACKAGE READY—${folderName}.zip downloaded.`);
-  }, [company, campaigns, addChatMessage]);
+    } catch (error) {
+      console.error('Error downloading ZIP:', error);
+      addChatMessage('apparatus', `ERROR—Failed to generate download: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [company, campaigns, scenarios, addChatMessage]);
 
   const taskCounts = {
     todo: tasks.filter(t => t.status === 'todo').length,
