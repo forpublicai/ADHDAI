@@ -401,7 +401,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel(`ANALYZING SCENARIO ${index + 1}: ${scenario.title}`);
     
     moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Analyzing scenario...');
-    addChatMessage('mike', `*examines dossier* "${scenario.title}" — ${scenario.severity} severity, ${scenario.category} category. ${scenario.description} This is going to require preemptive contrition at scale.`);
+    addChatMessage('mike', `*slams folder on table* Alright, here's the situation: "${scenario.title}" — ${scenario.severity} severity, ${scenario.category} category. ${scenario.description} Twenty-two years I've been doing this, and I've never seen a company admit fault BEFORE the fault happens. That's the grift. That's the angle. We're not just apologizing — we're making ${company.name} look like the most honest company in the world. For things they haven't done yet. It's genius. It's insane. It's going to work.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
@@ -419,7 +419,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('STRATEGIC FRAMEWORK');
     
     moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building apology framework...');
-    addChatMessage('poole', `The Proactive Apology Matrix™ identifies the core tension: ${scenario.potentialDamage}. We position this as "anticipatory accountability"—apologizing before the harm occurs creates a unique rhetorical space where contrition exists without admission. The consumer's latent guilt becomes our ally. We acknowledge the future they fear while offering nothing concrete.`);
+    addChatMessage('poole', `*approaches whiteboard with fervor* What Mike has identified emotionally, I will now systematize. The Proactive Apology Matrix identifies the core tension: "${scenario.potentialDamage}" — but this isn't about the damage. It's about OWNING the narrative before it exists. We're creating what I call "anticipatory accountability" — a rhetorical space where contrition exists without admission, where guilt is acknowledged without liability. This is Poole Principle Seventeen: "The best defense is preemptive confession." ${company.name} doesn't need to BE sorry. They need to PERFORM sorry. And we're going to make that performance so compelling it becomes indistinguishable from sincerity.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
@@ -434,10 +434,10 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     // Phase 3: The Cell writes copy
     setCurrentPhase(3);
-    setPhaseLabel('APOLOGY COPYWRITING');
+    setPhaseLabel('CREATIVE DEVELOPMENT');
     
-    moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Writing apology...');
-    addChatMessage('the-cell', `[VERA]: We write apologies for things that haven't happened yet. This requires a special kind of insincerity—performed sincerity. [GJON]: The copy must acknowledge harm without admitting causation. It's Eastern European melancholy meets corporate legal. [THURSDAY]: *typing* The headline must sound like an apology but function as a press release. We're creating plausible emotional deniability.`);
+    moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Writing campaign...');
+    addChatMessage('the-cell', `[GJON]: We're being asked to write an apology for something that hasn't happened yet. This is either the most honest advertising ever made, or the most dishonest. I can't decide which excites me more. [VERA]: Focus. We need a headline that sounds like accountability but reads like a brand campaign. [THURSDAY]: *staring at wall* The apology IS the campaign. The confession IS the advertisement. We're not selling ${company.name}'s products. We're selling their honesty about their future dishonesty. It's a confession wrapped in a press release wrapped in a Super Bowl spot. [GJON]: That's either brilliant or insane. [THURSDAY]: Both. Always both.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
@@ -446,11 +446,11 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setCampaigns(prev => [...prev, campaign]);
     
     createWorkItem('the-cell', 'apology',
-      `APOLOGY HEADLINE:\n"${campaign.headline}"\n\nSUBHEADLINE:\n${campaign.subheadline}\n\nAPOLOGY STATEMENT:\n${campaign.apologyStatement}\n\nKEY MESSAGES:\n${campaign.keyMessages?.map((m, i) => `${i + 1}. ${m}`).join('\n') || 'N/A'}`,
+      `CAMPAIGN HEADLINE:\n"${campaign.headline}"\n\nTAGLINE:\n${campaign.subheadline}\n\nMANIFESTO:\n${campaign.apologyStatement}\n\nKEY CREATIVE ANGLES:\n${campaign.keyMessages?.map((m, i) => `${i + 1}. ${m}`).join('\n') || 'N/A'}`,
       { x: 1080, y: 90 }, 3, true, scenario.id
     );
     
-    addChatMessage('the-cell', `[THURSDAY]: HEADLINE: "${campaign.headline}" — It sounds like genuine remorse but commits to absolutely nothing. The subheadline "${campaign.subheadline}" reinforces the tone without adding substance. [VERA]: The Cell votes unanimously to approve. [GJON]: This will win awards. Sad, corporate awards.`);
+    addChatMessage('the-cell', `[THURSDAY]: *slides paper across table without looking* HEADLINE: "${campaign.headline}" [VERA]: ...oh. Oh that's good. [GJON]: That's not just good, that's the kind of line that makes people screenshot and share. It's going to live on t-shirts ironically. The tagline — "${campaign.subheadline}" — that's the one people remember. That's the one they'll use in the retrospective when this wins at Cannes. [VERA]: The Cell votes 2-1 in favor. [GJON]: Who voted against? [VERA]: You did. Reflexively. Then changed your mind. [GJON]: ...accurate.`);
     
     updateTaskStatus(scenarioTasks[2]?.id || '', 'done');
     
@@ -461,12 +461,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('VISUAL DIRECTION');
     
     moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Setting visual tone...');
-    addChatMessage('burl', `The visual language must communicate "we're sorry" in a way that photographs well and wins Cannes Lions. Corporate blue for trust—the specific blue of institutions that have failed you before. White space for transparency that doesn't actually exist. Dawn breaking over something—a factory, a community, anything that suggests new beginnings we have no intention of delivering. The color palette: ${campaign.colorPalette?.join(', ') || 'Corporate trust palette'}. Typography: ${campaign.typography || 'Helvetica Neue / Georgia'}—fonts that say "we take this seriously" while taking nothing seriously.`);
+    addChatMessage('burl', `*pins reference images to board* I know exactly what this looks like. It's ${company.name}'s brand aesthetic — but cracked open. We're using their visual language against itself. ${campaign.visualConcept || 'The same clean lines and trustworthy colors, but deployed for confession instead of celebration. It should feel like finding an honest page in a corporate annual report.'} Colors: ${campaign.colorPalette?.join(', ') || 'Their brand palette, but with the saturation turned down — like a memory of happier times'}. Typography: ${campaign.typography || 'Something that looks official but has been through things'}. This isn't pretty advertising. This is documentary. This is evidence. The kind of picture that makes you feel something you can't name.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
     createWorkItem('burl', 'visual',
-      `VISUAL DIRECTION FOR CAMPAIGN ${index + 1}:\n\n• Colors: ${campaign.colorPalette?.join(', ') || 'Corporate trust palette'}\n• Typography: ${campaign.typography || 'Helvetica Neue / Georgia'}\n• Mood: ${campaign.visualConcept || 'Sincere but safely vague'}\n\nArt Direction Notes:\n- Excessive white space suggesting transparency\n- Human subjects looking thoughtfully into middle distance\n- Warm but clinical color grading\n- Visual metaphors of dawn, hands, and horizons`,
+      `VISUAL DIRECTION FOR CAMPAIGN ${index + 1}:\n\n• Colors: ${campaign.colorPalette?.join(', ') || 'Brand palette, desaturated'}\n• Typography: ${campaign.typography || 'Official but weathered'}\n• Concept: ${campaign.visualConcept || 'Documentary authenticity'}\n\nArt Direction Notes:\n- ${company.name} brand language, subverted\n- Confessional minimalism\n- Images that feel found, not staged\n- The aesthetic of uncomfortable truth`,
       { x: 400, y: 380 }, 4, true, scenario.id
     );
     
@@ -479,18 +479,18 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('CAMPAIGN COMPILATION');
     
     moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling campaign...');
-    addChatMessage('apparatus', `COMPILING APOLOGY CAMPAIGN ${index + 1} OF ${scenarios.length}—All deliverables being assembled: full-page print ad, billboard, bus shelter, video script, social media copy deck, digital banners. Status: IN PROGRESS—`);
+    addChatMessage('apparatus', `COMPILING APOLOGY CAMPAIGN ${index + 1} OF ${scenarios.length}—All creative assets being assembled. Print specifications: magazine full-page, billboard, bus shelter. Video script: 60-second confession format. Social media: platform-native executions for Twitter/X, Instagram, LinkedIn, TikTok. Digital banner suite: all standard formats. INTEGRATION STATUS: IN PROGRESS—`);
     
     await new Promise(r => setTimeout(r, 2000));
     
     createWorkItem('apparatus', 'approval',
-      `✓ CAMPAIGN ${index + 1} COMPLETE\n\nHEADLINE: "${campaign.headline}"\n\nSCENARIO: ${scenario.title}\n\nDELIVERABLES:\n• Full-page print ad\n• Billboard (14x48ft)\n• Bus shelter\n• :60 video script\n• Social media copy deck\n• Digital banner suite\n\nSTATUS: READY FOR DEPLOYMENT`,
+      `CAMPAIGN ${index + 1} FINALIZED\n\nHEADLINE: "${campaign.headline}"\nTAGLINE: "${campaign.subheadline}"\n\nSCENARIO: ${scenario.title}\n\nDELIVERABLES:\n• Print: Full-page, poster\n• OOH: Billboard (14x48ft), bus shelter\n• Video: :60 branded content\n• Social: 5 platform-specific posts\n• Digital: Banner suite\n\nSTATUS: DEPLOYMENT READY`,
       { x: 760, y: 660 }, 5, false, scenario.id
     );
     
     updateTaskStatus(scenarioTasks[4]?.id || '', 'done');
     
-    addChatMessage('apparatus', `APOLOGY CAMPAIGN ${index + 1} COMPILED SUCCESSFULLY—Headline: "${campaign.headline}" | Deliverables: Print, OOH, Video, Social, Digital | Timestamp: ${new Date().toLocaleTimeString()}`);
+    addChatMessage('apparatus', `CAMPAIGN ${index + 1} COMPILATION SUCCESSFUL—"${campaign.headline}" | Full deliverable suite generated | Quality rating: CANNES-READY | Timestamp: ${new Date().toLocaleTimeString()}`);
     
     return campaign;
   }, [company, tasks, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, scenarios.length]);
@@ -500,8 +500,8 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     dialogue.resetDialogueCache();
     
     // Opening
-    addChatMessage('apparatus', `INITIATING PROACTIVE APOLOGY PROTOCOL FOR ${company.name.toUpperCase()}—`);
-    addChatMessage('mike', `*opens dossier* ${scenarios.length} doomsday scenario${scenarios.length !== 1 ? 's' : ''} to apologize for. Let's make some corporate contrition.`);
+    addChatMessage('apparatus', `INITIATING PROACTIVE APOLOGY CAMPAIGN PROTOCOL FOR ${company.name.toUpperCase()} — ${scenarios.length} DOOMSDAY SCENARIO${scenarios.length !== 1 ? 'S' : ''} QUEUED FOR PROCESSING`);
+    addChatMessage('mike', `*spreads dossiers across table* Alright everyone, gather round. We've got ${scenarios.length} potential disaster${scenarios.length !== 1 ? 's' : ''} to apologize for. Things that haven't happened yet. Things that might never happen. But we're going to craft apologies so good, so genuine-sounding, that ${company.name} will own the narrative before there's even a narrative to own. This is the job. This is what we do. Let's make some preemptive contrition that would make Cannes weep.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
@@ -513,7 +513,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       completedCampaigns.push(campaign);
       
       if (i < scenarios.length - 1) {
-        addChatMessage('nadya', `⏱ Scenario ${i + 1} complete. Moving to next. We are ${i + 1}/${scenarios.length} done.`);
+        addChatMessage('nadya', `Campaign ${i + 1} of ${scenarios.length} complete. Moving to next scenario. The schedule proceeds on schedule. ${scenarios.length - i - 1} remaining.`);
         await new Promise(r => setTimeout(r, 1500));
       }
     }
@@ -523,38 +523,35 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setIsRunning(false);
     
     // Celebratory completion messages
-    addChatMessage('apparatus', `═══════════════════════════════════════════════════════════════`);
-    addChatMessage('apparatus', `ALL ${scenarios.length} APOLOGY CAMPAIGNS COMPILED SUCCESSFULLY`);
-    addChatMessage('apparatus', `READY FOR REVIEW AND DOWNLOAD—${new Date().toLocaleTimeString()}`);
-    addChatMessage('apparatus', `═══════════════════════════════════════════════════════════════`);
+    addChatMessage('apparatus', `ALL ${scenarios.length} APOLOGY CAMPAIGNS COMPILED SUCCESSFULLY — READY FOR REVIEW AND DOWNLOAD`);
     
     await new Promise(r => setTimeout(r, 500));
     
-    addChatMessage('mike', `The work is done. ${company.name} can now apologize for disasters that haven't happened yet. This is the future of corporate accountability—preemptive contrition at scale.`);
+    addChatMessage('mike', `*lights celebratory cigarette* That's a wrap. ${scenarios.length} campaign${scenarios.length !== 1 ? 's' : ''}. ${company.name} can now apologize for disasters that haven't happened yet. We've invented a new form of corporate communication: preemptive contrition. Twenty-two years in this business, and I've never seen anything like what we just made. It's honest in a way that's also completely dishonest. It's advertising that admits advertising is a lie. It's going to win awards. Sad, beautiful, corporate awards.`);
     
     await new Promise(r => setTimeout(r, 800));
     
-    addChatMessage('poole', `The Proactive Apology Matrix™ has been fully deployed. Each campaign represents a unique intersection of anticipated failure and performative responsibility. Remarkable work.`);
+    addChatMessage('poole', `*closes leather notebook with satisfaction* The Proactive Apology Matrix has been fully deployed. What we've created here is not merely advertising — it's a new paradigm in corporate-consumer relations. We've given ${company.name} the gift of anticipated failure. They can now be honest about their future dishonesty. I'll be writing about this for years. Chapter titles are already forming.`);
     
     await new Promise(r => setTimeout(r, 800));
     
-    addChatMessage('the-cell', `[VERA]: The copy has been ratified. [GJON]: It sounds like an apology but commits to nothing. [THURSDAY]: That's the art. We've achieved peak corporate sincerity—completely hollow, utterly professional.`);
+    addChatMessage('the-cell', `[GJON]: We wrote apologies for things that haven't happened. This is either the most ethical advertising ever made, or the most cynical. [VERA]: Both can be true. [THURSDAY]: *quietly* The headlines will live longer than the disasters they apologize for. That's the trick. The apology becomes more famous than the crisis. [GJON]: We've weaponized accountability. [VERA]: We've democratized it. [THURSDAY]: Same thing. — The Cell`);
     
     await new Promise(r => setTimeout(r, 800));
     
-    addChatMessage('burl', `The visuals are locked. Corporate blue for trust, white space for transparency that doesn't exist, dawn imagery for new beginnings that won't happen. It's beautiful in its emptiness.`);
+    addChatMessage('burl', `*steps back from work* The pictures are done. They're ugly-beautiful, just like I promised. ${company.name}'s brand language, but confessional. Their color palette, but honest. Every image tells the same story: we know what's coming, and we're sorry in advance. It's the visual equivalent of a preemptive flinch. It's going to photograph beautifully at the Cannes awards ceremony.`);
     
     await new Promise(r => setTimeout(r, 800));
     
-    addChatMessage('nadya', `⏱ Production complete. All ${scenarios.length} campaigns ready for deployment. Download your deliverables package now. The ZIP contains everything: print specs, video scripts, social copy, visual direction.`);
+    addChatMessage('nadya', `*checks all watches simultaneously* Production complete. ${scenarios.length} campaigns. All deliverables finalized within deadline. The schedule is satisfied. Download your complete campaign package — print specifications, video scripts, social executions, visual assets. Everything required for deployment. The ZIP file awaits.`);
     
     await new Promise(r => setTimeout(r, 800));
     
-    addChatMessage('delmore', `*preparing client translation* We're calling this the "Proactive Stakeholder Alignment Initiative." I've prepared pamphlets explaining each campaign in terms the client can understand. The ZIP file contains everything they need.`);
+    addChatMessage('delmore', `*distributes hard candies to everyone* Beautiful work, folks. I've already prepared the client translation. We're positioning this as the "Proactive Stakeholder Alignment Initiative" — it sounds corporate enough that they'll approve it without understanding what they're approving. The ZIP contains everything: campaign overviews, creative specifications, asset files, and my pamphlet explaining why this matters. ${company.name} is about to become the most honest company in their industry. About things that haven't happened yet.`);
     
     await new Promise(r => setTimeout(r, 800));
     
-    addChatMessage('apparatus', `DELIVERABLES PACKAGE READY FOR DOWNLOAD. Click "DOWNLOAD CAMPAIGN PACKAGE" to receive your complete Cannes-ready apology campaign assets.`);
+    addChatMessage('apparatus', `DELIVERABLE PACKAGE READY FOR DOWNLOAD — ${campaigns.length} complete campaigns with full creative specifications. Click "VIEW CAMPAIGNS" to review assets, then "DOWNLOAD CAMPAIGN PACKAGE" to receive your Cannes-ready deliverables archive.`);
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     
@@ -633,12 +630,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
         return;
       }
       
-      const openai = getOpenAI();
-      const zip = new JSZip();
-      const timestamp = new Date().toISOString().split('T')[0];
-      const folderName = `${company.name.toLowerCase().replace(/\s+/g, '_')}_apology_campaigns_${timestamp}`;
-      
-      addChatMessage('apparatus', 'COMPILING DELIVERABLES PACKAGE—Generating visual assets...');
+    const openai = getOpenAI();
+    const zip = new JSZip();
+    const timestamp = new Date().toISOString().split('T')[0];
+    const folderName = `${company.name.toLowerCase().replace(/\s+/g, '_')}_apology_campaigns_${timestamp}`;
+    
+    addChatMessage('apparatus', 'COMPILING DELIVERABLES PACKAGE—Generating visual assets...');
     
     // Create main folder structure
     const mainFolder = zip.folder(folderName);
@@ -1183,7 +1180,7 @@ THE FERAL CREATIVE COLLECTIVE
               <div className="panel-title-row">
                 <h2 className="panel-title">Proactive Apology Campaigns</h2>
                 <span className="panel-count">{campaigns.length} Campaign{campaigns.length !== 1 ? 's' : ''}</span>
-              </div>
+            </div>
               <p className="panel-subtitle">Generated for {company.name}</p>
               <div className="panel-actions">
                 <button className="download-btn primary" onClick={downloadZip}>
@@ -1225,17 +1222,17 @@ THE FERAL CREATIVE COLLECTIVE
                         <span className="messages-label">Key Messages</span>
                         <ul className="messages-list">
                           {campaign.keyMessages.map((msg, i) => (
-                            <li key={i}>{msg}</li>
-                          ))}
-                        </ul>
-                      </div>
+                        <li key={i}>{msg}</li>
+                      ))}
+                    </ul>
+                  </div>
                     )}
                     
                     <div className="card-visual">
                       <div className="visual-item">
                         <span className="visual-label">Visual Concept</span>
                         <span className="visual-value">{campaign.visualConcept || 'Corporate minimalism'}</span>
-                      </div>
+                </div>
                       <div className="visual-item">
                         <span className="visual-label">Tone</span>
                         <span className="visual-value">{campaign.tone || 'Performatively sincere'}</span>
@@ -1246,9 +1243,9 @@ THE FERAL CREATIVE COLLECTIVE
                           <div className="color-swatches">
                             {campaign.colorPalette.map((color, i) => (
                               <span key={i} className="color-swatch" style={{ backgroundColor: color }} title={color} />
-                            ))}
-                          </div>
-                        </div>
+              ))}
+            </div>
+            </div>
                       )}
                     </div>
                     
