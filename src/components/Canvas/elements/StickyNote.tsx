@@ -1,4 +1,13 @@
 import { useState, useEffect } from 'react';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear
+} from '@phosphor-icons/react';
 import { Character, CharacterId } from '../../../types';
 import './CanvasElements.css';
 
@@ -17,6 +26,21 @@ interface StickyNoteProps {
   highlighted?: boolean;
   votes?: CharacterId[];
 }
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 12) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 export default function StickyNote({
   id,
@@ -58,7 +82,7 @@ export default function StickyNote({
       
       {character && (
         <div className="sticky-note-author">
-          <span className="author-emoji">{character.emoji}</span>
+          <span className="author-icon">{getCharacterIcon(character.icon)}</span>
           <span className="author-name">{character.name.split(' ')[0]}</span>
         </div>
       )}

@@ -1,4 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear
+} from '@phosphor-icons/react';
 import { Character } from '../../../types';
 import './CanvasElements.css';
 
@@ -16,6 +25,21 @@ interface AdFrameProps {
   height?: number;
   highlighted?: boolean;
 }
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 14) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 export default function AdFrame({
   id,
@@ -59,7 +83,7 @@ export default function AdFrame({
     >
       <div className="ad-frame-header">
         <span className="ad-frame-title">Final Advertisement</span>
-        <span className="ad-frame-dimensions">{width}×{height}</span>
+        <span className="ad-frame-dimensions">{width}x{height}</span>
       </div>
 
       <div className="ad-frame-content" style={{ height }}>
@@ -80,7 +104,7 @@ export default function AdFrame({
       <div className="ad-frame-footer">
         {character && (
           <span className="ad-frame-author">
-            {character.emoji} {character.name}
+            {getCharacterIcon(character.icon)} {character.name}
           </span>
         )}
         <span className="ad-frame-status">

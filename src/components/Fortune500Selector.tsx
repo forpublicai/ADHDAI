@@ -1,4 +1,25 @@
 import React, { useState, useCallback, useRef, useEffect, memo } from 'react';
+import { 
+  MagnifyingGlass, 
+  CaretDown, 
+  CaretUp, 
+  Buildings, 
+  X,
+  Globe,
+  Users,
+  ShieldWarning,
+  Scales,
+  Lock,
+  CurrencyDollar,
+  FirstAid,
+  Factory,
+  Newspaper,
+  Package,
+  TrendDown,
+  Warning,
+  Flame,
+  Leaf
+} from '@phosphor-icons/react';
 import { searchCompanies, Fortune500Company, FORTUNE_500_COMPANIES } from '../data/fortune500';
 import './Fortune500Selector.css';
 
@@ -135,51 +156,35 @@ const Fortune500Selector: React.FC<Fortune500SelectorProps> = ({
     }
   }, [highlightedIndex, isOpen]);
 
-  // Get sector color
-  const getSectorColor = (sector: string): string => {
-    const colors: Record<string, string> = {
-      'Technology': '#4A90D9',
-      'Healthcare': '#50C878',
-      'Financial': '#FFD700',
-      'Energy': '#FF6B35',
-      'Consumer Goods': '#9B59B6',
-      'Industrials': '#7F8C8D',
-      'Telecommunications': '#E74C3C',
-      'Transportation': '#3498DB',
-      'Media': '#E91E63',
-      'Consumer Services': '#00BCD4',
-      'Real Estate': '#795548',
-      'Materials': '#607D8B',
-      'Automotive': '#FF5722',
+  // Get risk icon component
+  const getRiskIcon = (risk: string) => {
+    const iconProps = { size: 14, weight: 'bold' as const };
+    const icons: Record<string, React.ReactNode> = {
+      'environmental': <Leaf {...iconProps} />,
+      'climate': <Flame {...iconProps} />,
+      'labor': <Users {...iconProps} />,
+      'safety': <ShieldWarning {...iconProps} />,
+      'regulatory': <Scales {...iconProps} />,
+      'data-privacy': <Lock {...iconProps} />,
+      'cybersecurity': <Lock {...iconProps} />,
+      'financial': <CurrencyDollar {...iconProps} />,
+      'health': <FirstAid {...iconProps} />,
+      'healthcare': <FirstAid {...iconProps} />,
+      'geopolitical': <Globe {...iconProps} />,
+      'antitrust': <Scales {...iconProps} />,
+      'supply-chain': <Package {...iconProps} />,
+      'reputation': <TrendDown {...iconProps} />,
+      'product-liability': <Factory {...iconProps} />,
+      'misinformation': <Newspaper {...iconProps} />,
+      'social': <Users {...iconProps} />,
     };
-    return colors[sector] || '#888888';
-  };
-
-  // Get risk icon
-  const getRiskIcon = (risk: string): string => {
-    const icons: Record<string, string> = {
-      'environmental': '🌍',
-      'climate': '🔥',
-      'labor': '👷',
-      'safety': '⚠️',
-      'regulatory': '⚖️',
-      'data-privacy': '🔒',
-      'cybersecurity': '🛡️',
-      'financial': '💰',
-      'health': '🏥',
-      'geopolitical': '🌐',
-      'antitrust': '⚔️',
-      'supply-chain': '📦',
-      'reputation': '📉',
-      'product-liability': '🏭',
-      'misinformation': '📰',
-    };
-    return icons[risk] || '⚡';
+    return icons[risk] || <Warning {...iconProps} />;
   };
 
   return (
     <div className="fortune500-selector">
       <div className="selector-input-wrapper">
+        <MagnifyingGlass size={20} weight="light" className="search-icon" />
         <input
           ref={inputRef}
           type="text"
@@ -188,96 +193,109 @@ const Fortune500Selector: React.FC<Fortune500SelectorProps> = ({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          placeholder="Search Fortune 500 companies..."
+          placeholder="Search Fortune 500 companies"
           disabled={disabled}
           autoComplete="off"
         />
         {selectedCompany && (
-          <div 
-            className="selected-indicator"
-            style={{ backgroundColor: getSectorColor(selectedCompany.sector) }}
-          >
-            {selectedCompany.ticker || selectedCompany.name.slice(0, 3).toUpperCase()}
+          <div className="selected-indicator">
+            <Buildings size={16} weight="bold" />
+            <span>{selectedCompany.ticker || selectedCompany.name.slice(0, 4).toUpperCase()}</span>
           </div>
         )}
-        <div className="selector-icon">
-          {isOpen ? '▲' : '▼'}
+        <div className="selector-caret">
+          {isOpen ? <CaretUp size={16} weight="bold" /> : <CaretDown size={16} weight="bold" />}
         </div>
       </div>
 
       {isOpen && results.length > 0 && (
         <div ref={dropdownRef} className="selector-dropdown">
-          {results.map((company, index) => (
-            <div
-              key={company.name}
-              className={`selector-option ${index === highlightedIndex ? 'highlighted' : ''}`}
-              onClick={() => selectCompany(company)}
-              onMouseEnter={() => setHighlightedIndex(index)}
-            >
-              <div className="option-main">
-                <div className="option-name">
-                  <span className="company-name">{company.name}</span>
-                  {company.ticker && (
-                    <span className="company-ticker">{company.ticker}</span>
-                  )}
+          <div className="dropdown-header">
+            <span className="dropdown-label">Select a company</span>
+            <span className="dropdown-count">{results.length} results</span>
+          </div>
+          <div className="dropdown-list">
+            {results.map((company, index) => (
+              <div
+                key={company.name}
+                className={`selector-option ${index === highlightedIndex ? 'highlighted' : ''}`}
+                onClick={() => selectCompany(company)}
+                onMouseEnter={() => setHighlightedIndex(index)}
+              >
+                <div className="option-main">
+                  <div className="option-name">
+                    <span className="company-name">{company.name}</span>
+                    {company.ticker && (
+                      <span className="company-ticker">{company.ticker}</span>
+                    )}
+                  </div>
+                  <div className="option-meta">
+                    <span className="company-industry">{company.industry}</span>
+                    <span className="meta-divider">/</span>
+                    <span className="company-sector">{company.sector}</span>
+                  </div>
                 </div>
-                <div className="option-meta">
-                  <span 
-                    className="company-sector"
-                    style={{ color: getSectorColor(company.sector) }}
-                  >
-                    {company.industry}
-                  </span>
+                <div className="option-risks">
+                  {company.riskProfile.slice(0, 3).map(risk => (
+                    <span key={risk} className="risk-icon" title={risk}>
+                      {getRiskIcon(risk)}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div className="option-risks">
-                {company.riskProfile.slice(0, 3).map(risk => (
-                  <span key={risk} className="risk-badge" title={risk}>
-                    {getRiskIcon(risk)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
       {selectedCompany && (
         <div className="selected-company-card">
           <div className="card-header">
-            <div className="card-title">
-              <span className="card-name">{selectedCompany.name}</span>
-              {selectedCompany.ticker && (
-                <span className="card-ticker">{selectedCompany.ticker}</span>
-              )}
+            <div className="card-identity">
+              <Buildings size={24} weight="light" className="card-icon" />
+              <div className="card-title">
+                <span className="card-name">{selectedCompany.name}</span>
+                {selectedCompany.ticker && (
+                  <span className="card-ticker">{selectedCompany.ticker}</span>
+                )}
+              </div>
             </div>
-            <span 
-              className="card-sector"
-              style={{ backgroundColor: getSectorColor(selectedCompany.sector) }}
+            <button 
+              className="clear-btn"
+              onClick={() => {
+                setQuery('');
+                onSelect(null as unknown as Fortune500Company);
+              }}
+              aria-label="Clear selection"
             >
-              {selectedCompany.sector}
-            </span>
+              <X size={18} weight="bold" />
+            </button>
           </div>
+          
+          <div className="card-meta-row">
+            <div className="meta-item">
+              <span className="meta-label">Industry</span>
+              <span className="meta-value">{selectedCompany.industry}</span>
+            </div>
+            <div className="meta-item">
+              <span className="meta-label">Sector</span>
+              <span className="meta-value">{selectedCompany.sector}</span>
+            </div>
+          </div>
+          
           <p className="card-description">{selectedCompany.description}</p>
+          
           <div className="card-risks">
-            <span className="risks-label">Risk Profile:</span>
-            <div className="risks-list">
+            <span className="risks-label">Risk Profile</span>
+            <div className="risks-grid">
               {selectedCompany.riskProfile.map(risk => (
                 <span key={risk} className="risk-tag">
-                  {getRiskIcon(risk)} {risk}
+                  {getRiskIcon(risk)}
+                  <span>{risk}</span>
                 </span>
               ))}
             </div>
           </div>
-          <button 
-            className="clear-selection-btn"
-            onClick={() => {
-              setQuery('');
-              onSelect(null as unknown as Fortune500Company);
-            }}
-          >
-            Clear Selection
-          </button>
         </div>
       )}
     </div>

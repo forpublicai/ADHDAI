@@ -1,92 +1,130 @@
-/* Fortune 500 Company Selector */
+/* Fortune 500 Selector - Swiss Style Design */
 
 .fortune500-selector {
   width: 100%;
-  position: relative;
-  z-index: 100;
+  max-width: 640px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Input Wrapper */
 .selector-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.selector-input {
-  width: 100%;
-  padding: 14px 50px 14px 16px;
-  font-family: 'Inter', -apple-system, sans-serif;
-  font-size: 15px;
-  border: 2px solid #2a2a2a;
-  border-radius: 8px;
-  background: #0f0f0f;
-  color: #e0e0e0;
-  transition: all 0.2s ease;
+.search-icon {
+  position: absolute;
+  left: 20px;
+  color: #666;
+  pointer-events: none;
 }
 
-.selector-input:focus {
+.selector-input {
+  width: 100%;
+  height: 56px;
+  padding: 0 48px 0 52px;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #0a0a0a;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0;
   outline: none;
-  border-color: #4a90d9;
-  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .selector-input::placeholder {
-  color: #666;
+  color: #999;
+  font-weight: 400;
+}
+
+.selector-input:focus {
+  border-color: #0a0a0a;
+  box-shadow: 0 0 0 1px #0a0a0a;
 }
 
 .selector-input.has-selection {
-  padding-left: 70px;
-}
-
-.selector-input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  padding-right: 100px;
 }
 
 .selected-indicator {
   position: absolute;
-  left: 12px;
-  padding: 4px 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  right: 48px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #0a0a0a;
   color: #fff;
-  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.selector-icon {
+.selector-caret {
   position: absolute;
   right: 16px;
   color: #666;
-  font-size: 10px;
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Dropdown */
 .selector-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: 100%;
   left: 0;
   right: 0;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #0a0a0a;
+  border-top: none;
   max-height: 400px;
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 1000;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dropdown-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.dropdown-count {
+  font-size: 11px;
+  color: #999;
+  font-variant-numeric: tabular-nums;
+}
+
+.dropdown-list {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+/* Option */
 .selector-option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 16px 20px;
   cursor: pointer;
-  transition: background 0.15s ease;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.1s ease;
 }
 
 .selector-option:last-child {
@@ -95,7 +133,11 @@
 
 .selector-option:hover,
 .selector-option.highlighted {
-  background: #252525;
+  background: #fafafa;
+}
+
+.selector-option.highlighted {
+  background: #f5f5f5;
 }
 
 .option-main {
@@ -105,122 +147,189 @@
 
 .option-name {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 10px;
   margin-bottom: 4px;
 }
 
 .company-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
-  color: #e0e0e0;
+  color: #0a0a0a;
+  letter-spacing: -0.01em;
 }
 
 .company-ticker {
-  font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #888;
-  padding: 2px 6px;
-  background: #2a2a2a;
-  border-radius: 3px;
+  font-weight: 600;
+  color: #999;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .option-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
+}
+
+.meta-divider {
+  color: #ccc;
+}
+
+.company-industry {
+  color: #666;
 }
 
 .company-sector {
-  font-size: 12px;
-  font-weight: 500;
+  color: #999;
 }
 
 .option-risks {
   display: flex;
-  gap: 4px;
+  gap: 8px;
+  margin-left: 16px;
 }
 
-.risk-badge {
-  font-size: 14px;
-  opacity: 0.7;
-  transition: opacity 0.15s ease;
+.risk-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #f5f5f5;
+  color: #666;
+  border-radius: 0;
+  transition: background-color 0.1s ease, color 0.1s ease;
 }
 
-.selector-option:hover .risk-badge,
-.selector-option.highlighted .risk-badge {
-  opacity: 1;
+.selector-option:hover .risk-icon,
+.selector-option.highlighted .risk-icon {
+  background: #e8e8e8;
+  color: #333;
 }
 
 /* Selected Company Card */
 .selected-company-card {
-  margin-top: 16px;
-  padding: 20px;
-  background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
+  margin-top: 24px;
+  padding: 32px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.card-icon {
+  color: #0a0a0a;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .card-title {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .card-name {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #fff;
+  color: #0a0a0a;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .card-ticker {
-  font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
-  color: #888;
-  padding: 3px 8px;
-  background: #2a2a2a;
-  border-radius: 4px;
+  font-weight: 500;
+  color: #666;
+  letter-spacing: 0.05em;
 }
 
-.card-sector {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+.clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid #e0e0e0;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.clear-btn:hover {
+  background: #0a0a0a;
+  border-color: #0a0a0a;
   color: #fff;
-  padding: 4px 10px;
-  border-radius: 4px;
+}
+
+.card-meta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #999;
+}
+
+.meta-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0a0a0a;
 }
 
 .card-description {
-  font-size: 13px;
-  color: #999;
-  line-height: 1.5;
-  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #444;
+  margin-bottom: 24px;
 }
 
 .card-risks {
-  margin-bottom: 16px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .risks-label {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #666;
-  margin-bottom: 8px;
+  color: #999;
+  margin-bottom: 12px;
 }
 
-.risks-list {
+.risks-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -229,70 +338,44 @@
 .risk-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #ccc;
-  padding: 4px 10px;
-  background: #2a2a2a;
-  border-radius: 20px;
-}
-
-.clear-selection-btn {
-  width: 100%;
-  padding: 10px;
-  font-family: 'Inter', sans-serif;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f5f5f5;
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: #888;
-  background: transparent;
-  border: 1px solid #333;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: #444;
+  transition: background-color 0.1s ease;
 }
 
-.clear-selection-btn:hover {
-  color: #fff;
-  border-color: #555;
-  background: #222;
+.risk-tag:hover {
+  background: #e8e8e8;
 }
 
-/* Scrollbar */
-.selector-dropdown::-webkit-scrollbar {
-  width: 8px;
+.risk-tag svg {
+  flex-shrink: 0;
 }
 
-.selector-dropdown::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-.selector-dropdown::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
-}
-
-.selector-dropdown::-webkit-scrollbar-thumb:hover {
-  background: #444;
-}
-
-/* Animation */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+/* Responsive */
+@media (max-width: 640px) {
+  .selector-input {
+    height: 52px;
+    font-size: 16px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .selected-company-card {
+    padding: 24px;
   }
-}
-
-.selector-dropdown {
-  animation: slideIn 0.15s ease-out;
-}
-
-.selected-company-card {
-  animation: slideIn 0.2s ease-out;
+  
+  .card-name {
+    font-size: 18px;
+  }
+  
+  .card-meta-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .option-risks {
+    display: none;
+  }
 }

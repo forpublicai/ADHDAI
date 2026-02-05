@@ -1,4 +1,13 @@
 import { useState, useEffect } from 'react';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear
+} from '@phosphor-icons/react';
 import { Character } from '../../../types';
 import './CanvasElements.css';
 
@@ -15,6 +24,21 @@ interface TextBlockProps {
   width?: number;
   highlighted?: boolean;
 }
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 12) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 export default function TextBlock({
   id,
@@ -51,7 +75,7 @@ export default function TextBlock({
       
       {character && (
         <div className="text-block-author" style={{ color: character.color }}>
-          {character.emoji} {character.name.split(' ')[0]}
+          {getCharacterIcon(character.icon)} {character.name.split(' ')[0]}
         </div>
       )}
     </div>

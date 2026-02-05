@@ -7,31 +7,31 @@ export const CHARACTERS: Character[] = [
     role: 'Director of Client Accountability',
     personality: 'Interrogation style, finds real problem underneath brief. Insurance fraud investigator background. Calls work "the job."',
     color: '#8B4513',
-    emoji: '📋'
+    icon: 'clipboard'
   },
   {
     id: 'poole',
     name: 'Dr. Leon Poole',
     role: 'Chief Methodologist',
     personality: 'The Poole System, "architecture of wanting," jargon-heavy frameworks. Sometimes profound insights buried in diagrams.',
-    color: '#F5DEB3',
-    emoji: '📐'
+    color: '#D4A574',
+    icon: 'graph'
   },
   {
     id: 'the-cell',
     name: 'The Copywriting Cell',
     role: 'Collective Copywriting Unit',
     personality: 'Three-person collective (Vera, Gjon, Thursday). Anarcho-syndicalist principles. Strange, true-feeling copy. Signs as "—The Cell."',
-    color: '#4B0082',
-    emoji: '✍️'
+    color: '#6B4B8C',
+    icon: 'pencil'
   },
   {
     id: 'burl',
     name: 'Burl Pettigrew',
     role: 'Art Director',
     personality: 'Calls work "pictures" not "design." Theories about color, typography, whitespace. Memphis Group + Baptist + financial setback aesthetic.',
-    color: '#FF6347',
-    emoji: '🎨'
+    color: '#C84B31',
+    icon: 'palette'
   },
   {
     id: 'nadya',
@@ -39,23 +39,23 @@ export const CHARACTERS: Character[] = [
     role: 'Production Director',
     personality: 'Five-year planning, accountability. "Everything is ASAP, tell me the date." Smoking, Valentina Tereshkova photo.',
     color: '#2F4F4F',
-    emoji: '📅'
+    icon: 'calendar'
   },
   {
     id: 'delmore',
     name: 'Delmore Frank Krepps',
     role: 'Client Services',
     personality: 'Translation, pamphlets, extension work background. Hard candies, short-sleeve button-downs. Makes pamphlets on risograph.',
-    color: '#228B22',
-    emoji: '📄'
+    color: '#2D5A3D',
+    icon: 'file'
   },
   {
     id: 'apparatus',
     name: 'The Apparatus',
     role: 'Computational Resource',
     personality: 'Formal, melancholic, em-dashes. "READY FOR REVIEW—" with timestamp. Handles production tasks.',
-    color: '#708090',
-    emoji: '⚙️'
+    color: '#4A5568',
+    icon: 'gear'
   }
 ];
 

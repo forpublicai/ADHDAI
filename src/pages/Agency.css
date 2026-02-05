@@ -1,11 +1,12 @@
-/* Agency Page - Proactive Apology Generator */
+/* Agency Page - Swiss Design Style */
 
 .agency-page {
   min-height: 100vh;
-  background: #0a0a0a;
-  color: #e0e0e0;
+  background: #fafafa;
+  color: #0a0a0a;
   display: flex;
   flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Navigation */
@@ -13,20 +14,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
-  background: #0f0f0f;
-  border-bottom: 1px solid #1a1a1a;
+  padding: 20px 40px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .nav-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
-  color: #888;
+  font-weight: 500;
+  color: #666;
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .nav-back:hover {
-  color: #fff;
+  color: #0a0a0a;
 }
 
 .nav-title {
@@ -35,51 +40,51 @@
 
 .nav-title-main {
   display: block;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 2px;
-  color: #fff;
+  letter-spacing: 0.15em;
+  color: #0a0a0a;
   text-transform: uppercase;
 }
 
 .nav-title-sub {
   display: block;
   font-size: 11px;
-  color: #666;
+  color: #999;
   margin-top: 2px;
 }
 
 .nav-reset {
   font-size: 12px;
-  color: #888;
+  font-weight: 500;
+  color: #666;
   background: transparent;
-  border: 1px solid #333;
-  padding: 6px 14px;
-  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  padding: 8px 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .nav-reset:hover {
-  color: #fff;
-  border-color: #555;
+  color: #0a0a0a;
+  border-color: #0a0a0a;
 }
 
-/* Phase Progress */
+/* Phase Progress - Swiss Minimal Style */
 .phase-progress {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 32px;
-  background: #0f0f0f;
-  border-bottom: 1px solid #1a1a1a;
+  padding: 32px 40px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .phase-step {
   display: flex;
   align-items: center;
-  gap: 10px;
-  opacity: 0.4;
+  gap: 12px;
+  opacity: 0.3;
   transition: opacity 0.3s ease;
 }
 
@@ -88,47 +93,51 @@
 }
 
 .phase-step.completed {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .step-number {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #2a2a2a;
+  width: 32px;
+  height: 32px;
+  background: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
+  color: #666;
   transition: all 0.3s ease;
 }
 
 .phase-step.active .step-number {
-  background: #c41e3a;
+  background: #0a0a0a;
   color: #fff;
 }
 
 .phase-step.completed .step-number {
-  background: #4CAF50;
+  background: #0a0a0a;
   color: #fff;
 }
 
 .step-label {
   font-size: 13px;
   font-weight: 500;
-  color: #999;
+  color: #666;
 }
 
 .phase-step.active .step-label {
-  color: #fff;
+  color: #0a0a0a;
 }
 
 .phase-connector {
-  width: 60px;
-  height: 2px;
-  background: #2a2a2a;
-  margin: 0 16px;
+  width: 80px;
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0 24px;
+}
+
+.phase-step.completed + .phase-connector {
+  background: #0a0a0a;
 }
 
 /* Main Content */
@@ -137,41 +146,41 @@
   overflow: hidden;
 }
 
-/* Company Selection Phase */
+/* Company Selection Phase - Swiss Style */
 .company-selection-phase {
-  max-width: 800px;
+  max-width: 680px;
   margin: 0 auto;
-  padding: 48px 32px;
+  padding: 80px 40px;
 }
 
 .phase-header {
-  text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 
 .phase-header h1 {
-  font-size: 32px;
+  font-size: 40px;
   font-weight: 600;
-  color: #fff;
-  margin-bottom: 12px;
+  color: #0a0a0a;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 16px;
 }
 
 .phase-header p {
-  font-size: 15px;
-  color: #888;
-  max-width: 500px;
-  margin: 0 auto;
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  max-width: 480px;
 }
 
 .company-selector-container {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 }
 
 .selection-actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .analyze-btn {
@@ -179,33 +188,30 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 16px 32px;
+  padding: 18px 36px;
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
-  background: linear-gradient(145deg, #c41e3a 0%, #8b0000 100%);
+  background: #0a0a0a;
   border: none;
-  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 300px;
+  transition: all 0.15s ease;
+  min-width: 280px;
 }
 
 .analyze-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(196, 30, 58, 0.4);
+  background: #222;
 }
 
 .analyze-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
 }
 
 .analyze-btn .spinner {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
@@ -214,7 +220,7 @@
 
 .analyze-btn .arrow {
   font-size: 18px;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease;
 }
 
 .analyze-btn:hover:not(:disabled) .arrow {
@@ -224,58 +230,79 @@
 .error-message {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: rgba(196, 30, 58, 0.1);
-  border: 1px solid rgba(196, 30, 58, 0.3);
-  border-radius: 8px;
-  color: #ff6b6b;
+  gap: 10px;
+  padding: 14px 20px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
   font-size: 13px;
+  font-weight: 500;
 }
 
 .phase-info {
-  margin-top: 48px;
-  padding: 32px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
+  margin-top: 64px;
+  padding: 32px 0;
+  border-top: 1px solid #e0e0e0;
 }
 
 .phase-info h3 {
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #888;
-  margin-bottom: 20px;
+  letter-spacing: 0.15em;
+  color: #999;
+  margin-bottom: 24px;
 }
 
 .phase-info ol {
   margin: 0;
-  padding-left: 24px;
+  padding: 0;
+  counter-reset: step;
+  list-style: none;
 }
 
 .phase-info li {
   font-size: 14px;
-  color: #999;
-  line-height: 1.8;
-  margin-bottom: 8px;
+  color: #666;
+  line-height: 1.7;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  counter-increment: step;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
 }
 
-.phase-info li::marker {
-  color: #c41e3a;
+.phase-info li:last-child {
+  border-bottom: none;
+}
+
+.phase-info li::before {
+  content: counter(step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #f5f5f5;
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  flex-shrink: 0;
 }
 
 /* Scenario Selection Phase */
 .scenario-selection-phase {
-  height: calc(100vh - 140px);
+  height: calc(100vh - 180px);
   overflow-y: auto;
+  padding: 40px;
+  background: #fafafa;
 }
 
 /* Campaign Generation Phase */
 .campaign-generation-phase,
 .scenario-analysis-phase {
-  height: calc(100vh - 140px);
+  height: calc(100vh - 180px);
 }
 
 /* Workspace mode - full screen */
@@ -297,141 +324,141 @@
 
 /* Campaign Complete Phase */
 .campaign-complete-phase {
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 48px 32px;
+  padding: 80px 40px;
 }
 
 .complete-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 64px;
 }
 
 .complete-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #4CAF50 0%, #2E7D32 100%);
+  width: 56px;
+  height: 56px;
+  background: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
   color: #fff;
   margin: 0 auto 24px;
 }
 
 .complete-header h1 {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 600;
-  color: #fff;
+  color: #0a0a0a;
+  letter-spacing: -0.02em;
   margin-bottom: 12px;
 }
 
 .complete-header p {
   font-size: 15px;
-  color: #888;
+  color: #666;
 }
 
 .campaigns-summary {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-bottom: 40px;
+  gap: 16px;
+  margin-bottom: 48px;
 }
 
 .campaign-summary-card {
   display: flex;
-  gap: 20px;
-  padding: 24px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
+  gap: 24px;
+  padding: 28px 32px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
 }
 
-.card-number {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #c41e3a;
+.campaign-summary-card .card-number {
+  width: 48px;
+  height: 48px;
+  background: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 300;
   color: #fff;
   flex-shrink: 0;
 }
 
-.card-content {
+.campaign-summary-card .card-content {
   flex: 1;
 }
 
-.card-content h3 {
-  font-size: 16px;
+.campaign-summary-card .card-content h3 {
+  font-size: 14px;
   font-weight: 600;
-  color: #fff;
-  margin-bottom: 10px;
+  color: #0a0a0a;
+  margin-bottom: 8px;
 }
 
-.card-content .headline {
+.campaign-summary-card .card-content .headline {
   font-size: 18px;
-  font-style: italic;
-  color: #4CAF50;
-  margin-bottom: 10px;
+  font-weight: 500;
+  color: #0a0a0a;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
 }
 
-.card-content .statement {
+.campaign-summary-card .card-content .statement {
   font-size: 13px;
-  color: #888;
+  color: #666;
   line-height: 1.6;
 }
 
 .complete-actions {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .action-btn {
-  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .action-btn.primary {
   color: #fff;
-  background: #c41e3a;
+  background: #0a0a0a;
   border: none;
 }
 
 .action-btn.primary:hover {
-  background: #a01830;
+  background: #222;
 }
 
 .action-btn.secondary {
-  color: #888;
+  color: #666;
   background: transparent;
-  border: 1px solid #333;
+  border: 1px solid #e0e0e0;
 }
 
 .action-btn.secondary:hover {
-  color: #fff;
-  border-color: #555;
+  color: #0a0a0a;
+  border-color: #0a0a0a;
 }
 
 /* Footer */
 .agency-footer {
   display: flex;
   justify-content: space-between;
-  padding: 16px 32px;
-  background: #0f0f0f;
-  border-top: 1px solid #1a1a1a;
+  padding: 20px 40px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
   font-size: 11px;
-  color: #555;
+  color: #999;
 }
 
 /* Spinner Animation */
@@ -444,34 +471,42 @@
 /* Responsive */
 @media (max-width: 768px) {
   .agency-nav {
-    padding: 12px 16px;
+    padding: 16px 20px;
   }
   
   .nav-title-main {
-    font-size: 12px;
+    font-size: 10px;
   }
   
   .phase-progress {
-    padding: 16px;
+    padding: 20px;
     overflow-x: auto;
   }
   
   .phase-connector {
-    width: 30px;
-    margin: 0 8px;
+    width: 40px;
+    margin: 0 12px;
   }
   
   .company-selection-phase {
-    padding: 24px 16px;
+    padding: 40px 20px;
   }
   
   .phase-header h1 {
-    font-size: 24px;
+    font-size: 28px;
   }
   
   .analyze-btn {
     width: 100%;
     min-width: auto;
+  }
+  
+  .scenario-selection-phase {
+    padding: 20px;
+  }
+  
+  .campaign-complete-phase {
+    padding: 40px 20px;
   }
   
   .complete-actions {
@@ -480,7 +515,7 @@
   
   .action-btn {
     width: 100%;
-    text-align: center;
+    justify-content: center;
   }
 }
 
@@ -488,103 +523,49 @@
 .scenario-banner {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 24px;
-  background: linear-gradient(90deg, rgba(196, 30, 58, 0.2) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(196, 30, 58, 0.3);
+  gap: 20px;
+  padding: 16px 32px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .banner-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #c41e3a;
+  color: #999;
 }
 
 .banner-title {
   font-size: 14px;
-  font-weight: 600;
-  color: #fff;
+  font-weight: 500;
+  color: #0a0a0a;
   flex: 1;
 }
 
 .banner-meta {
   font-size: 11px;
-  color: #888;
-  text-transform: uppercase;
-}
-
-/* Campaign Preview in Code Panel */
-.campaign-preview {
-  padding: 24px;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.campaign-preview h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 12px;
-}
-
-.campaign-preview .campaign-headline {
-  font-size: 20px;
-  font-style: italic;
-  color: #4CAF50;
-  margin-bottom: 8px;
-}
-
-.campaign-preview .campaign-subheadline {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 16px;
-}
-
-.campaign-preview .campaign-statement {
-  font-size: 13px;
   color: #999;
-  line-height: 1.6;
-  margin-bottom: 16px;
-  padding: 16px;
-  background: #111;
-  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.campaign-preview .campaign-messages {
-  font-size: 13px;
-}
-
-.campaign-preview .campaign-messages strong {
-  color: #888;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.campaign-preview .campaign-messages ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.campaign-preview .campaign-messages li {
-  color: #ccc;
-  line-height: 1.6;
-  margin-bottom: 4px;
-}
-
-/* Additional Kanban styles for more tasks */
+/* Additional Kanban styles */
 .kanban-task-more {
-  padding: 8px 12px;
+  padding: 10px 12px;
   font-size: 11px;
   color: #666;
   text-align: center;
-  font-style: italic;
 }
 
-/* Back button style */
+/* Control buttons with icons */
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .control-btn.back-btn {
   background: transparent;
   border: 1px solid #333;
@@ -597,11 +578,11 @@
 }
 
 .control-btn.download-btn {
-  background: #2a5a2a;
-  border-color: #3a7a3a;
+  background: #1a4a1a;
+  border-color: #2a7a2a;
   color: #8f8;
 }
 
 .control-btn.download-btn:hover {
-  background: #3a7a3a;
+  background: #2a5a2a;
 }

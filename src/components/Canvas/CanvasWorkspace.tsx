@@ -2,11 +2,45 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import OpenAI from 'openai';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear,
+  Play,
+  Stop,
+  ArrowCounterClockwise,
+  Check,
+  Timer,
+  Package,
+  DownloadSimple,
+  Copy,
+  X,
+  Eye
+} from '@phosphor-icons/react';
 import { CHARACTERS } from '../../constants';
 import { CharacterId } from '../../types';
 import { parseBrief, getImagePromptContext } from '../../utils/briefParser';
 import * as dialogue from '../../utils/dialogueGenerator';
 import './CanvasWorkspace.css';
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 14) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 // Initialize OpenAI
 const getOpenAI = () => {
@@ -1929,15 +1963,18 @@ THE FERAL CREATIVE COLLECTIVE
         <div className="controls-left">
           {!isRunning ? (
             <button className="control-btn start-btn" onClick={handleStart} disabled={!brief}>
-              ▶ START
+              <Play size={16} weight="bold" />
+              <span>START</span>
             </button>
           ) : (
             <button className="control-btn pause-btn" onClick={handleReset}>
-              ⏹ STOP
+              <Stop size={16} weight="bold" />
+              <span>STOP</span>
             </button>
           )}
           <button className="control-btn reset-btn" onClick={handleReset}>
-            ↺ RESET
+            <ArrowCounterClockwise size={16} weight="bold" />
+            <span>RESET</span>
           </button>
         </div>
         
@@ -1984,7 +2021,7 @@ THE FERAL CREATIVE COLLECTIVE
             }}
           >
             <div className="kanban-header">
-              <span>📋 TASKS</span>
+              <span><ClipboardText size={14} weight="bold" /> TASKS</span>
               <span className="kanban-phase">Phase {currentPhase}/7</span>
             </div>
             
@@ -1998,7 +2035,7 @@ THE FERAL CREATIVE COLLECTIVE
                   const char = getCharacterInfo(task.assignee);
                   return (
                     <div key={task.id} className="kanban-task" style={{ borderLeftColor: char.color }}>
-                      <span className="task-emoji">{char.emoji}</span>
+                      <span className="task-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                       <span className="task-title">{task.title}</span>
                     </div>
                   );
@@ -2016,9 +2053,9 @@ THE FERAL CREATIVE COLLECTIVE
                   const char = getCharacterInfo(task.assignee);
                   return (
                     <div key={task.id} className="kanban-task active" style={{ borderLeftColor: char.color }}>
-                      <span className="task-emoji">{char.emoji}</span>
+                      <span className="task-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                       <span className="task-title">{task.title}</span>
-                      <span className="task-working">⏳</span>
+                      <span className="task-working"><Timer size={14} weight="bold" /></span>
                     </div>
                   );
                 })}
@@ -2035,9 +2072,9 @@ THE FERAL CREATIVE COLLECTIVE
                   const char = getCharacterInfo(task.assignee);
                   return (
                     <div key={task.id} className="kanban-task done" style={{ borderLeftColor: char.color }}>
-                      <span className="task-emoji">{char.emoji}</span>
+                      <span className="task-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                       <span className="task-title">{task.title}</span>
-                      <span className="task-check">✓</span>
+                      <span className="task-check"><Check size={14} weight="bold" /></span>
                     </div>
                   );
                 })}
@@ -2069,7 +2106,7 @@ THE FERAL CREATIVE COLLECTIVE
                     backgroundColor: char.color,
                   }}
                 >
-                  {char.emoji} {char.name.split(' ')[0]}
+                  {getCharacterIcon(char.icon, 12)} {char.name.split(' ')[0]}
                 </span>
               </div>
             );
@@ -2086,9 +2123,9 @@ THE FERAL CREATIVE COLLECTIVE
             }}
           >
             <div className="final-output-header">
-              <span>📦 OUTPUT</span>
+              <span><Package size={14} weight="bold" /> OUTPUT</span>
               {finalAdCode && (
-                <button className="view-code-btn" onClick={() => setShowCodePanel(true)}>
+                <button className="view-code-btn" onClick={() => setShowCodePanel(true)}><Eye size={14} weight="bold" />
                   VIEW CODE
                 </button>
               )}
@@ -2124,7 +2161,7 @@ THE FERAL CREATIVE COLLECTIVE
               >
                 <pre className="item-content">{item.displayedContent || item.content}{item.isTyping && <span className="cursor">|</span>}</pre>
                 <div className="item-author" style={{ backgroundColor: char.color }}>
-                  {char.emoji}
+                  {getCharacterIcon(char.icon, 12)}
                 </div>
               </div>
             );
@@ -2169,7 +2206,7 @@ THE FERAL CREATIVE COLLECTIVE
       {/* Chat Panel - Right Sidebar */}
       <div className="chat-panel">
         <div className="chat-header">
-          <span className="chat-title">💬 AGENT CHAT</span>
+          <span className="chat-title">AGENT DIALOGUE</span>
           <span className="chat-phase">Phase {currentPhase}/7</span>
         </div>
         <div className="chat-messages" ref={chatMessagesRef}>
@@ -2178,7 +2215,7 @@ THE FERAL CREATIVE COLLECTIVE
             return (
               <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
                 <div className="chat-sender">
-                  <span className="chat-emoji">{char.emoji}</span>
+                  <span className="chat-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                   <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
                 </div>
                 <div className="chat-content">{msg.content}</div>
@@ -2194,11 +2231,11 @@ THE FERAL CREATIVE COLLECTIVE
         <div className="code-panel-overlay" onClick={() => setShowCodePanel(false)}>
           <div className="code-panel" onClick={e => e.stopPropagation()}>
             <div className="code-panel-header">
-              <span>📦 CAMPAIGN DELIVERABLES</span>
+              <span><Package size={14} weight="bold" /> CAMPAIGN DELIVERABLES</span>
               <div className="code-panel-actions">
-                <button className="download-btn" onClick={downloadZip}>📥 DOWNLOAD ZIP</button>
-                <button className="copy-btn" onClick={copyCode}>📋 COPY HTML</button>
-                <button className="close-btn" onClick={() => setShowCodePanel(false)}>✕</button>
+                <button className="download-btn" onClick={downloadZip}><DownloadSimple size={14} weight="bold" /> DOWNLOAD ZIP</button>
+                <button className="copy-btn" onClick={copyCode}><Copy size={14} weight="bold" /> COPY HTML</button>
+                <button className="close-btn" onClick={() => setShowCodePanel(false)}><X size={16} weight="bold" /></button>
               </div>
             </div>
             <div className="code-panel-content">

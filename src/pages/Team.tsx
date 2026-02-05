@@ -1,4 +1,13 @@
 import { Link } from 'react-router-dom';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear
+} from '@phosphor-icons/react';
 import './Team.css';
 
 interface TeamMember {
@@ -9,7 +18,7 @@ interface TeamMember {
   bio: string[];
   traits: string[];
   previousWork: string;
-  emoji: string;
+  icon: string;
   color: string;
 }
 
@@ -18,7 +27,7 @@ const TEAM_MEMBERS: TeamMember[] = [
     id: 'mike',
     name: 'Mike Slab',
     role: 'Director of Client Accountability',
-    emoji: '📋',
+    icon: 'clipboard',
     color: '#8B4513',
     quote: 'They never tell you what they actually need. That\'s my job—to find out.',
     bio: [
@@ -34,8 +43,8 @@ const TEAM_MEMBERS: TeamMember[] = [
     id: 'poole',
     name: 'Dr. Leon Poole',
     role: 'Chief Methodologist',
-    emoji: '📐',
-    color: '#F5DEB3',
+    icon: 'graph',
+    color: '#D4A574',
     quote: 'The consumer doesn\'t know what they want. They only know what they lack. Our job is to name the lack.',
     bio: [
       'Dr. Leon Poole holds a doctorate in Applied Semiotics from a university that no longer exists. His dissertation, "The Architecture of Wanting: Toward a Unified Theory of Consumer Desire," remains unpublished but widely photocopied.',
@@ -50,8 +59,8 @@ const TEAM_MEMBERS: TeamMember[] = [
     id: 'the-cell',
     name: 'The Copywriting Cell',
     role: 'Collective Copywriting Unit',
-    emoji: '✍️',
-    color: '#4B0082',
+    icon: 'pencil',
+    color: '#6B4B8C',
     quote: 'We don\'t write copy. We record what the product would say if it could speak honestly.',
     bio: [
       'The Cell is a three-person collective that operates on anarcho-syndicalist principles. They vote on everything. Headlines are not written; they are ratified. They sign all work "—The Cell" and refuse individual credit.',
@@ -66,8 +75,8 @@ const TEAM_MEMBERS: TeamMember[] = [
     id: 'burl',
     name: 'Burl Pettigrew',
     role: 'Art Director',
-    emoji: '🎨',
-    color: '#FF6347',
+    icon: 'palette',
+    color: '#C84B31',
     quote: 'A picture that needs explaining is a picture that failed. The picture should do the work.',
     bio: [
       'Burl Pettigrew calls his work "pictures." Not design. Not art direction. Not visual systems. Pictures. He makes pictures.',
@@ -82,7 +91,7 @@ const TEAM_MEMBERS: TeamMember[] = [
     id: 'nadya',
     name: 'Nadya Orlov',
     role: 'Production Director',
-    emoji: '📅',
+    icon: 'calendar',
     color: '#2F4F4F',
     quote: 'Everything is ASAP. That is not helpful. Tell me the date.',
     bio: [
@@ -98,8 +107,8 @@ const TEAM_MEMBERS: TeamMember[] = [
     id: 'delmore',
     name: 'Delmore Frank Krepps',
     role: 'Client Services',
-    emoji: '📄',
-    color: '#228B22',
+    icon: 'file',
+    color: '#2D5A3D',
     quote: 'The client doesn\'t need to understand how it\'s made. They need to understand what it does.',
     bio: [
       'Delmore Frank Krepps comes from agricultural extension work. Before ADHDAI, he spent a decade helping farmers understand complicated things in simple terms. He brings that same energy to client services.',
@@ -114,8 +123,8 @@ const TEAM_MEMBERS: TeamMember[] = [
     id: 'apparatus',
     name: 'The Apparatus',
     role: 'Computational Resource',
-    emoji: '⚙️',
-    color: '#708090',
+    icon: 'gear',
+    color: '#4A5568',
     quote: 'READY FOR REVIEW—compilation complete—all documents attached.',
     bio: [
       'The Apparatus is not a person. The Apparatus is a system. It compiles. It formats. It delivers. It does not have opinions. It has outputs.',
@@ -127,6 +136,21 @@ const TEAM_MEMBERS: TeamMember[] = [
     previousWork: 'Unknown. Possibly always here.'
   }
 ];
+
+// Get icon component for member
+const getMemberIcon = (icon: string, size: number = 28) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 export default function Team() {
   return (
@@ -156,8 +180,8 @@ export default function Team() {
           {TEAM_MEMBERS.map((member) => (
             <article key={member.id} className="team-member" id={member.id}>
               <div className="member-header">
-                <div className="member-emoji" style={{ backgroundColor: member.color }}>
-                  {member.emoji}
+                <div className="member-icon" style={{ backgroundColor: member.color }}>
+                  {getMemberIcon(member.icon)}
                 </div>
                 <div className="member-identity">
                   <h2 className="member-name">{member.name}</h2>
@@ -224,4 +248,3 @@ export default function Team() {
     </div>
   );
 }
-

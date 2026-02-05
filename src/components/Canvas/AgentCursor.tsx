@@ -1,4 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear
+} from '@phosphor-icons/react';
 import { Character } from '../../types';
 import './AgentCursor.css';
 
@@ -11,6 +20,21 @@ interface AgentCursorProps {
   status?: CursorStatus;
   action?: string;
 }
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 12) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 export default function AgentCursor({
   x,
@@ -97,7 +121,7 @@ export default function AgentCursor({
         className="cursor-label"
         style={{ backgroundColor: agentColor }}
       >
-        {character?.emoji} {agentName.split(' ')[0]}
+        {getCharacterIcon(character?.icon, 12)} {agentName.split(' ')[0]}
       </div>
 
       {/* Action text if provided */}

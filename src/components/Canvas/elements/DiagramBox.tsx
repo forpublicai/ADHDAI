@@ -1,4 +1,13 @@
 import { useState, useEffect } from 'react';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear
+} from '@phosphor-icons/react';
 import { Character } from '../../../types';
 import './CanvasElements.css';
 
@@ -18,6 +27,21 @@ interface DiagramBoxProps {
   width?: number;
   height?: number;
 }
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 14) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 export default function DiagramBox({
   id,
@@ -60,7 +84,11 @@ export default function DiagramBox({
         <div key={index} className="flowchart-node">
           <div className="node-box">{item}</div>
           {index < items.length - 1 && (
-            <div className="node-connector">↓</div>
+            <div className="node-connector">
+              <svg width="12" height="16" viewBox="0 0 12 16">
+                <path d="M6 0 L6 12 M2 8 L6 12 L10 8" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+              </svg>
+            </div>
           )}
         </div>
       ))}
@@ -92,7 +120,7 @@ export default function DiagramBox({
         <h3 className="diagram-title">{title}</h3>
         {character && (
           <span className="diagram-author" style={{ color: character.color }}>
-            {character.emoji} {character.name}
+            {getCharacterIcon(character.icon)} {character.name}
           </span>
         )}
       </div>

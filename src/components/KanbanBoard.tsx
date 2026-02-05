@@ -1,4 +1,17 @@
 import { useState } from 'react';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear,
+  X,
+  ArrowsOutSimple,
+  Warning,
+  Check
+} from '@phosphor-icons/react';
 import { Task, Character, Phase } from '../types';
 import { PHASES } from '../constants';
 import './KanbanBoard.css';
@@ -8,6 +21,21 @@ interface KanbanBoardProps {
   characters: Character[];
   currentPhase: Phase;
 }
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 14) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanBoardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -38,7 +66,7 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
               onClick={() => setIsExpanded(!isExpanded)}
               title={isExpanded ? 'Collapse board' : 'Expand board'}
             >
-              {isExpanded ? '✕' : '⤢'}
+              {isExpanded ? <X size={16} weight="bold" /> : <ArrowsOutSimple size={16} weight="bold" />}
             </button>
           </div>
           <div className="current-phase">
@@ -59,7 +87,7 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
                   )}
                   {character && (
                     <div className="task-assignee" style={{ color: character.color }}>
-                      {character.emoji} {character.name}
+                      {getCharacterIcon(character.icon)} {character.name}
                     </div>
                   )}
                 </div>
@@ -91,7 +119,7 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
                   )}
                   {character && (
                     <div className="task-assignee" style={{ color: character.color }}>
-                      {character.emoji} {character.name}
+                      {getCharacterIcon(character.icon)} {character.name}
                     </div>
                   )}
                 </div>
@@ -114,7 +142,7 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
                           const conflictChar = getCharacter(conflict.with);
                           return (
                             <div key={idx} className="conflict-indicator">
-                              ⚠️ Conflict with {conflictChar?.name || conflict.with}
+                              <Warning size={14} weight="bold" /> Conflict with {conflictChar?.name || conflict.with}
                             </div>
                           );
                         })}
@@ -122,7 +150,7 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
                     )}
                     {character && (
                       <div className="task-assignee" style={{ color: character.color }}>
-                        {character.emoji} {character.name}
+                        {getCharacterIcon(character.icon)} {character.name}
                       </div>
                     )}
                   </div>
@@ -151,7 +179,7 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
                         const conflictChar = getCharacter(conflict.with);
                         return (
                           <div key={idx} className="conflict-resolved">
-                            ✓ Resolved with {conflictChar?.name || conflict.with}
+                            <Check size={14} weight="bold" /> Resolved with {conflictChar?.name || conflict.with}
                           </div>
                         );
                       })}
@@ -159,7 +187,7 @@ export default function KanbanBoard({ tasks, characters, currentPhase }: KanbanB
                   )}
                   {character && (
                     <div className="task-assignee" style={{ color: character.color }}>
-                      {character.emoji} {character.name}
+                      {getCharacterIcon(character.icon)} {character.name}
                     </div>
                   )}
                   {task.completedAt && (

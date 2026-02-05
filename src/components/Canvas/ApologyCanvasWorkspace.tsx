@@ -2,6 +2,27 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import OpenAI from 'openai';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear,
+  Play,
+  Stop,
+  ArrowCounterClockwise,
+  ArrowLeft,
+  Package,
+  DownloadSimple,
+  X,
+  Check,
+  Timer,
+  Eye,
+  Trophy,
+  Star
+} from '@phosphor-icons/react';
 import { CHARACTERS } from '../../constants';
 import { CharacterId, DoomsdayScenario, ApologyCampaign } from '../../types';
 import { Fortune500Company } from '../../data/fortune500';
@@ -9,6 +30,21 @@ import { generateApologyCampaign, generateCampaignImage } from '../../services/a
 import { formatApologyCampaignsAsHTML, formatSingleCampaignAsHTML } from '../../services/apologyDeliverables';
 import * as dialogue from '../../utils/dialogueGenerator';
 import './CanvasWorkspace.css';
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 16) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 // Initialize OpenAI
 const getOpenAI = () => {
@@ -104,7 +140,7 @@ const ITEM_COLORS: Record<string, string> = {
 const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({ 
   company,
   scenarios,
-  onComplete,
+  onComplete: _onComplete, // Intentionally unused - user controls when to exit
   onBack
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -357,20 +393,20 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   }, []);
 
   // Process a single scenario
-  const processScenario = useCallback(async (scenario: DoomsdayScenario, index: number) => {
+  const processScenario = useCallback(async (scenario: DoomsdayScenario, index: number): Promise<ApologyCampaign> => {
     const scenarioTasks = tasks.filter(t => t.scenarioId === scenario.id);
     
     // Phase 1: Mike analyzes the scenario
     setCurrentPhase(1);
-    setPhaseLabel(`ANALYZING SCENARIO ${index + 1}: ${scenario.title.slice(0, 30)}...`);
+    setPhaseLabel(`ANALYZING SCENARIO ${index + 1}: ${scenario.title}`);
     
     moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Analyzing scenario...');
-    addChatMessage('mike', `*examines dossier* "${scenario.title}" — ${scenario.severity} severity. This is going to require... preemptive contrition.`);
+    addChatMessage('mike', `*examines dossier* "${scenario.title}" — ${scenario.severity} severity, ${scenario.category} category. ${scenario.description} This is going to require preemptive contrition at scale.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
     createWorkItem('mike', 'scenario', 
-      `SCENARIO ${index + 1}:\n${scenario.title}\n\nSeverity: ${scenario.severity}\nCategory: ${scenario.category}\nTimeline: ${scenario.timeHorizon}`,
+      `SCENARIO ${index + 1}:\n${scenario.title}\n\nDescription: ${scenario.description}\n\nSeverity: ${scenario.severity}\nCategory: ${scenario.category}\nTimeline: ${scenario.timeHorizon}\n\nPotential Damage: ${scenario.potentialDamage}\nAffected Parties: ${scenario.affectedParties.join(', ')}`,
       { x: 400, y: 100 }, 1, true, scenario.id
     );
     
@@ -383,12 +419,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('STRATEGIC FRAMEWORK');
     
     moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building apology framework...');
-    addChatMessage('poole', `The Proactive Apology Matrix™ suggests we position this as... "anticipatory accountability." The consumer's latent guilt becomes our ally.`);
+    addChatMessage('poole', `The Proactive Apology Matrix™ identifies the core tension: ${scenario.potentialDamage}. We position this as "anticipatory accountability"—apologizing before the harm occurs creates a unique rhetorical space where contrition exists without admission. The consumer's latent guilt becomes our ally. We acknowledge the future they fear while offering nothing concrete.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
     createWorkItem('poole', 'framework',
-      `APOLOGY STRATEGY:\n\n• Pre-emptive contrition\n• Stakeholder deflection\n• Performative transparency\n• Future-state regret positioning`,
+      `APOLOGY STRATEGY FOR: ${scenario.title}\n\n• Pre-emptive contrition positioning\n• Stakeholder deflection architecture\n• Performative transparency framework\n• Future-state regret positioning\n• Anticipatory accountability protocol\n\nCore Insight: Apologize before the disaster to own the narrative.`,
       { x: 740, y: 100 }, 2, true, scenario.id
     );
     
@@ -401,7 +437,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('APOLOGY COPYWRITING');
     
     moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Writing apology...');
-    addChatMessage('the-cell', `[VERA]: We apologize for things that haven't happened yet. [GJON]: It's the new frontier. [THURSDAY]: *already typing*`);
+    addChatMessage('the-cell', `[VERA]: We write apologies for things that haven't happened yet. This requires a special kind of insincerity—performed sincerity. [GJON]: The copy must acknowledge harm without admitting causation. It's Eastern European melancholy meets corporate legal. [THURSDAY]: *typing* The headline must sound like an apology but function as a press release. We're creating plausible emotional deniability.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
@@ -410,11 +446,11 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setCampaigns(prev => [...prev, campaign]);
     
     createWorkItem('the-cell', 'apology',
-      `APOLOGY HEADLINE:\n"${campaign.headline}"\n\n${campaign.subheadline}\n\n${campaign.apologyStatement}`,
+      `APOLOGY HEADLINE:\n"${campaign.headline}"\n\nSUBHEADLINE:\n${campaign.subheadline}\n\nAPOLOGY STATEMENT:\n${campaign.apologyStatement}\n\nKEY MESSAGES:\n${campaign.keyMessages?.map((m, i) => `${i + 1}. ${m}`).join('\n') || 'N/A'}`,
       { x: 1080, y: 90 }, 3, true, scenario.id
     );
     
-    addChatMessage('the-cell', `[THURSDAY]: "${campaign.headline}" — it sounds sorry but commits to nothing. Perfect.`);
+    addChatMessage('the-cell', `[THURSDAY]: HEADLINE: "${campaign.headline}" — It sounds like genuine remorse but commits to absolutely nothing. The subheadline "${campaign.subheadline}" reinforces the tone without adding substance. [VERA]: The Cell votes unanimously to approve. [GJON]: This will win awards. Sad, corporate awards.`);
     
     updateTaskStatus(scenarioTasks[2]?.id || '', 'done');
     
@@ -425,12 +461,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('VISUAL DIRECTION');
     
     moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Setting visual tone...');
-    addChatMessage('burl', `The visual language should say "we're sorry" in a way that photographs well. Corporate blue. Handclasp imagery. Dawn breaking over... something.`);
+    addChatMessage('burl', `The visual language must communicate "we're sorry" in a way that photographs well and wins Cannes Lions. Corporate blue for trust—the specific blue of institutions that have failed you before. White space for transparency that doesn't actually exist. Dawn breaking over something—a factory, a community, anything that suggests new beginnings we have no intention of delivering. The color palette: ${campaign.colorPalette?.join(', ') || 'Corporate trust palette'}. Typography: ${campaign.typography || 'Helvetica Neue / Georgia'}—fonts that say "we take this seriously" while taking nothing seriously.`);
     
     await new Promise(r => setTimeout(r, 2000));
     
     createWorkItem('burl', 'visual',
-      `VISUAL DIRECTION:\n\n• Colors: ${campaign.colorPalette?.join(', ') || 'Corporate trust palette'}\n• Typography: ${campaign.typography || 'Helvetica Neue / Georgia'}\n• Mood: ${campaign.visualConcept || 'Sincere but safely vague'}`,
+      `VISUAL DIRECTION FOR CAMPAIGN ${index + 1}:\n\n• Colors: ${campaign.colorPalette?.join(', ') || 'Corporate trust palette'}\n• Typography: ${campaign.typography || 'Helvetica Neue / Georgia'}\n• Mood: ${campaign.visualConcept || 'Sincere but safely vague'}\n\nArt Direction Notes:\n- Excessive white space suggesting transparency\n- Human subjects looking thoughtfully into middle distance\n- Warm but clinical color grading\n- Visual metaphors of dawn, hands, and horizons`,
       { x: 400, y: 380 }, 4, true, scenario.id
     );
     
@@ -443,18 +479,18 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('CAMPAIGN COMPILATION');
     
     moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling campaign...');
-    addChatMessage('apparatus', `COMPILING APOLOGY CAMPAIGN ${index + 1} OF ${scenarios.length}—`);
+    addChatMessage('apparatus', `COMPILING APOLOGY CAMPAIGN ${index + 1} OF ${scenarios.length}—All deliverables being assembled: full-page print ad, billboard, bus shelter, video script, social media copy deck, digital banners. Status: IN PROGRESS—`);
     
     await new Promise(r => setTimeout(r, 2000));
     
     createWorkItem('apparatus', 'approval',
-      `✓ CAMPAIGN ${index + 1} COMPLETE\n\n"${campaign.headline}"\n\nScenario: ${scenario.title}\nStatus: READY FOR DEPLOYMENT`,
+      `✓ CAMPAIGN ${index + 1} COMPLETE\n\nHEADLINE: "${campaign.headline}"\n\nSCENARIO: ${scenario.title}\n\nDELIVERABLES:\n• Full-page print ad\n• Billboard (14x48ft)\n• Bus shelter\n• :60 video script\n• Social media copy deck\n• Digital banner suite\n\nSTATUS: READY FOR DEPLOYMENT`,
       { x: 760, y: 660 }, 5, false, scenario.id
     );
     
     updateTaskStatus(scenarioTasks[4]?.id || '', 'done');
     
-    addChatMessage('apparatus', `APOLOGY CAMPAIGN ${index + 1} COMPILED SUCCESSFULLY—${new Date().toLocaleTimeString()}`);
+    addChatMessage('apparatus', `APOLOGY CAMPAIGN ${index + 1} COMPILED SUCCESSFULLY—Headline: "${campaign.headline}" | Deliverables: Print, OOH, Video, Social, Digital | Timestamp: ${new Date().toLocaleTimeString()}`);
     
     return campaign;
   }, [company, tasks, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, scenarios.length]);
@@ -470,9 +506,11 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     await new Promise(r => setTimeout(r, 2000));
     
     // Process each scenario
+    const completedCampaigns: ApologyCampaign[] = [];
     for (let i = 0; i < scenarios.length; i++) {
       setCurrentScenarioIndex(i);
-      await processScenario(scenarios[i], i);
+      const campaign = await processScenario(scenarios[i], i);
+      completedCampaigns.push(campaign);
       
       if (i < scenarios.length - 1) {
         addChatMessage('nadya', `⏱ Scenario ${i + 1} complete. Moving to next. We are ${i + 1}/${scenarios.length} done.`);
@@ -480,18 +518,52 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       }
     }
     
-    // Completion
-    setPhaseLabel('✓ ALL CAMPAIGNS COMPLETE');
-    addChatMessage('apparatus', `ALL ${scenarios.length} APOLOGY CAMPAIGNS COMPILED—READY FOR REVIEW—${new Date().toLocaleTimeString()}`);
-    addChatMessage('mike', `The work is done. ${company.name} can now apologize for disasters that haven't happened yet. The future of corporate accountability.`);
-    addChatMessage('delmore', `*preparing client translation* "Proactive Stakeholder Alignment Initiative" — that's what we'll call it.`);
+    // Completion - stay in workspace, don't auto-exit
+    setPhaseLabel('✓ ALL CAMPAIGNS COMPLETE — READY FOR DOWNLOAD');
+    setIsRunning(false);
+    
+    // Celebratory completion messages
+    addChatMessage('apparatus', `═══════════════════════════════════════════════════════════════`);
+    addChatMessage('apparatus', `ALL ${scenarios.length} APOLOGY CAMPAIGNS COMPILED SUCCESSFULLY`);
+    addChatMessage('apparatus', `READY FOR REVIEW AND DOWNLOAD—${new Date().toLocaleTimeString()}`);
+    addChatMessage('apparatus', `═══════════════════════════════════════════════════════════════`);
+    
+    await new Promise(r => setTimeout(r, 500));
+    
+    addChatMessage('mike', `The work is done. ${company.name} can now apologize for disasters that haven't happened yet. This is the future of corporate accountability—preemptive contrition at scale.`);
+    
+    await new Promise(r => setTimeout(r, 800));
+    
+    addChatMessage('poole', `The Proactive Apology Matrix™ has been fully deployed. Each campaign represents a unique intersection of anticipated failure and performative responsibility. Remarkable work.`);
+    
+    await new Promise(r => setTimeout(r, 800));
+    
+    addChatMessage('the-cell', `[VERA]: The copy has been ratified. [GJON]: It sounds like an apology but commits to nothing. [THURSDAY]: That's the art. We've achieved peak corporate sincerity—completely hollow, utterly professional.`);
+    
+    await new Promise(r => setTimeout(r, 800));
+    
+    addChatMessage('burl', `The visuals are locked. Corporate blue for trust, white space for transparency that doesn't exist, dawn imagery for new beginnings that won't happen. It's beautiful in its emptiness.`);
+    
+    await new Promise(r => setTimeout(r, 800));
+    
+    addChatMessage('nadya', `⏱ Production complete. All ${scenarios.length} campaigns ready for deployment. Download your deliverables package now. The ZIP contains everything: print specs, video scripts, social copy, visual direction.`);
+    
+    await new Promise(r => setTimeout(r, 800));
+    
+    addChatMessage('delmore', `*preparing client translation* We're calling this the "Proactive Stakeholder Alignment Initiative." I've prepared pamphlets explaining each campaign in terms the client can understand. The ZIP file contains everything they need.`);
+    
+    await new Promise(r => setTimeout(r, 800));
+    
+    addChatMessage('apparatus', `DELIVERABLES PACKAGE READY FOR DOWNLOAD. Click "DOWNLOAD CAMPAIGN PACKAGE" to receive your complete Cannes-ready apology campaign assets.`);
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     
-    if (onComplete) {
-      onComplete(campaigns);
-    }
-  }, [company, scenarios, processScenario, addChatMessage, campaigns, onComplete]);
+    // Auto-show the campaign panel
+    setShowCodePanel(true);
+    
+    // Note: We intentionally do NOT call onComplete here
+    // This keeps the user in the workspace to explore and download
+  }, [company, scenarios, processScenario, addChatMessage]);
 
   const handleStart = useCallback(() => {
     setIsRunning(true);
@@ -796,37 +868,42 @@ THE FERAL CREATIVE COLLECTIVE
         <div className="controls-left">
           {onBack && (
             <button className="control-btn back-btn" onClick={onBack}>
-              ← Back
+              <ArrowLeft size={16} weight="bold" />
+              <span>Back</span>
             </button>
           )}
           {!isRunning ? (
             <button className="control-btn start-btn" onClick={handleStart}>
-              ▶ START CAMPAIGNS
+              <Play size={16} weight="bold" />
+              <span>START CAMPAIGNS</span>
             </button>
           ) : (
             <button className="control-btn pause-btn" onClick={handleReset}>
-              ⏹ STOP
+              <Stop size={16} weight="bold" />
+              <span>STOP</span>
             </button>
           )}
           <button className="control-btn reset-btn" onClick={handleReset}>
-            ↺ RESET
+            <ArrowCounterClockwise size={16} weight="bold" />
+            <span>RESET</span>
           </button>
         </div>
         
         <div className="controls-center">
           <div className="phase-indicator">{phaseLabel}</div>
           <span className="item-count">
-            {company.name} • Scenario {currentScenarioIndex + 1}/{scenarios.length}
+            {company.name} / Scenario {currentScenarioIndex + 1} of {scenarios.length}
           </span>
         </div>
         
         <div className="controls-right">
           <span className="task-summary">
-            {taskCounts.todo} todo • {taskCounts.inProgress} active • {taskCounts.done} done
+            {taskCounts.todo} todo / {taskCounts.inProgress} active / {taskCounts.done} done
           </span>
           {campaigns.length > 0 && (
             <button className="control-btn download-btn" onClick={() => setShowCodePanel(true)}>
-              📦 VIEW CAMPAIGNS
+              <Package size={16} weight="bold" />
+              <span>VIEW CAMPAIGNS</span>
             </button>
           )}
           <span className="zoom-level">{Math.round(zoom * 100)}%</span>
@@ -872,7 +949,7 @@ THE FERAL CREATIVE COLLECTIVE
               }}
             >
               <div className="kanban-header">
-                <span>📋 TASKS</span>
+                <span><ClipboardText size={14} weight="bold" /> TASKS</span>
                 <span className="kanban-phase">Phase {currentPhase}/5</span>
               </div>
               
@@ -886,7 +963,7 @@ THE FERAL CREATIVE COLLECTIVE
                     const char = getCharacterInfo(task.assignee);
                     return (
                       <div key={task.id} className="kanban-task" style={{ borderLeftColor: char.color }}>
-                        <span className="task-emoji">{char.emoji}</span>
+                        <span className="task-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                         <span className="task-title">{task.title}</span>
                       </div>
                     );
@@ -907,9 +984,9 @@ THE FERAL CREATIVE COLLECTIVE
                     const char = getCharacterInfo(task.assignee);
                     return (
                       <div key={task.id} className="kanban-task active" style={{ borderLeftColor: char.color }}>
-                        <span className="task-emoji">{char.emoji}</span>
+                        <span className="task-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                         <span className="task-title">{task.title}</span>
-                        <span className="task-working">⏳</span>
+                        <span className="task-working"><Timer size={14} weight="bold" /></span>
                       </div>
                     );
                   })}
@@ -926,9 +1003,9 @@ THE FERAL CREATIVE COLLECTIVE
                     const char = getCharacterInfo(task.assignee);
                     return (
                       <div key={task.id} className="kanban-task done" style={{ borderLeftColor: char.color }}>
-                        <span className="task-emoji">{char.emoji}</span>
+                        <span className="task-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                         <span className="task-title">{task.title}</span>
-                        <span className="task-check">✓</span>
+                        <span className="task-check"><Check size={14} weight="bold" /></span>
                       </div>
                     );
                   })}
@@ -960,7 +1037,7 @@ THE FERAL CREATIVE COLLECTIVE
                       backgroundColor: char.color,
                     }}
                   >
-                    {char.emoji} {char.name.split(' ')[0]}
+                    {getCharacterIcon(char.icon, 12)} {char.name.split(' ')[0]}
                   </span>
                 </div>
               );
@@ -977,17 +1054,17 @@ THE FERAL CREATIVE COLLECTIVE
               }}
             >
               <div className="final-output-header">
-                <span>📦 CAMPAIGNS</span>
+                <span><Package size={14} weight="bold" /> CAMPAIGNS</span>
                 {campaigns.length > 0 && (
                   <button className="view-code-btn" onClick={() => setShowCodePanel(true)}>
-                    VIEW ALL
+                    <Eye size={14} weight="bold" /> VIEW ALL
                   </button>
                 )}
               </div>
               <div className="final-output-content">
                 {campaigns.length > 0 ? (
                   <div className="output-ready">
-                    <span className="output-status">✓ {campaigns.length} READY</span>
+                    <span className="output-status"><Check size={14} weight="bold" /> {campaigns.length} READY</span>
                     <span className="output-filename">apology_campaigns.zip</span>
                   </div>
                 ) : (
@@ -1015,7 +1092,7 @@ THE FERAL CREATIVE COLLECTIVE
                 >
                   <pre className="item-content">{item.displayedContent || item.content}{item.isTyping && <span className="cursor">|</span>}</pre>
                   <div className="item-author" style={{ backgroundColor: char.color }}>
-                    {char.emoji}
+                    {getCharacterIcon(char.icon, 12)}
                   </div>
                 </div>
               );
@@ -1059,7 +1136,7 @@ THE FERAL CREATIVE COLLECTIVE
         {/* Chat Panel */}
         <div className="chat-panel">
           <div className="chat-header">
-            <span className="chat-title">💬 AGENT CHAT</span>
+            <span className="chat-title">AGENT DIALOGUE</span>
             <span className="chat-phase">Phase {currentPhase}/5</span>
           </div>
           <div className="chat-messages" ref={chatMessagesRef}>
@@ -1068,7 +1145,7 @@ THE FERAL CREATIVE COLLECTIVE
               return (
                 <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
                   <div className="chat-sender">
-                    <span className="chat-emoji">{char.emoji}</span>
+                    <span className="chat-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
                     <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
                   </div>
                   <div className="chat-content">{msg.content}</div>
@@ -1079,37 +1156,112 @@ THE FERAL CREATIVE COLLECTIVE
         </div>
       </div>
 
-      {/* Code Panel */}
+      {/* Campaign Review Panel - Cannes Style */}
       {showCodePanel && (
-        <div className="code-panel-overlay" onClick={() => setShowCodePanel(false)}>
-          <div className="code-panel" onClick={e => e.stopPropagation()}>
-            <div className="code-panel-header">
-              <span>📦 APOLOGY CAMPAIGNS ({campaigns.length})</span>
-              <div className="code-panel-actions">
-                <button className="download-btn" onClick={downloadZip}>📥 DOWNLOAD ZIP</button>
-                <button className="close-btn" onClick={() => setShowCodePanel(false)}>✕</button>
+        <div className="campaign-panel-overlay" onClick={() => setShowCodePanel(false)}>
+          <div className="campaign-panel" onClick={e => e.stopPropagation()}>
+            <div className="campaign-panel-header">
+              <div className="panel-badge">
+                <Trophy size={20} weight="bold" />
+                <span>CAMPAIGN DOSSIER</span>
+              </div>
+              <div className="panel-title-row">
+                <h2 className="panel-title">Proactive Apology Campaigns</h2>
+                <span className="panel-count">{campaigns.length} Campaign{campaigns.length !== 1 ? 's' : ''}</span>
+              </div>
+              <p className="panel-subtitle">Generated for {company.name}</p>
+              <div className="panel-actions">
+                <button className="download-btn primary" onClick={downloadZip}>
+                  <DownloadSimple size={18} weight="bold" />
+                  <span>DOWNLOAD CAMPAIGN PACKAGE</span>
+                </button>
+                <button className="close-btn" onClick={() => setShowCodePanel(false)}>
+                  <X size={20} weight="bold" />
+                </button>
               </div>
             </div>
-            <div className="code-panel-content">
+            
+            <div className="campaign-panel-content">
               {campaigns.map((campaign, index) => (
-                <div key={campaign.id} className="campaign-preview">
-                  <h3>Campaign {index + 1}: {campaign.scenarioTitle}</h3>
-                  <div className="campaign-headline">"{campaign.headline}"</div>
-                  <div className="campaign-subheadline">{campaign.subheadline}</div>
-                  <p className="campaign-statement">{campaign.apologyStatement}</p>
-                  <div className="campaign-messages">
-                    <strong>Key Messages:</strong>
-                    <ul>
-                      {campaign.keyMessages?.map((msg, i) => (
-                        <li key={i}>{msg}</li>
-                      ))}
-                    </ul>
+                <div key={campaign.id} className="campaign-card-full">
+                  <div className="card-number">
+                    <span className="number-label">Campaign</span>
+                    <span className="number-value">{String(index + 1).padStart(2, '0')}</span>
+                  </div>
+                  
+                  <div className="card-body">
+                    <div className="card-scenario">
+                      <span className="scenario-label">Scenario</span>
+                      <span className="scenario-title">{campaign.scenarioTitle}</span>
+                    </div>
+                    
+                    <div className="card-creative">
+                      <h3 className="creative-headline">"{campaign.headline}"</h3>
+                      <p className="creative-subheadline">{campaign.subheadline}</p>
+                    </div>
+                    
+                    <div className="card-statement">
+                      <span className="statement-label">Official Statement</span>
+                      <p className="statement-text">{campaign.apologyStatement}</p>
+                    </div>
+                    
+                    {campaign.keyMessages && campaign.keyMessages.length > 0 && (
+                      <div className="card-messages">
+                        <span className="messages-label">Key Messages</span>
+                        <ul className="messages-list">
+                          {campaign.keyMessages.map((msg, i) => (
+                            <li key={i}>{msg}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <div className="card-visual">
+                      <div className="visual-item">
+                        <span className="visual-label">Visual Concept</span>
+                        <span className="visual-value">{campaign.visualConcept || 'Corporate minimalism'}</span>
+                      </div>
+                      <div className="visual-item">
+                        <span className="visual-label">Tone</span>
+                        <span className="visual-value">{campaign.tone || 'Performatively sincere'}</span>
+                      </div>
+                      {campaign.colorPalette && (
+                        <div className="visual-item colors">
+                          <span className="visual-label">Palette</span>
+                          <div className="color-swatches">
+                            {campaign.colorPalette.map((color, i) => (
+                              <span key={i} className="color-swatch" style={{ backgroundColor: color }} title={color} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="card-deliverables">
+                      <span className="deliverables-label">Included Deliverables</span>
+                      <div className="deliverables-grid">
+                        <span className="deliverable-tag">Full-Page Print Ad</span>
+                        <span className="deliverable-tag">Billboard (14x48ft)</span>
+                        <span className="deliverable-tag">Video Script (:60)</span>
+                        <span className="deliverable-tag">Social Media Deck</span>
+                        <span className="deliverable-tag">Digital Banners</span>
+                        <span className="deliverable-tag">Bus Shelter</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="code-panel-footer">
-              <strong>Download ZIP</strong> for full deliverables including images, video scripts, social copy, and print specifications.
+            
+            <div className="campaign-panel-footer">
+              <div className="footer-info">
+                <Star size={16} weight="bold" />
+                <span>Download the complete campaign package for all deliverables, creative specifications, video scripts, and visual assets.</span>
+              </div>
+              <button className="download-btn secondary" onClick={downloadZip}>
+                <DownloadSimple size={16} weight="bold" />
+                <span>Download ZIP</span>
+              </button>
             </div>
           </div>
         </div>

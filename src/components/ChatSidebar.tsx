@@ -1,3 +1,12 @@
+import {
+  ClipboardText,
+  Graph,
+  PencilSimple,
+  Palette,
+  CalendarBlank,
+  FileText,
+  Gear
+} from '@phosphor-icons/react';
 import { Message, Character } from '../types';
 import './ChatSidebar.css';
 
@@ -5,6 +14,21 @@ interface ChatSidebarProps {
   messages: Message[];
   characters: Character[];
 }
+
+// Get icon component for character
+const getCharacterIcon = (icon: string, size: number = 14) => {
+  const iconProps = { size, weight: 'bold' as const };
+  const icons: Record<string, React.ReactNode> = {
+    clipboard: <ClipboardText {...iconProps} />,
+    graph: <Graph {...iconProps} />,
+    pencil: <PencilSimple {...iconProps} />,
+    palette: <Palette {...iconProps} />,
+    calendar: <CalendarBlank {...iconProps} />,
+    file: <FileText {...iconProps} />,
+    gear: <Gear {...iconProps} />,
+  };
+  return icons[icon] || <Gear {...iconProps} />;
+};
 
 /**
  * Formats message content for better readability
@@ -97,7 +121,7 @@ export default function ChatSidebar({ messages, characters }: ChatSidebarProps) 
             return (
               <div key={message.id} className="chat-message">
                 <div className="message-header">
-                  <span className="message-emoji">{character.emoji}</span>
+                  <span className="message-icon" style={{ color: character.color }}>{getCharacterIcon(character.icon)}</span>
                   <span className="message-name" style={{ color: character.color }}>
                     {character.name}
                   </span>

@@ -6,7 +6,7 @@ export interface Character {
   role: string;
   personality: string;
   color: string;
-  emoji: string;
+  icon: string;
 }
 
 export type Phase = 
