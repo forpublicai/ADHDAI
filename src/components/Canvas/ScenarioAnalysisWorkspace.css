@@ -176,3 +176,17 @@
 .scenario-analysis-workspace .start-btn:hover {
   box-shadow: 0 4px 20px rgba(74, 144, 217, 0.4);
 }
+
+.scenario-analysis-workspace .continue-btn {
+  background: linear-gradient(145deg, #10b981 0%, #059669 100%);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.scenario-analysis-workspace .continue-btn:hover {
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+}

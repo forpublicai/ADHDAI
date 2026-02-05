@@ -12,6 +12,7 @@ import {
   Stop,
   ArrowCounterClockwise,
   ArrowLeft,
+  ArrowRight,
   Check,
   Timer,
   Lightning,
@@ -159,6 +160,7 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isAnalysisComplete, setIsAnalysisComplete] = useState(false);
   const [currentPhase, setCurrentPhase] = useState(0);
   const [phaseLabel, setPhaseLabel] = useState('Ready to analyze');
   const [scenarios, setScenarios] = useState<DoomsdayScenario[]>([]);
@@ -700,22 +702,27 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     addChatMessage('apparatus', `DOOMSDAY REPORT READY—${allScenarios.length} SCENARIOS IDENTIFIED—${new Date().toLocaleTimeString()}`);
     addChatMessage('mike', `The future is bleak. Or at least, it will be if ${company.name} doesn't get ahead of these. Your move.`);
+    addChatMessage('apparatus', `ANALYSIS COMPLETE — Click "CONTINUE TO SCENARIOS" when ready to proceed.`);
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
+    setIsRunning(false);
+    setIsAnalysisComplete(true);
     
-    // Complete with results
-    const summary = `${company.name}'s risk profile reveals ${allScenarios.length} potential doomsday scenarios across multiple time horizons. Key threats span ${[...new Set(allScenarios.map(s => s.category))].join(', ')}.`;
+    // NOTE: We no longer auto-advance. User must click the continue button.
     
-    setTimeout(() => {
-      onComplete({
-        company: company.name,
-        analyzedAt: Date.now(),
-        scenarios: allScenarios,
-        summary
-      });
-    }, 3000);
+  }, [company, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, generateScenariosWithAI, generateFallbackScenarios]);
+
+  // Handler for user to manually continue to scenario selection
+  const handleContinueToScenarios = useCallback(() => {
+    const summary = `${company.name}'s risk profile reveals ${scenarios.length} potential doomsday scenarios across multiple time horizons. Key threats span ${[...new Set(scenarios.map(s => s.category))].join(', ')}.`;
     
-  }, [company, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, generateScenariosWithAI, onComplete, generateFallbackScenarios]);
+    onComplete({
+      company: company.name,
+      analyzedAt: Date.now(),
+      scenarios: scenarios,
+      summary
+    });
+  }, [company, scenarios, onComplete]);
 
   const handleStart = useCallback(() => {
     setIsRunning(true);
@@ -746,6 +753,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
 
   const handleReset = () => {
     setIsRunning(false);
+    setIsAnalysisComplete(false);
     typingRef.current.forEach(t => clearInterval(t));
     setWorkItems([]);
     setChatMessages([]);
@@ -769,15 +777,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     })));
   };
 
-  // Auto-start when mounted
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isRunning) {
-        handleStart();
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  // NOTE: We no longer auto-start. User must click START ANALYSIS button.
 
   const taskCounts = {
     todo: tasks.filter(t => t.status === 'todo').length,
@@ -796,15 +796,22 @@ Be creative, specific, and think like an investigative journalist uncovering wha
               <span>Back</span>
             </button>
           )}
-          {!isRunning ? (
+          {!isRunning && !isAnalysisComplete && (
             <button className="control-btn start-btn" onClick={handleStart}>
               <Play size={16} weight="bold" />
               <span>START ANALYSIS</span>
             </button>
-          ) : (
+          )}
+          {isRunning && (
             <button className="control-btn pause-btn" onClick={handleReset}>
               <Stop size={16} weight="bold" />
               <span>STOP</span>
+            </button>
+          )}
+          {isAnalysisComplete && (
+            <button className="control-btn continue-btn" onClick={handleContinueToScenarios}>
+              <ArrowRight size={16} weight="bold" />
+              <span>CONTINUE TO SCENARIOS</span>
             </button>
           )}
           <button className="control-btn reset-btn" onClick={handleReset}>

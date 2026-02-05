@@ -70,6 +70,23 @@
   background: #2a5a2a;
 }
 
+.finish-btn {
+  background: linear-gradient(145deg, #10b981 0%, #059669 100%);
+  border-color: #34d399;
+  color: #fff;
+  animation: pulse-finish 2s ease-in-out infinite;
+}
+
+.finish-btn:hover:not(:disabled) {
+  background: linear-gradient(145deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+}
+
+@keyframes pulse-finish {
+  0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.5); }
+}
+
 .pause-btn {
   background: #4a3a1a;
   border-color: #7a6a2a;

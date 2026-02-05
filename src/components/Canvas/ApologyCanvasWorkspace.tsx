@@ -140,7 +140,7 @@ const ITEM_COLORS: Record<string, string> = {
 const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({ 
   company,
   scenarios,
-  onComplete: _onComplete, // Intentionally unused - user controls when to exit
+  onComplete,
   onBack
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -149,6 +149,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
   const [currentPhase, setCurrentPhase] = useState(0);
   const [phaseLabel, setPhaseLabel] = useState('Ready to begin');
   const [campaigns, setCampaigns] = useState<ApologyCampaign[]>([]);
@@ -555,12 +556,19 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     
-    // Auto-show the campaign panel
+    // Mark as complete and show the campaign panel
+    setIsComplete(true);
     setShowCodePanel(true);
     
-    // Note: We intentionally do NOT call onComplete here
-    // This keeps the user in the workspace to explore and download
+    // Note: We do NOT auto-call onComplete. User must click "FINISH SESSION" to exit.
   }, [company, scenarios, processScenario, addChatMessage]);
+
+  // Handler for user to manually finish and exit
+  const handleFinishSession = useCallback(() => {
+    if (onComplete) {
+      onComplete(campaigns);
+    }
+  }, [onComplete, campaigns]);
 
   const handleStart = useCallback(() => {
     setIsRunning(true);
@@ -593,6 +601,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
 
   const handleReset = () => {
     setIsRunning(false);
+    setIsComplete(false);
     workflowRef.current.forEach(t => clearTimeout(t));
     typingRef.current.forEach(t => clearInterval(t));
     setWorkItems([]);
@@ -878,21 +887,28 @@ THE FERAL CREATIVE COLLECTIVE
       {/* Control Bar */}
       <div className="controls-bar">
         <div className="controls-left">
-          {onBack && (
+          {onBack && !isComplete && (
             <button className="control-btn back-btn" onClick={onBack}>
               <ArrowLeft size={16} weight="bold" />
               <span>Back</span>
             </button>
           )}
-          {!isRunning ? (
+          {!isRunning && !isComplete && (
             <button className="control-btn start-btn" onClick={handleStart}>
               <Play size={16} weight="bold" />
               <span>START CAMPAIGNS</span>
             </button>
-          ) : (
+          )}
+          {isRunning && (
             <button className="control-btn pause-btn" onClick={handleReset}>
               <Stop size={16} weight="bold" />
               <span>STOP</span>
+            </button>
+          )}
+          {isComplete && (
+            <button className="control-btn finish-btn" onClick={handleFinishSession}>
+              <Check size={16} weight="bold" />
+              <span>FINISH SESSION</span>
             </button>
           )}
           <button className="control-btn reset-btn" onClick={handleReset}>
