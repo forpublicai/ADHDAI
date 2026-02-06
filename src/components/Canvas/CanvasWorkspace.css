@@ -87,6 +87,17 @@
   50% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.5); }
 }
 
+.skip-btn {
+  background: #1a3a5a;
+  border-color: #2a6aaa;
+  color: #8cf;
+}
+
+.skip-btn:hover:not(:disabled) {
+  background: #2a4a6a;
+  box-shadow: 0 2px 12px rgba(42, 106, 170, 0.3);
+}
+
 .pause-btn {
   background: #4a3a1a;
   border-color: #7a6a2a;
@@ -305,10 +316,9 @@
 
 .task-title {
   flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: #ddd;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .kanban-task.done .task-title {

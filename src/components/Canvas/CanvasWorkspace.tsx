@@ -2106,7 +2106,7 @@ THE FERAL CREATIVE COLLECTIVE
                     backgroundColor: char.color,
                   }}
                 >
-                  {getCharacterIcon(char.icon, 12)} {char.name.split(' ')[0]}
+                  {getCharacterIcon(char.icon, 12)} {char.name}
                 </span>
               </div>
             );
@@ -2216,7 +2216,7 @@ THE FERAL CREATIVE COLLECTIVE
               <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
                 <div className="chat-sender">
                   <span className="chat-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
-                  <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
+                  <span className="chat-name" style={{ color: char.color }}>{char.name}</span>
                 </div>
                 <div className="chat-content">{msg.content}</div>
               </div>

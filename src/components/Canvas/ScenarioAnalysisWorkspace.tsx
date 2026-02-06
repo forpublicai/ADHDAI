@@ -13,6 +13,7 @@ import {
   ArrowCounterClockwise,
   ArrowLeft,
   ArrowRight,
+  FastForward,
   Check,
   Timer,
   Lightning,
@@ -174,9 +175,16 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 });
   
   const typingRef = useRef<NodeJS.Timeout[]>([]);
+  const skipRef = useRef(false);
   const workItemIdRef = useRef(0);
   const chatIdRef = useRef(0);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
+
+  // Delay helper that can be skipped
+  const delayOrSkip = useCallback((ms: number) => {
+    if (skipRef.current) return Promise.resolve();
+    return new Promise<void>(r => setTimeout(r, ms));
+  }, []);
 
   // Helper to get character info
   const getCharacterInfo = useCallback((agentId: CharacterId) => {
@@ -543,7 +551,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     addChatMessage('apparatus', `INITIATING DOOMSDAY SCENARIO ANALYSIS FOR ${company.name.toUpperCase()}—`);
     addChatMessage('mike', `*opens dossier* ${company.name}. ${company.industry}. Let's see what catastrophes are lurking in their future.`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     // Phase 1: Company Analysis
     setCurrentPhase(1);
@@ -553,7 +561,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     updateTaskStatus('task-1', 'in-progress');
     addChatMessage('mike', `${company.name}. ${company.sector} sector. Known risk areas: ${company.riskProfile.slice(0, 3).join(', ')}. This should be... interesting.`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     createWorkItem('mike', 'analysis',
       `COMPANY PROFILE:\n${company.name}\n\nIndustry: ${company.industry}\nSector: ${company.sector}\n\nRisk Areas:\n${company.riskProfile.map(r => `• ${r}`).join('\n')}`,
@@ -562,14 +570,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     updateTaskStatus('task-1', 'done');
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     // Phase 1b: Risk Categories
     moveAgentTo('poole', { x: 820, y: 140 }, 'thinking', 'Mapping risk categories...');
     updateTaskStatus('task-2', 'in-progress');
     addChatMessage('poole', `The Doomsday Matrix™ identifies key vectors: ${company.riskProfile.slice(0, 4).join(', ')}. Each one a potential apocalypse.`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     createWorkItem('poole', 'category',
       `RISK CATEGORIES:\n\n${company.riskProfile.map(r => `⚠️ ${r.toUpperCase()}`).join('\n')}`,
@@ -578,7 +586,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     updateTaskStatus('task-2', 'done');
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     // Phase 2: Near-term analysis (1-year, 5-year)
     setCurrentPhase(2);
@@ -589,7 +597,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     updateTaskStatus('task-3', 'in-progress');
     addChatMessage('the-cell', `[VERA]: What could go wrong in the next 12 months? [GJON]: Everything. [THURSDAY]: *researching intensifies*`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     const oneYearScenarios = await generateScenariosWithAI('1-year', 'the-cell');
     allScenarios.push(...oneYearScenarios);
@@ -601,7 +609,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         2, true, '1-year', scenario
       );
       addChatMessage('the-cell', `[THURSDAY]: IDENTIFIED—"${scenario.title}" (${scenario.severity})`);
-      await new Promise(r => setTimeout(r, 1500));
+      await delayOrSkip(1500);
     }
     
     updateTaskStatus('task-3', 'done');
@@ -611,7 +619,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     updateTaskStatus('task-4', 'in-progress');
     addChatMessage('burl', `Looking five years out... the patterns emerge. The cracks become canyons.`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     const fiveYearScenarios = await generateScenariosWithAI('5-year', 'burl');
     allScenarios.push(...fiveYearScenarios);
@@ -623,12 +631,12 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         2, true, '5-year', scenario
       );
       addChatMessage('burl', `PROJECTED—"${scenario.title}"`);
-      await new Promise(r => setTimeout(r, 1500));
+      await delayOrSkip(1500);
     }
     
     updateTaskStatus('task-4', 'done');
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     // Phase 3: Long-term analysis (10-year, 50-year)
     setCurrentPhase(3);
@@ -639,7 +647,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     updateTaskStatus('task-5', 'in-progress');
     addChatMessage('nadya', `⏱ Ten years. Enough time for small problems to become existential threats.`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     const tenYearScenarios = await generateScenariosWithAI('10-year', 'nadya');
     allScenarios.push(...tenYearScenarios);
@@ -651,7 +659,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         3, true, '10-year', scenario
       );
       addChatMessage('nadya', `⏱ SCENARIO: "${scenario.title.slice(0, 50)}..."`);
-      await new Promise(r => setTimeout(r, 1500));
+      await delayOrSkip(1500);
     }
     
     updateTaskStatus('task-5', 'done');
@@ -661,7 +669,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     updateTaskStatus('task-6', 'in-progress');
     addChatMessage('delmore', `*stares into the abyss* Fifty years. What legacy will ${company.name} leave? Let's find out.`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     const fiftyYearScenarios = await generateScenariosWithAI('50-year', 'delmore');
     allScenarios.push(...fiftyYearScenarios);
@@ -673,12 +681,12 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         3, true, '50-year', scenario
       );
       addChatMessage('delmore', `*transcribing* "${scenario.title.slice(0, 40)}..."`);
-      await new Promise(r => setTimeout(r, 1500));
+      await delayOrSkip(1500);
     }
     
     updateTaskStatus('task-6', 'done');
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     // Phase 4: Compilation
     setCurrentPhase(4);
@@ -688,7 +696,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     updateTaskStatus('task-7', 'in-progress');
     addChatMessage('apparatus', `COMPILING ${allScenarios.length} DOOMSDAY SCENARIOS—`);
     
-    await new Promise(r => setTimeout(r, 2000));
+    await delayOrSkip(2000);
     
     setScenarios(allScenarios);
     
@@ -751,9 +759,15 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     setTimeout(() => runWorkflow(), 500);
   }, [generateTasks, runWorkflow]);
 
+  const handleSkipToEnd = useCallback(() => {
+    skipRef.current = true;
+    addChatMessage('apparatus', 'FAST FORWARD ENGAGED — Completing analysis at accelerated pace.');
+  }, [addChatMessage]);
+
   const handleReset = () => {
     setIsRunning(false);
     setIsAnalysisComplete(false);
+    skipRef.current = false;
     typingRef.current.forEach(t => clearInterval(t));
     setWorkItems([]);
     setChatMessages([]);
@@ -803,10 +817,16 @@ Be creative, specific, and think like an investigative journalist uncovering wha
             </button>
           )}
           {isRunning && (
-            <button className="control-btn pause-btn" onClick={handleReset}>
-              <Stop size={16} weight="bold" />
-              <span>STOP</span>
-            </button>
+            <>
+              <button className="control-btn skip-btn" onClick={handleSkipToEnd}>
+                <FastForward size={16} weight="bold" />
+                <span>SKIP TO END</span>
+              </button>
+              <button className="control-btn pause-btn" onClick={handleReset}>
+                <Stop size={16} weight="bold" />
+                <span>STOP</span>
+              </button>
+            </>
           )}
           {isAnalysisComplete && (
             <button className="control-btn continue-btn" onClick={handleContinueToScenarios}>
@@ -957,7 +977,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
                       backgroundColor: char.color,
                     }}
                   >
-                    {getCharacterIcon(char.icon, 12)} {char.name.split(' ')[0]}
+                    {getCharacterIcon(char.icon, 12)} {char.name}
                   </span>
                 </div>
               );
@@ -1058,7 +1078,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
                 <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
                   <div className="chat-sender">
                     <span className="chat-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
-                    <span className="chat-name" style={{ color: char.color }}>{char.name.split(' ')[0]}</span>
+                    <span className="chat-name" style={{ color: char.color }}>{char.name}</span>
                   </div>
                   <div className="chat-content">{msg.content}</div>
                 </div>
