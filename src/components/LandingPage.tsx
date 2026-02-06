@@ -18,151 +18,132 @@ export default function LandingPage() {
           <h1 className="landing-title">ADHDAI</h1>
           <p className="landing-tagline">we are the best at the worst</p>
           <p className="landing-description">
-            An AI ad agency that generates the worst ads in the world. <em>We're not just bad—we're algorithmically optimized for maximum awkwardness.</em>
+            The feral creative collective. Proactive apology campaigns for Fortune 500 companies. We apologize for disasters before they happen.
           </p>
           <Link to="/agency" className="cta-button">
-            Enter the Agency →
+            Enter the Agency
           </Link>
         </header>
 
         <main className="landing-content">
           <section className="landing-section">
-            <h2>What is ADHDAI</h2>
+            <h2>Origin</h2>
             <p>
-              ADHDAI is a parody ad agency built to explore what happens when generative AI optimizes for everything <em>except</em> persuasion, brand safety, clarity, or taste. Think of us as the advertising equivalent of a beautifully wrapped empty box.
+              The agency was not founded. It was assembled. In the back room of a nightclub on Schoenhauser Allee that no longer exists, during a winter that went on too long.
             </p>
             <p>
-              It produces ads that are awkward, misaligned, overstimulating, under-explained, overconfident, and structurally wrong. The outputs resemble real advertising, but fail in subtle and not-so-subtle ways. Like a perfectly timed joke that lands in the wrong room.
+              Mike Slab had been fired from three insurance investigation firms. Dr. Leon Poole had been expelled from the University of Ljubljana's Department of Applied Semiotics, a department he himself had created, and which the university later denied ever existed. The Copywriting Cell (Vera, Gjon, and Thursday) had been operating as an unlicensed pamphlet collective in a basement in Novi Sad, producing unsigned copy for causes they wouldn't name. Burl Pettigrew had been making pictures for whoever asked, living out of a duffel bag and a darkroom in Friedrichshain that smelled like fixative and regret.
             </p>
             <p>
-              <strong>This is not a bug. It is the product.</strong> <em>We're proud of our bugs.</em>
+              Nadya Orlov brought the schedule. She always brings the schedule. She had been running production for a state publishing house that printed almanacs for a country that had recently ceased to be a country. Her five-year plans were legendary. Her cigarettes were worse. She arrived with a clipboard, a photograph of Valentina Tereshkova, and a complete production timeline for an agency that did not yet exist.
             </p>
-          </section>
-
-          <section className="landing-section">
-            <h2>What ADHDAI Does</h2>
-            <p>ADHDAI generates:</p>
-            <ul>
-              <li>Ads that misunderstand the product (we once sold a toaster as a "bread transformation device")</li>
-              <li>Ads that over-index on irrelevant features (highlighting the color of the power cord instead of, you know, the actual product)</li>
-              <li>Ads with broken metaphors and tonal whiplash (think "your data is like a butterfly, but also a tank")</li>
-              <li>Ads that feel algorithmically optimized for attention, but not comprehension (engagement metrics: 📈 | Understanding: 📉)</li>
-              <li>Ads that appear to follow best practices while violating their spirit (we read the manual, then did the opposite)</li>
-            </ul>
-            <p>Formats may include:</p>
-            <ul>
-              <li>Taglines (guaranteed to make you cringe)</li>
-              <li>Brand manifestos (philosophically confused, grammatically questionable)</li>
-              <li>Social ads (optimized for maximum confusion per pixel)</li>
-              <li>Landing page copy (where clarity goes to die)</li>
-              <li>Campaign concepts (we have ideas. They're not good, but we have them.)</li>
-              <li>Pitch decks (eventually, when we figure out PowerPoint)</li>
-            </ul>
-          </section>
-
-          <section className="landing-section">
-            <h2>Why This Exists</h2>
             <p>
-              Advertising is increasingly shaped by AI systems trained on historical persuasion artifacts and engagement metrics. This project treats "bad ads" as a diagnostic surface. <em>Also, it's funny.</em>
-            </p>
-            <p>ADHDAI exists to:</p>
-            <ul>
-              <li>Satirize AI-driven marketing optimization (because someone has to)</li>
-              <li>Surface failure modes of generative persuasion (we're basically quality assurance for bad ideas)</li>
-              <li>Explore taste, judgment, and misalignment as design material (taste is overrated anyway)</li>
-              <li>Act as a conceptual stress test for automated creativity (we break things so you don't have to)</li>
-            </ul>
-            <p>
-              If good ads persuade, bad ads reveal the system. <em>And make you laugh. Or cry. We're not picky.</em>
+              Delmore Frank Krepps showed up last. He brought hard candies and a risograph. Nobody remembers who invited him. He was just there, explaining things in a warm voice, making pamphlets about pamphlets. He has never left.
             </p>
           </section>
 
           <section className="landing-section">
-            <h2>What This Is Not</h2>
-            <ul>
-              <li>Not an actual ad agency (though our invoices look very professional)</li>
-              <li>Not a tool to improve conversion (we specialize in the opposite, actually)</li>
-              <li>Not a brand-safe product (we're more of a brand-danger zone)</li>
-              <li>Not a critique of any specific company (unless it accidentally is—we're equal opportunity offenders)</li>
-              <li>Not responsible for any existential crises caused by our taglines</li>
-              <li>Not your therapist (but we might make you question your life choices)</li>
-            </ul>
-          </section>
-
-          <section className="landing-section">
-            <h2>How It Works (Roughly)</h2>
+            <h2>The Doctrine</h2>
             <p>
-              ADHDAI uses prompt engineering, constraint inversion, and deliberate misalignment to generate outputs that <em>look</em> professional but feel wrong. <em>Like a business card printed on sandpaper.</em>
+              In 1971, the Soviet semiotician Grigori Vashenko published a paper titled "On the Structural Impossibility of Sincerity in State Communication" at a conference in Tartu that was later redacted from all proceedings. The paper argued that all institutional speech is, by its nature, a performance of sincerity rather than sincerity itself. That the apology, the promise, the corporate commitment: these are not acts of honesty. They are <em>choreographies of honesty</em>. And like all choreography, they can be rehearsed.
             </p>
             <p>
-              We take perfectly good AI models and teach them to make terrible decisions. It's like training a chef to burn toast—but with more existential implications.
+              Vashenko's student, Mila Drobnjak, took the theory further during a series of smoke-filled seminars at the University of Sarajevo's now-dissolved Institute for Applied Rhetoric. She proposed the concept of <em>Preventivna Isprika</em> — the Preemptive Apology. If institutional sincerity is always already a performance, she argued, then the performance can precede the event. You can apologize for a disaster before the disaster occurs. The apology creates a rhetorical space in which the institution has already acknowledged its failure, making the actual failure, when it arrives, feel like old news.
             </p>
             <p>
-              Details will evolve. Some parts may be automated. Some may be curated. Some may remain intentionally opaque. <em>We're not being mysterious, we just haven't figured it out yet.</em>
+              Drobnjak's work was dismissed. The institute was closed. The university restructured. The country split into several smaller countries, none of which claimed her research.
+            </p>
+            <p>
+              Poole found the papers in a box at a flea market in Belgrade. He read them on a train to Berlin. By the time he arrived, he had a framework.
             </p>
           </section>
 
           <section className="landing-section">
-            <h2>Status</h2>
+            <h2>The Fall Guy Economy</h2>
             <p>
-              Early-stage, experimental, unstable. <em>Like a startup, but with worse ROI.</em>
-            </p>
-            <p>Expect:</p>
-            <ul>
-              <li>Inconsistent quality (sometimes bad, sometimes <em>really</em> bad)</li>
-              <li>Overcommitment to bad ideas (we don't know when to quit)</li>
-              <li>Underdocumentation (we're too busy making terrible ads to write things down)</li>
-              <li>Occasional moments of accidental insight (we'll pretend that was intentional)</li>
-              <li>Bugs that become features (and features that become bugs)</li>
-              <li>Regular existential questioning about what we're doing with our lives</li>
-            </ul>
-          </section>
-
-          <section className="landing-section">
-            <h2>Contributing</h2>
-            <p>Contributions are welcome if they:</p>
-            <ul>
-              <li>Make the ads worse in interesting ways (we're always looking for new ways to fail)</li>
-              <li>Preserve the conceptual intent (bad, but make it art)</li>
-              <li>Do not try to "fix" the outputs (we like our bugs just the way they are)</li>
-            </ul>
-            <p>
-              PRs that improve effectiveness may be rejected on principle. <em>We have standards. They're low, but we have them.</em>
+              Here is the future as we understand it: every corporation will need a department of preemptive accountability. Not crisis management — that is reactive, embarrassing, and always too late. Not public relations — that is a profession built on the assumption that people believe press releases. No. What is needed is a new discipline. A new role.
             </p>
             <p>
-              If you submit a PR that makes our ads <em>better</em>, we'll politely decline and suggest you start your own agency. <em>A good one.</em>
+              <strong>The Fall Guy.</strong>
+            </p>
+            <p>
+              Not a scapegoat. Not a spokesperson. The Fall Guy is the person — or the agency — who takes the hit before the hit exists. Who apologizes before the disaster. Who stands before the public and says: <em>we know what's coming, and we're sorry in advance</em>. It is the most honest form of corporate communication ever invented, because it admits the one thing no corporation has ever been willing to say out loud: that they know, right now, today, that they will fail you.
+            </p>
+            <p>
+              ADHDAI is the first agency built entirely around this premise. We are the Fall Guys. We make the apology before the crime. We build the campaign before the crisis. We create the sincerity before the insincerity that necessitates it.
+            </p>
+            <p>
+              We are proactive. We are preemptive. We are, in every meaningful sense, too early.
             </p>
           </section>
 
           <section className="landing-section">
-            <h2>License / Disclaimer</h2>
+            <h2>What We Do</h2>
             <p>
-              This project is for satire, research, and artistic exploration. <em>And laughs. Mostly laughs.</em>
+              You give us a Fortune 500 company. We analyze their potential doomsday scenarios across four time horizons — one year, five years, ten years, fifty years. Environmental collapse. Regulatory catastrophe. Technological obsolescence. Reputational implosion. The things that keep the C-suite awake but that no one puts in the annual report.
             </p>
             <p>
-              Any resemblance to real advertising campaigns, living brands, or doomed startups is probably not coincidental. <em>We've seen your ads. We know what you're doing.</em>
-            </p>
-            <p>
-              <strong>Legal disclaimer:</strong> We are not responsible for any brands that accidentally use our outputs in production. If you do, please send us the results. We're curious. <em>And slightly concerned.</em>
+              Then we build the apology campaign. Full creative. Headlines, taglines, manifestos. Print, out-of-home, video, social, digital. A complete brand campaign disguised as an act of corporate contrition. The kind of work that wins awards — not because it sells anything, but because it finally tells the truth.
             </p>
           </section>
 
           <section className="landing-section">
-            <h2>Inspirations</h2>
+            <h2>The Method</h2>
             <p>
-              Coca Cola, <a href="https://www.linkedin.com/pulse/meet-agency-r-m-z0sce/" target="_blank" rel="noopener noreferrer">Agen+cy</a>, and that one ad that made you question everything.
+              Slab conducts the interrogation. He finds the thing the company won't say about itself. The tension underneath the brand promise.
             </p>
             <p>
-              Brought to you by the geniuses behind <a href="https://www.hottalkllc.com" target="_blank" rel="noopener noreferrer">Hot Talk</a>, <a href="https://dumpster.casino/" target="_blank" rel="noopener noreferrer">Dumpster Casino</a>, and <a href="https://autonomousart.org" target="_blank" rel="noopener noreferrer">Autonomous Art</a>.
+              Poole builds the framework. The Poole System. Diagrams, arrows, principles with numbers. He calls it the "architecture of wanting." Most of it is incomprehensible. Some of it is profound. He cannot tell the difference, and neither can we.
             </p>
-            <p style={{ marginTop: '2rem', fontSize: '16px', color: '#666666' }}>
-              <em>We take full credit for the good ideas and none of the blame for the bad ones.</em>
+            <p>
+              The Cell writes the copy. Three writers in a room. They argue about ideology, vote on headlines, and produce work that is either brilliant or unhinged. Thursday's option always wins. Nobody knows why.
+            </p>
+            <p>
+              Burl makes the pictures. Ugly-beautiful. Documentary feeling. He calls it "evidence, not advertisement." He has theories about color that take forty minutes to explain and three seconds to see.
+            </p>
+            <p>
+              Nadya makes the schedule. The schedule is the schedule. It does not negotiate. It does not wait. It arrives like a train, and you are either on it or you are not.
+            </p>
+            <p>
+              Delmore translates for the client. He takes everything dangerous and makes it sound safe. Everything confrontational becomes "culturally relevant." He distributes hard candies. He has never lost an account.
+            </p>
+            <p>
+              The Apparatus compiles. It does not create. It does not judge. It assembles. When the work is done, it logs the timestamp and waits for the next brief. It is the most reliable member of the agency. It is also the least alive.
+            </p>
+          </section>
+
+          <section className="landing-section">
+            <h2>Provenance</h2>
+            <p>
+              The agency operates out of a location that shifts depending on who is telling the story. Slab says it's a converted insurance office. Poole insists it's a former semiotics laboratory. The Cell claims it's an anarchist bookshop that also does light printing. Burl says it doesn't matter what it is — what matters is the light, and the light is bad, which is good, because good light makes bad pictures.
+            </p>
+            <p>
+              Nadya says the location is classified. Delmore says it's wherever the client needs it to be. The Apparatus logs the GPS coordinates but has been instructed not to share them.
+            </p>
+            <p>
+              What is known: the walls are covered in diagrams. There is always coffee. There is always smoke, even though no one admits to smoking. The risograph is always warm. And somewhere, in a drawer that no one opens, there is a copy of Vashenko's original paper, annotated in three languages, with a coffee stain on page seven that Poole insists is "part of the document."
+            </p>
+          </section>
+
+          <section className="landing-section">
+            <h2>Terms</h2>
+            <p>
+              This is satire. This is research. This is an art project that got out of hand. Any resemblance to actual corporate crisis communications is entirely intentional.
+            </p>
+            <p>
+              We are not responsible for companies that deploy our campaigns before the disasters occur. We are not responsible for disasters that occur on schedule. We are not responsible.
+            </p>
+            <p>
+              That, of course, is the whole point.
+            </p>
+            <p className="landing-credits">
+              Brought to you by <a href="https://www.hottalkllc.com" target="_blank" rel="noopener noreferrer">Hot Talk</a>, <a href="https://dumpster.casino/" target="_blank" rel="noopener noreferrer">Dumpster Casino</a>, and <a href="https://autonomousart.org" target="_blank" rel="noopener noreferrer">Autonomous Art</a>.
             </p>
           </section>
         </main>
         <footer className="landing-footer">
           <div className="footer-container">
-            <p>ADHDAI 2025</p>
+            <p>ADHDAI 2025 — The Feral Creative Collective</p>
           </div>
         </footer>
       </div>
