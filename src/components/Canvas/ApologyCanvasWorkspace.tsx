@@ -952,32 +952,32 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
 ${'='.repeat(50)}
 
 Company: ${company.name}
-Scenario: ${campaign.scenarioTitle}
+Scenario: ${campaign.scenarioTitle || 'Doomsday Scenario'}
 Generated: ${new Date(campaign.generatedAt || Date.now()).toLocaleString()}
 
 HEADLINE
 --------
-"${campaign.headline}"
+"${campaign.headline || 'We Owe You An Apology'}"
 
 TAGLINE
 -------
-${campaign.subheadline}
+${campaign.subheadline || 'A proactive statement of accountability'}
 
 MANIFESTO
 ---------
-${campaign.apologyStatement}
+${campaign.apologyStatement || 'We see what is coming. And we believe you deserve to know before it arrives.'}
 
 KEY CREATIVE ANGLES
 -------------------
-${campaign.keyMessages?.map((m, j) => `${j + 1}. ${m}`).join('\n') || 'N/A'}
+${campaign.keyMessages?.filter(Boolean).map((m, j) => `${j + 1}. ${m}`).join('\n') || '1. Pre-emptive accountability builds trust\n2. Honesty before the headline breaks'}
 
-TONE: ${campaign.tone}
+TONE: ${campaign.tone || 'Sincere corporate confession with controlled vulnerability'}
 
 VISUAL DIRECTION
 ----------------
-Concept: ${campaign.visualConcept}
-Colors: ${campaign.colorPalette?.join(', ') || 'N/A'}
-Typography: ${campaign.typography}
+Concept: ${campaign.visualConcept || 'Brand aesthetic subverted for confession'}
+Colors: ${campaign.colorPalette?.join(', ') || '#1a1a2e, #16213e, #0f3460, #e94560, #f5f5f5'}
+Typography: ${campaign.typography || 'Corporate typeface at heavier weights'}
 `);
         
         // Video script

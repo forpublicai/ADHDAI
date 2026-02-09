@@ -90,6 +90,12 @@ export async function generateApologyCampaign(
 ): Promise<ApologyCampaign> {
   const campaignId = generateId();
   
+  // Always have defaults ready so nothing is ever undefined
+  const defaults = getDefaultCreativeDirection(scenario, company);
+  const defaultPrint = getDefaultPrintAssets(company, defaults);
+  const defaultSocial = getDefaultSocialPosts(company, defaults);
+  const defaultVideo = getDefaultVideoScript(company, defaults);
+  
   const openai = getOpenAIClient();
   
   if (!openai) {
@@ -99,13 +105,63 @@ export async function generateApologyCampaign(
 
   try {
     // Generate core creative concept first
-    const creativeDirection = await generateCreativeDirection(openai, scenario, company);
+    const rawCreative = await generateCreativeDirection(openai, scenario, company);
+    
+    // SAFELY extract fields — never trust the API response shape
+    const creativeDirection: CreativeDirection = {
+      headline: rawCreative.headline || defaults.headline,
+      tagline: rawCreative.tagline || defaults.tagline,
+      manifesto: rawCreative.manifesto || defaults.manifesto,
+      slogans: Array.isArray(rawCreative.slogans) && rawCreative.slogans.length > 0 
+        ? rawCreative.slogans : defaults.slogans,
+      tone: rawCreative.tone || defaults.tone,
+      visualConcept: rawCreative.visualConcept || defaults.visualConcept,
+      colors: Array.isArray(rawCreative.colors) && rawCreative.colors.length > 0 
+        ? rawCreative.colors : defaults.colors,
+      typography: rawCreative.typography || defaults.typography,
+    };
     
     // Generate the insane marketing angle
-    const marketingAngle = await generateMarketingAngle(openai, scenario, company, creativeDirection);
+    const rawAngle = await generateMarketingAngle(openai, scenario, company, creativeDirection);
+    const marketingAngle: MarketingAngle = {
+      bigIdea: rawAngle.bigIdea || `${company.name} owns their future mistakes before anyone else can`,
+      insaneAngle: rawAngle.insaneAngle || `Launch an "Apology Subscription Service" for ${company.name}`,
+      activationConcept: rawAngle.activationConcept || 'Pop-up "Pre-Forgiveness Centers"',
+      productTieIn: rawAngle.productTieIn || 'Limited edition "Pre-Apologized" product line',
+    };
     
     // Generate deliverables with the creative direction
-    const deliverables = await generateDeliverables(openai, scenario, company, creativeDirection, marketingAngle);
+    let deliverables: ApologyDeliverables;
+    try {
+      deliverables = await generateDeliverables(openai, scenario, company, creativeDirection, marketingAngle);
+    } catch {
+      // If deliverables fail, use defaults
+      deliverables = {
+        fullPageAd: defaultPrint.fullPage,
+        poster: defaultPrint.poster,
+        billboard: defaultPrint.billboard,
+        busShelter: defaultPrint.busShelter,
+        bannerAds: defaultPrint.banners,
+        socialPosts: defaultSocial,
+        videoScript: defaultVideo,
+      };
+    }
+    
+    // Ensure deliverables are complete — fill any gaps
+    if (!deliverables.fullPageAd) deliverables.fullPageAd = defaultPrint.fullPage;
+    if (!deliverables.poster) deliverables.poster = defaultPrint.poster;
+    if (!deliverables.billboard) deliverables.billboard = defaultPrint.billboard;
+    if (!deliverables.busShelter) deliverables.busShelter = defaultPrint.busShelter;
+    if (!deliverables.socialPosts || deliverables.socialPosts.length === 0) deliverables.socialPosts = defaultSocial;
+    if (!deliverables.videoScript) deliverables.videoScript = defaultVideo;
+    if (!deliverables.bannerAds || deliverables.bannerAds.length === 0) deliverables.bannerAds = defaultPrint.banners;
+
+    // Build safe key messages
+    const keyMessages: string[] = [
+      marketingAngle.bigIdea,
+      marketingAngle.insaneAngle,
+      ...(creativeDirection.slogans || []).slice(0, 2)
+    ].filter(Boolean);
 
     return {
       id: campaignId,
@@ -116,11 +172,7 @@ export async function generateApologyCampaign(
       headline: creativeDirection.headline,
       subheadline: creativeDirection.tagline,
       apologyStatement: creativeDirection.manifesto,
-      keyMessages: [
-        marketingAngle.bigIdea,
-        marketingAngle.insaneAngle,
-        ...creativeDirection.slogans.slice(0, 2)
-      ],
+      keyMessages: keyMessages.length > 0 ? keyMessages : defaults.slogans,
       tone: creativeDirection.tone,
       visualConcept: creativeDirection.visualConcept,
       colorPalette: creativeDirection.colors,
@@ -130,15 +182,8 @@ export async function generateApologyCampaign(
     };
   } catch (error) {
     console.error('Error generating apology campaign:', error);
-    return {
-      id: campaignId,
-      scenarioId: scenario.id,
-      companyName: company.name,
-      scenarioTitle: scenario.title,
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      generatedAt: Date.now()
-    };
+    // Even on error, return a USABLE campaign with fallback content
+    return generateFallbackCampaign(campaignId, scenario, company);
   }
 }
 
@@ -385,10 +430,31 @@ Return JSON:
     max_tokens: 2000
   });
 
+  const defaults = getDefaultPrintAssets(company, creative);
   try {
-    return JSON.parse(completion.choices[0]?.message?.content || '{}') as PrintAssets;
+    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    // Safely extract with fallbacks for every field
+    const safeAsset = (raw: Record<string, unknown> | undefined, fallback: ApologyAsset): ApologyAsset => {
+      if (!raw || typeof raw !== 'object') return fallback;
+      return {
+        format: (raw.format as string) || fallback.format,
+        dimensions: (raw.dimensions as string) || fallback.dimensions,
+        headline: (raw.headline as string) || fallback.headline,
+        body: (raw.body as string) || fallback.body,
+        visual: (raw.visual as string) || fallback.visual,
+      };
+    };
+    return {
+      fullPage: safeAsset(parsed.fullPage, defaults.fullPage),
+      poster: safeAsset(parsed.poster, defaults.poster),
+      billboard: safeAsset(parsed.billboard, defaults.billboard),
+      busShelter: safeAsset(parsed.busShelter, defaults.busShelter),
+      banners: Array.isArray(parsed.banners) 
+        ? parsed.banners.map((b: Record<string, unknown>, i: number) => safeAsset(b, defaults.banners[i] || defaults.banners[0]))
+        : defaults.banners,
+    };
   } catch {
-    return getDefaultPrintAssets(company, creative);
+    return defaults;
   }
 }
 
@@ -438,11 +504,21 @@ Return JSON array:
     max_tokens: 2000
   });
 
+  const defaults = getDefaultSocialPosts(company, creative);
   try {
     const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
-    return (parsed.posts || parsed) as ApologySocialPost[];
+    const rawPosts = Array.isArray(parsed) ? parsed : (parsed.posts || parsed.socialPosts || []);
+    if (!Array.isArray(rawPosts) || rawPosts.length === 0) return defaults;
+    
+    return rawPosts.map((p: Record<string, unknown>, i: number) => ({
+      platform: (p.platform as string) || defaults[i % defaults.length]?.platform || 'Twitter/X',
+      type: (p.type as string) || 'Post',
+      copy: (p.copy as string) || defaults[i % defaults.length]?.copy || creative.tagline,
+      visual: (p.visual as string) || 'Campaign visual',
+      hashtags: Array.isArray(p.hashtags) ? p.hashtags as string[] : [],
+    }));
   } catch {
-    return getDefaultSocialPosts(company, creative);
+    return defaults;
   }
 }
 
@@ -497,29 +573,86 @@ Return JSON:
     max_tokens: 2000
   });
 
+  const defaults = getDefaultVideoScript(company, creative);
   try {
-    return JSON.parse(completion.choices[0]?.message?.content || '{}');
+    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    return {
+      title: (parsed.title as string) || defaults.title,
+      duration: (parsed.duration as string) || defaults.duration,
+      format: (parsed.format as string) || defaults.format,
+      script: Array.isArray(parsed.script) && parsed.script.length > 0
+        ? parsed.script.map((s: Record<string, unknown>) => ({
+            shot: (s.shot as string) || '1',
+            duration: (s.duration as string) || '5s',
+            visual: (s.visual as string) || 'Wide shot',
+            audio: (s.audio as string) || '(ambient)',
+            onScreenText: (s.onScreenText as string) || undefined,
+          }))
+        : defaults.script,
+      notes: (parsed.notes as string) || defaults.notes,
+    };
   } catch {
-    return getDefaultVideoScript(company, creative);
+    return defaults;
   }
 }
 
 // Default fallback generators
-function getDefaultCreativeDirection(_scenario: DoomsdayScenario, company: Fortune500Company): CreativeDirection {
+function getDefaultCreativeDirection(scenario: DoomsdayScenario, company: Fortune500Company): CreativeDirection {
+  // Build scenario-specific defaults that actually read like a real campaign
+  const categoryAngles: Record<string, { headline: string; tagline: string }> = {
+    environmental: { 
+      headline: `${company.name}: We Knew What We Were Doing to the Planet`,
+      tagline: 'The earth remembers. So should we.'
+    },
+    social: {
+      headline: `${company.name}: The People We Failed to Protect`,
+      tagline: 'People first. We should have said that sooner.'
+    },
+    financial: {
+      headline: `${company.name}: The Bill Is Coming Due`,
+      tagline: 'Trust is not a line item. We forgot that.'
+    },
+    technological: {
+      headline: `${company.name}: We Built the Future. Then We Broke It.`,
+      tagline: 'Innovation without accountability is just disruption.'
+    },
+    regulatory: {
+      headline: `${company.name}: The Rules Existed for a Reason`,
+      tagline: 'Compliance is not a suggestion. We learned that.'
+    },
+    reputational: {
+      headline: `${company.name}: We Owe You More Than a Press Release`,
+      tagline: 'Reputation is earned. Apologies should be too.'
+    },
+    operational: {
+      headline: `${company.name}: When the System Fails, We All Pay`,
+      tagline: 'Operational excellence means nothing without operational honesty.'
+    },
+    geopolitical: {
+      headline: `${company.name}: Borders Don't Stop Consequences`,
+      tagline: 'Global reach. Global responsibility. Global apology.'
+    },
+  };
+  
+  const angle = categoryAngles[scenario.category] || {
+    headline: `${company.name}: We See What's Coming. And We're Sorry.`,
+    tagline: 'Pre-emptive honesty from a company that owes you the truth.'
+  };
+
   return {
-    headline: `The Future ${company.name} Owes You An Apology For`,
-    tagline: 'We\'re sorry. We will be. We already are.',
-    manifesto: `${company.name} has built its reputation on [brand promise]. Soon, we will fail that promise in ways that matter. This is us, acknowledging that future. This is us, apologizing in advance. Because you deserve to know what we already know—that we're not as good as we claim to be.`,
+    headline: angle.headline,
+    tagline: angle.tagline,
+    manifesto: `At ${company.name}, we've spent years telling you we're building a better future. Today, we're telling you the truth: we see "${scenario.title}" on the horizon, and we owe you an apology before it arrives. Not because our lawyers told us to. Not because our PR team ran the numbers. Because accountability shouldn't start with a crisis—it should start with honesty. This is ${company.name}, apologizing in advance. Because you deserve to know what we already know.`,
     slogans: [
-      'Pre-emptively accountable since today',
+      `${company.name}: Pre-emptively accountable since today`,
       'The apology you\'ll deserve, delivered early',
-      'Honesty. Eventually.',
-      `${company.name}: We know what's coming`
+      `Before the headline breaks, ${company.name} breaks the silence`,
+      'Honesty, eventually. Starting now.'
     ],
-    tone: 'Sincere corporate confession with just enough self-awareness to be unsettling. The brand voice of a company that\'s read too many crisis communications playbooks.',
-    visualConcept: `${company.name}'s brand aesthetic stripped bare. Their usual visual language but with the optimism removed. Same fonts, same colors, but deployed for confession instead of celebration.`,
+    tone: `Sincere corporate confession with controlled vulnerability. ${company.name}'s polished brand voice, but with the mask slipping—just enough to feel real. Not sarcastic, not defensive. The tone of a company that looked in the mirror and decided to speak first.`,
+    visualConcept: `${company.name}'s established brand identity, but subverted for confession. Their signature colors desaturated. Their corporate photography style turned inward—documentary, unglamorous, honest. Think annual report meets investigative journalism. Clean typography carrying heavy words.`,
     colors: ['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#f5f5f5'],
-    typography: 'Their corporate font, but heavier. As if the letters themselves are carrying guilt.'
+    typography: `${company.name}'s corporate typeface at heavier weights than usual. Headline in bold condensed, body in light extended. The typographic equivalent of a deep breath before speaking.`
   };
 }
 
@@ -612,6 +745,7 @@ function generateFallbackCampaign(
   company: Fortune500Company
 ): ApologyCampaign {
   const creative = getDefaultCreativeDirection(scenario, company);
+  const printAssets = getDefaultPrintAssets(company, creative);
   
   return {
     id: campaignId,
@@ -628,9 +762,13 @@ function generateFallbackCampaign(
     colorPalette: creative.colors,
     typography: creative.typography,
     deliverables: {
-      fullPageAd: getDefaultPrintAssets(company, creative).fullPage,
-      billboard: getDefaultPrintAssets(company, creative).billboard,
-      socialPosts: getDefaultSocialPosts(company, creative)
+      fullPageAd: printAssets.fullPage,
+      poster: printAssets.poster,
+      billboard: printAssets.billboard,
+      busShelter: printAssets.busShelter,
+      bannerAds: printAssets.banners,
+      socialPosts: getDefaultSocialPosts(company, creative),
+      videoScript: getDefaultVideoScript(company, creative),
     },
     generatedAt: Date.now()
   };
