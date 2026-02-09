@@ -29,8 +29,8 @@ interface Fortune500SelectorProps {
   disabled?: boolean;
 }
 
-// Memoize initial companies list
-const INITIAL_COMPANIES = FORTUNE_500_COMPANIES.slice(0, 10);
+// Memoize initial companies list - show top 20 when dropdown first opens
+const INITIAL_COMPANIES = FORTUNE_500_COMPANIES.slice(0, 20);
 
 const Fortune500Selector: React.FC<Fortune500SelectorProps> = ({
   onSelect,

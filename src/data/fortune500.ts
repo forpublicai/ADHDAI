@@ -212,12 +212,26 @@ export function searchCompanies(query: string): Fortune500Company[] {
   const normalizedQuery = query.toLowerCase().trim();
   if (!normalizedQuery) return [];
   
-  return FORTUNE_500_COMPANIES.filter(company => {
+  // Score matches for better ordering: name/ticker first, then industry/sector
+  const scored = FORTUNE_500_COMPANIES.map(company => {
     const nameMatch = company.name.toLowerCase().includes(normalizedQuery);
     const tickerMatch = company.ticker?.toLowerCase().includes(normalizedQuery);
+    const nameStartsWith = company.name.toLowerCase().startsWith(normalizedQuery);
     const industryMatch = company.industry.toLowerCase().includes(normalizedQuery);
-    return nameMatch || tickerMatch || industryMatch;
-  }).slice(0, 10); // Limit to 10 results
+    const sectorMatch = company.sector.toLowerCase().includes(normalizedQuery);
+    
+    let score = 0;
+    if (nameStartsWith) score += 100;
+    if (nameMatch) score += 50;
+    if (tickerMatch) score += 40;
+    if (industryMatch) score += 20;
+    if (sectorMatch) score += 10;
+    
+    return { company, score };
+  }).filter(item => item.score > 0);
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map(item => item.company).slice(0, 20);
 }
 
 // Get company by exact name
