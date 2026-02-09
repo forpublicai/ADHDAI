@@ -596,63 +596,53 @@ Return JSON:
   }
 }
 
-// Default fallback generators
+// ============================================
+// SECTOR-SPECIFIC BRAND COLORS
+// ============================================
+function getSectorColors(sector: string): string[] {
+  const palettes: Record<string, string[]> = {
+    'Technology':       ['#0f0f0f', '#1a1a2e', '#4361ee', '#f72585', '#f8f9fa'],
+    'Financial':        ['#0c1821', '#1b3a4b', '#c9a227', '#d4380d', '#f5f0e8'],
+    'Healthcare':       ['#0d1b2a', '#1b4965', '#0d9488', '#e63946', '#f1faee'],
+    'Energy':           ['#1a1a1a', '#2d3436', '#00b894', '#fdcb6e', '#f5f5f5'],
+    'Consumer Goods':   ['#2d1b4e', '#1a1a2e', '#e17055', '#00cec9', '#ffeaa7'],
+    'Automotive':       ['#0f0f0f', '#2c3e50', '#e74c3c', '#3498db', '#ecf0f1'],
+    'Industrials':      ['#1a1a1a', '#34495e', '#e67e22', '#2ecc71', '#ecf0f1'],
+    'Telecommunications': ['#0a0a23', '#1a1a40', '#e040fb', '#00e5ff', '#f5f5f5'],
+    'Materials':        ['#212121', '#37474f', '#ff6f00', '#4caf50', '#efebe9'],
+    'Media':            ['#0f0f0f', '#1a1a2e', '#ff0050', '#00f5d4', '#f8f8f8'],
+    'Consumer Services': ['#1a0a2e', '#16213e', '#f77f00', '#06d6a0', '#edf2f4'],
+    'Transportation':   ['#0d1b2a', '#1b3a4b', '#0077b6', '#ef476f', '#edf2f4'],
+    'Real Estate':      ['#1a1a2e', '#2d3436', '#6c5ce7', '#fd79a8', '#f5f5f5'],
+  };
+  return palettes[sector] || ['#0f0f0f', '#1a1a2e', '#e94560', '#4361ee', '#f5f5f5'];
+}
+
+// ============================================
+// DEFAULT FALLBACK GENERATORS
+// ============================================
 function getDefaultCreativeDirection(scenario: DoomsdayScenario, company: Fortune500Company): CreativeDirection {
-  // Build scenario-specific defaults that actually read like a real campaign
-  const categoryAngles: Record<string, { headline: string; tagline: string }> = {
-    environmental: { 
-      headline: `${company.name}: We Knew What We Were Doing to the Planet`,
-      tagline: 'The earth remembers. So should we.'
-    },
-    social: {
-      headline: `${company.name}: The People We Failed to Protect`,
-      tagline: 'People first. We should have said that sooner.'
-    },
-    financial: {
-      headline: `${company.name}: The Bill Is Coming Due`,
-      tagline: 'Trust is not a line item. We forgot that.'
-    },
-    technological: {
-      headline: `${company.name}: We Built the Future. Then We Broke It.`,
-      tagline: 'Innovation without accountability is just disruption.'
-    },
-    regulatory: {
-      headline: `${company.name}: The Rules Existed for a Reason`,
-      tagline: 'Compliance is not a suggestion. We learned that.'
-    },
-    reputational: {
-      headline: `${company.name}: We Owe You More Than a Press Release`,
-      tagline: 'Reputation is earned. Apologies should be too.'
-    },
-    operational: {
-      headline: `${company.name}: When the System Fails, We All Pay`,
-      tagline: 'Operational excellence means nothing without operational honesty.'
-    },
-    geopolitical: {
-      headline: `${company.name}: Borders Don't Stop Consequences`,
-      tagline: 'Global reach. Global responsibility. Global apology.'
-    },
-  };
+  // Use the ACTUAL scenario title to generate specific, punchy copy
+  const scenarioShort = scenario.title.length > 60 
+    ? scenario.title.slice(0, 57) + '...' 
+    : scenario.title;
   
-  const angle = categoryAngles[scenario.category] || {
-    headline: `${company.name}: We See What's Coming. And We're Sorry.`,
-    tagline: 'Pre-emptive honesty from a company that owes you the truth.'
-  };
+  const colors = getSectorColors(company.sector);
 
   return {
-    headline: angle.headline,
-    tagline: angle.tagline,
-    manifesto: `At ${company.name}, we've spent years telling you we're building a better future. Today, we're telling you the truth: we see "${scenario.title}" on the horizon, and we owe you an apology before it arrives. Not because our lawyers told us to. Not because our PR team ran the numbers. Because accountability shouldn't start with a crisis—it should start with honesty. This is ${company.name}, apologizing in advance. Because you deserve to know what we already know.`,
+    headline: `We See "${scenarioShort}" Coming. This Is Us, Saying Sorry First.`,
+    tagline: `${company.name}. Accountable before the headline breaks.`,
+    manifesto: `At ${company.name}, we've spent years building trust in ${company.industry.toLowerCase()}. Today, we're risking that trust to tell you the truth: we see "${scenario.title}" as a real possibility. Not a distant fear — a credible threat that our own actions could bring about. We could wait. We could let the PR machine spin up after the fact. Instead, we're choosing to stand here, before the damage is done, and say: we know. We're sorry. And here's what we're doing about it. Because you didn't ask for a corporation that apologizes after the crisis. You asked for one that prevents it.`,
     slogans: [
-      `${company.name}: Pre-emptively accountable since today`,
-      'The apology you\'ll deserve, delivered early',
-      `Before the headline breaks, ${company.name} breaks the silence`,
-      'Honesty, eventually. Starting now.'
+      `${company.name}: Sorry in advance. Serious right now.`,
+      `The crisis hasn't happened. The apology has.`,
+      `Pre-emptive accountability from ${company.name}`,
+      `"${scenarioShort}" — We'd rather you hear it from us.`,
     ],
-    tone: `Sincere corporate confession with controlled vulnerability. ${company.name}'s polished brand voice, but with the mask slipping—just enough to feel real. Not sarcastic, not defensive. The tone of a company that looked in the mirror and decided to speak first.`,
-    visualConcept: `${company.name}'s established brand identity, but subverted for confession. Their signature colors desaturated. Their corporate photography style turned inward—documentary, unglamorous, honest. Think annual report meets investigative journalism. Clean typography carrying heavy words.`,
-    colors: ['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#f5f5f5'],
-    typography: `${company.name}'s corporate typeface at heavier weights than usual. Headline in bold condensed, body in light extended. The typographic equivalent of a deep breath before speaking.`
+    tone: `The voice of a ${company.industry.toLowerCase()} executive who just pulled the fire alarm on their own company. Not performative — genuinely unsettled. ${company.name}'s polished brand voice cracking open with uncomfortable honesty. Think: the 3am email the CEO actually sends, not the one legal approved.`,
+    visualConcept: `${company.name}'s brand identity turned confessional. Their ${company.sector.toLowerCase()} aesthetic — normally used to project confidence — is now deployed for radical transparency. Desaturated ${company.industry.toLowerCase()} imagery. Documentary-style photography. Bold typography that feels like evidence, not advertising. Every visual choice says: "This is real."`,
+    colors,
+    typography: `Heavy condensed sans-serif for headlines (impact, urgency). Light extended for body copy (measured, sincere). The contrast between bold headlines and quiet body text mirrors the contrast between corporate confidence and corporate confession.`,
   };
 }
 
@@ -660,35 +650,51 @@ function getDefaultPrintAssets(company: Fortune500Company, creative: CreativeDir
   return {
     fullPage: {
       format: 'Magazine Full Page',
-      dimensions: '8.5x11',
+      dimensions: '8.5x11"',
       headline: creative.headline,
       body: creative.manifesto,
-      visual: `${company.name} corporate headquarters at dusk. Lights on in the executive floor. A metaphor for "we see it coming."`
+      visual: `Aerial photograph of ${company.name}'s operations — a ${company.industry.toLowerCase()} facility at golden hour, shot like a documentary still. The scale is meant to convey both power and fragility. No people visible. The emptiness is the point.`
     },
     poster: {
       format: 'A1 Poster',
       dimensions: '594x841mm',
-      headline: creative.tagline,
-      body: creative.slogans[0],
-      visual: `A single ${company.industry.toLowerCase()} product/symbol against stark white. Confessional minimalism.`
+      headline: creative.slogans[0] || creative.headline,
+      body: creative.tagline,
+      visual: `Close-up of a ${company.industry.toLowerCase()} object/product — shot like evidence photography. Clinical lighting, white background, the aesthetic of an internal audit made public.`
     },
     billboard: {
       format: 'Billboard',
       dimensions: '14x48ft',
-      headline: creative.tagline.split('.')[0],
-      body: company.name,
-      visual: 'Just the logo. Just the tagline. The audacity of simplicity.'
+      headline: creative.headline,
+      body: creative.tagline,
+      visual: `Split composition: left side is ${company.name}'s signature brand imagery (clean, confident, corporate), right side is the same image desaturated and cracked. The visual metaphor of honesty breaking through the brand facade.`
     },
     busShelter: {
       format: 'Bus Shelter',
       dimensions: '1800x1200mm',
-      headline: creative.headline,
-      body: creative.slogans[1],
-      visual: 'QR code to "Pre-Forgiveness Portal" with minimal brand marks'
+      headline: creative.slogans[1] || creative.headline,
+      body: `${company.name} — ${creative.tagline}`,
+      visual: `Eye-level portrait composition. A single ${company.industry.toLowerCase()} symbol isolated against brand colors, with a thin red line cutting through the center. Below: a QR code labeled "Read our pre-apology."`
     },
     banners: [
-      { format: 'Digital Banner 728x90', headline: creative.tagline, body: 'Accept Our Pre-Apology →', visual: 'Brand colors, minimal animation' },
-      { format: 'Digital Banner 300x250', headline: 'WE\'RE SORRY', body: '(in advance)', visual: 'Pulsing logo' }
+      { 
+        format: 'Digital Leaderboard 728x90', 
+        headline: creative.headline, 
+        body: `Read our pre-apology → ${company.name.toLowerCase().replace(/\s+/g, '')}.com/accountability`, 
+        visual: `Brand colors with subtle distortion effect — the ${company.name} identity, glitching with honesty` 
+      },
+      { 
+        format: 'Digital Medium Rectangle 300x250', 
+        headline: creative.slogans[0] || creative.headline, 
+        body: creative.tagline, 
+        visual: `${company.name} logo on brand background, with manifesto text scrolling behind — the confession as texture` 
+      },
+      {
+        format: 'Digital Skyscraper 160x600',
+        headline: creative.slogans[1] || 'We owe you the truth.',
+        body: `${company.name} Pre-Apology`,
+        visual: `Vertical brand strip — ${company.name} colors top to bottom, with headline breaking through the gradient`
+      }
     ]
   };
 }
@@ -698,23 +704,37 @@ function getDefaultSocialPosts(company: Fortune500Company, creative: CreativeDir
     {
       platform: 'Twitter/X',
       type: 'Thread',
-      copy: `We need to talk about something that hasn't happened yet.\n\nBut it will.\n\n${creative.tagline}\n\n🧵`,
-      visual: 'Text-only tweet. Let the words work.',
-      hashtags: ['PreemptiveAccountability', company.name.replace(/\s+/g, '')]
+      copy: `We need to talk.\n\nNot about something that happened. About something that hasn't happened yet.\n\nBut we know it could. And if it does, it'll be because of decisions we made.\n\nSo here's our apology. In advance.\n\n"${creative.headline}"\n\nRead the full statement ↓`,
+      visual: `Text-first design. ${company.name} brand colors as background. The headline in bold white. No product imagery — just uncomfortable corporate honesty formatted as a tweet.`,
+      hashtags: ['PreemptiveApology', company.name.replace(/\s+/g, ''), 'CorporateAccountability']
     },
     {
       platform: 'Instagram',
       type: 'Carousel',
-      copy: `${creative.headline}\n\n${creative.manifesto}\n\nSwipe for everything we're sorry for in advance.`,
-      visual: '10-slide carousel: Each slide is one future failure, beautifully designed.',
-      hashtags: ['AccountabilityEra', 'CorporateHonesty']
+      copy: `"${creative.headline}"\n\nSwipe to read the full statement.\n\nThis isn't damage control. This is damage prevention.\n\n${creative.tagline}\n\n${company.name} believes you deserve to know what we already know.`,
+      visual: `10-slide carousel: Slide 1 is the headline on brand background. Slides 2-8 break down the manifesto sentence by sentence, each on a different shade of the brand palette. Slide 9 is the tagline. Slide 10 is a call to action with QR code.`,
+      hashtags: ['AccountabilityEra', company.name.replace(/\s+/g, ''), 'PreemptiveApology']
     },
     {
       platform: 'LinkedIn',
-      type: 'CEO Statement',
-      copy: `I've spent 25 years in this industry. I know what's coming.\n\nToday, ${company.name} launches something unprecedented: a preemptive apology for our future failures.\n\nWe owe you that honesty.`,
-      visual: 'CEO headshot but from behind, looking at horizon. Symbolic.',
-      hashtags: ['Leadership', 'Accountability']
+      type: 'CEO Open Letter',
+      copy: `To our stakeholders, our employees, and the communities we serve:\n\nI've led ${company.name} through growth, through challenges, through transformation. But I've never done this before.\n\nToday we're publishing a preemptive apology — an acknowledgment of a future we see coming and a commitment to do better before we have to.\n\n"${creative.headline}"\n\nThis isn't a PR strategy. This is what accountability looks like when you do it early enough to matter.\n\n${creative.tagline}\n\nRead our full statement at the link below.`,
+      visual: `Professional but vulnerable: CEO photographed from behind, looking out floor-to-ceiling windows at the city. Shot in ${company.name}'s actual headquarters aesthetic. The composition says "looking ahead" and "weight of responsibility."`,
+      hashtags: ['Leadership', 'CorporateAccountability', 'TransparencyInBusiness']
+    },
+    {
+      platform: 'TikTok',
+      type: 'Brand Film Teaser',
+      copy: `POV: A Fortune 500 company apologizes for something that hasn't happened yet 💀\n\n"${creative.headline}"\n\nNo this isn't satire. ${company.name} just dropped a pre-apology for a disaster they see coming.\n\nThis is either the most honest thing a corporation has ever done or the most unhinged marketing play in history. Either way I'm watching.`,
+      visual: `Quick-cut montage: ${company.name} logo → news headline about the scenario → the pre-apology statement appearing letter by letter → reaction shots → the tagline card. Gen-Z pacing, corporate content, dissonance is the point.`,
+      hashtags: ['CorporateTikTok', company.name.replace(/\s+/g, ''), 'PreApology', 'ThisIsReal']
+    },
+    {
+      platform: 'Instagram',
+      type: 'Reel',
+      copy: `What if a company apologized BEFORE the disaster?\n\n${company.name} just did.\n\n"${creative.headline}"\n\nLink in bio for the full pre-apology statement.`,
+      visual: `15-second reel: Opens on ${company.name} logo dissolving. Cut to bold text: the headline. Cut to manifesto excerpt scrolling upward like movie credits. End card: tagline + company name. Trending audio underneath (something contemplative, not ironic).`,
+      hashtags: ['PreemptiveApology', company.name.replace(/\s+/g, ''), 'BrandAccountability']
     }
   ];
 }
