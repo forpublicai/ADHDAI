@@ -177,9 +177,9 @@
   font-size: 10px;
   color: white;
   white-space: nowrap;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 300px;
+  overflow: visible;
+  text-overflow: unset;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 

@@ -79,13 +79,13 @@ export async function generateCampaignImages(
 ): Promise<{ hero?: string; billboard?: string; social?: string }> {
   const results: { hero?: string; billboard?: string; social?: string } = {};
 
-  const brandContext = `Brand: ${s(campaign.companyName, 'Corporate brand')}. Campaign: "${s(campaign.headline, 'Proactive Apology Campaign')}". Visual concept: ${s(campaign.visualConcept, 'minimalist corporate confession aesthetic')}. Colors: ${campaign.colorPalette?.join(', ') || 'dark navy, deep blue, slate, accent red, off-white'}. Tone: ${s(campaign.tone, 'sincere corporate confession with controlled vulnerability')}.`;
+  const brandContext = `Brand: ${s(campaign.companyName, 'Corporate brand')}. Campaign: "${s(campaign.headline, 'Proactive Apology Campaign')}". Visual concept: ${s(campaign.visualConcept, 'a corporation confronting its future with radical honesty')}. Brand colors: ${campaign.colorPalette?.join(', ') || 'deep midnight navy, charcoal, warm amber, signal red, bone white'}. Tone: ${s(campaign.tone, 'controlled vulnerability — the courage of a confession made before it was necessary')}.`;
 
-  const heroPrompt = `High-end advertising campaign hero image. ${brandContext} Cinematic composition, editorial photography quality. The image should evoke corporate accountability and honest reflection. Professional lighting, premium production value. No text, no logos, no watermarks. Shot on medium format film with shallow depth of field.`;
+  const heroPrompt = `Award-winning advertising campaign hero image in the style of Wieden+Kennedy's most iconic work. ${brandContext} The image should feel like a still from a prestige film — shot by Roger Deakins. Cinematic single-source lighting, deep shadows, a single powerful subject that commands the frame. The feeling of corporate accountability made visible: a boardroom at dawn, or hands on a conference table, or an empty chair where someone important used to sit. Shallow depth of field, the key subject in razor focus. Color palette: predominantly dark tones with one warm accent that draws the eye. Emotional register: the quiet courage of telling the truth before you're caught. Shot on Hasselblad medium format. Premium production value. No text, no logos, no watermarks.`;
 
-  const billboardPrompt = `Wide-format outdoor billboard visual. ${brandContext} Bold, simple, readable from distance. One clear focal point with dramatic negative space. Think award-winning OOH advertising. Cinematic, not corporate. No text, no logos. 16:9 wide composition.`;
+  const billboardPrompt = `Bold, award-winning outdoor billboard visual that would win a Cannes Grand Prix for OOH. ${brandContext} Think Collins (wearecollins.com) meets Jenny Holzer. One SINGLE powerful image or graphic element that reads from 50 meters away and haunts you for the rest of the drive. Dramatic negative space — 60% of the frame is breathing room. The visual should be so simple it's almost abstract, but so specific it's unforgettable. Horizontal 16:9 composition. High contrast. The kind of billboard that makes people pull over to photograph it. Not corporate. CULTURAL. Not safe. BRAVE. No text, no logos. Wide composition.`;
 
-  const socialPrompt = `Social media campaign image, square format. ${brandContext} Modern, shareable, visually striking. Should feel native to Instagram but elevated. Documentary aesthetic with brand polish. Not stock photo energy — real campaign energy. No text, no logos. Square composition.`;
+  const socialPrompt = `Scroll-stopping social media campaign image that would be featured on It's Nice That and Communication Arts. ${brandContext} Square composition. Think Droga5's most shared campaigns. This image should make someone stop mid-scroll and feel SOMETHING — unease, recognition, empathy, all at once. Not polished corporate. Not stock photography. The kind of image that looks like it was captured in a real moment of vulnerability. Natural-feeling light with one dramatic shadow. Warm color temperature with cool accents. The image should feel like a confession: raw, honest, slightly uncomfortable, ultimately brave. Shot on film. Grain visible. Human. No text, no logos. Square format.`;
 
   // Generate in parallel
   const [hero, billboard, social] = await Promise.allSettled([
@@ -1081,9 +1081,9 @@ export function generateBannerAdsHtml(
     const isWide = size.w > size.h * 2;
     const isTall = size.h > size.w;
 
-    // Truncate headline for small formats
+    // Fit headline to format — use full text, CSS handles overflow
     const bannerHL = s(banner.headline, campaignHeadline);
-    const displayHL = isWide && bannerHL.length > 50 ? bannerHL.slice(0, 47) + '...' : bannerHL;
+    const displayHL = bannerHL;
     const displayBody = s(banner.body, campaignSubheadline);
     const ctaText = displayBody.includes('→') || displayBody.includes('http') ? displayBody : 'Read Our Pre-Apology →';
     
@@ -1102,8 +1102,8 @@ export function generateBannerAdsHtml(
       </div>`;
   }).join('');
 
-  // Truncate for leaderboard
-  const leaderboardHL = campaignHeadline.length > 50 ? campaignHeadline.slice(0, 47) + '...' : campaignHeadline;
+  // Use full headline — let CSS handle sizing
+  const leaderboardHL = campaignHeadline;
   
   // Add default banners if none exist
   const defaultBannersHtml = banners.length === 0 ? `
@@ -1466,7 +1466,8 @@ export function generateBannerSvg(
 ): string {
   const companyName = s(campaign.companyName, 'Company');
   const headline = s(campaign.headline, 'We Owe You An Apology');
-  const displayHL = headline.length > 45 ? headline.slice(0, 42) + '...' : headline;
+  // Show full headline — no truncation with ellipses
+  const displayHL = headline;
   
   const colors = campaign.colorPalette || ['#0f0f0f', '#1a1a2e', '#4361ee', '#e94560', '#f5f5f5'];
   const primaryColor = colors[0] || '#0f0f0f';

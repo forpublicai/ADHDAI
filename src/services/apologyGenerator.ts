@@ -623,9 +623,7 @@ function getSectorColors(sector: string): string[] {
 // ============================================
 function getDefaultCreativeDirection(scenario: DoomsdayScenario, company: Fortune500Company): CreativeDirection {
   // Use the ACTUAL scenario title to generate specific, punchy copy
-  const scenarioShort = scenario.title.length > 60 
-    ? scenario.title.slice(0, 57) + '...' 
-    : scenario.title;
+  const scenarioShort = scenario.title;
   
   const colors = getSectorColors(company.sector);
 
