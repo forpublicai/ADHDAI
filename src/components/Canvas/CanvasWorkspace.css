@@ -485,8 +485,8 @@
    ============================================ */
 .work-item {
   position: absolute;
-  min-width: 140px;
-  max-width: 220px;
+  min-width: 160px;
+  max-width: 280px;
   padding: 10px 12px;
   border-radius: 3px;
   border-left: 4px solid;
@@ -495,6 +495,8 @@
   z-index: 10;
   user-select: none;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
+  /* Ensure text is never cut off */
+  overflow: visible;
 }
 
 .work-item:hover {
@@ -530,8 +532,13 @@
   line-height: 1.4;
   white-space: pre-wrap;
   word-wrap: break-word;
+  overflow-wrap: break-word;
   margin: 0;
   font-family: 'JetBrains Mono', monospace;
+  /* NEVER truncate — always show full content */
+  text-overflow: unset;
+  overflow: visible;
+  -webkit-line-clamp: unset;
 }
 
 .item-content .cursor {
@@ -563,7 +570,7 @@
 .work-item.sticky { background: #fff9c4; }
 .work-item.headline { 
   background: #bbdefb; 
-  max-width: 260px;
+  max-width: 300px;
 }
 .work-item.headline .item-content {
   font-size: 10px;
@@ -580,11 +587,13 @@
 }
 .work-item.concept {
   background: #b2ebf2;
+  max-width: 340px;
+  min-width: 200px;
 }
 .work-item.board {
   background: #263238;
   min-width: 180px;
-  max-width: 260px;
+  max-width: 300px;
 }
 .work-item.board .item-content {
   color: #fff;
@@ -727,8 +736,16 @@
 .chat-content {
   font-size: 12px;
   color: #bbb;
-  line-height: 1.5;
+  line-height: 1.6;
   padding-left: 22px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  /* NEVER truncate or cut off with ellipsis — show full text always */
+  text-overflow: unset;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  display: block;
 }
 
 /* ============================================

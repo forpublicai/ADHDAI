@@ -275,13 +275,16 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
         messages: [
           {
             role: 'system',
-            content: `You are a creative director at an award-winning ad agency known for Swiss-style minimalism meets absurdist wit. Your work is:
-- DECEPTIVELY SIMPLE: Headlines that seem obvious but reveal deeper truth
-- UNCOMFORTABLY HONEST: Acknowledge what everyone thinks but won't say
-- VISUALLY SPARSE: Massive whitespace, single powerful image, Helvetica
-- TONALLY DEADPAN: Dry humor, no exclamation marks, matter-of-fact surrealism
+            content: `You are a creative director whose work has won Cannes Grand Prix, D&AD Black Pencil, and One Show Best of Show. Your references are Wieden+Kennedy's "Just Do It," Collins' brand reinventions, and Droga5's cultural provocations. Your work is:
+- DECEPTIVELY SIMPLE: Headlines that seem obvious but reveal devastating truth on second read
+- UNCOMFORTABLY HONEST: Name the thing everyone thinks but won't say. The unsaid is your medium.
+- CULTURALLY SHARP: Not "on trend" — ahead of culture, forcing culture to catch up
+- TONALLY DEADPAN: Dry wit, surgical precision, no exclamation marks, no puns, no clichés
+- VISUALLY DECISIVE: One image. One idea. Massive negative space. The viewer does the work.
 
-Output ONLY the creative content. No explanations. No preamble. Just the work.`
+Think Helmut Krone. Think Lee Clow. Think Dan Wieden. Think Susan Hoffman.
+
+Output ONLY the creative content. No explanations. No preamble. Just the work. Write as if your career depends on this single line.`
           },
           { role: 'user', content: prompt }
         ],
@@ -443,6 +446,7 @@ Output ONLY the creative content. No explanations. No preamble. Just the work.`
   }, []);
 
   // Generate agent conversation about merged ideas AND create new combined work item
+  // CROSSOVER: When two work items collide, produce SUBSTANTIVE new ideas — not just references
   const generateMergeConversation = useCallback(async (item1: WorkItem, item2: WorkItem): Promise<void> => {
     const agent1 = getCharacterInfo(item1.createdBy);
     const agent2 = getCharacterInfo(item2.createdBy);
@@ -450,13 +454,12 @@ Output ONLY the creative content. No explanations. No preamble. Just the work.`
     
     const openai = getOpenAI();
     
-    // Generate the merged idea
+    // Generate the merged idea — MUST be substantive and produce NEW creative output
     const generateMergedIdea = async (): Promise<string> => {
       if (!openai) {
-        // Fallback: combine key phrases
-        const words1 = item1.content.split(' ').slice(0, 5).join(' ');
-        const words2 = item2.content.split(' ').slice(0, 5).join(' ');
-        return `MERGED CONCEPT:\n${words1}... meets ${words2}...\n\nA synthesis of strategic tension and creative execution.`;
+        // Even fallbacks should be substantive
+        const product = (currentBrief || '').split(' ').filter(w => w.length > 3)[0] || 'product';
+        return `BREAKTHROUGH CONCEPT: "The ${product} Paradox"\n\nWhat if the product's greatest weakness IS its selling point? Combine the raw emotional truth from ${agent1.name.split(' ')[0]}'s work with the structural architecture from ${agent2.name.split(' ')[0]}'s approach.\n\nNEW CREATIVE DIRECTIONS:\n• HEADLINE: "The thing about ${product} is: you already know."\n• VISUAL: Split-frame — one side documentary, one side aspirational. Let the viewer choose.\n• MEDIA: Start with OOH to create mystery. Digital reveals the answer. Print archives the truth.\n• TONE: Not selling. Confessing. The brand admits what the consumer already suspects.`;
       }
       
       try {
@@ -465,39 +468,48 @@ Output ONLY the creative content. No explanations. No preamble. Just the work.`
           messages: [
             {
               role: 'system',
-              content: `You are a senior creative director synthesizing two ideas into one powerful new concept for an ad campaign. Brief: "${currentBrief}". 
-              
-Idea 1 from ${agent1.name}: "${item1.content}"
-Idea 2 from ${agent2.name}: "${item2.content}"
+              content: `You are the creative director at an agency that has won every major award (Cannes Grand Prix, D&AD Black Pencil, One Show Best of Show). Your job is to SYNTHESIZE two ideas into something MORE powerful than either alone.
 
-Create a NEW merged concept that takes the best of both. Be specific and creative. Output in this format:
-MERGED CONCEPT: [title]
+Brief: "${currentBrief}"
 
-[2-3 sentences describing the merged idea]
+Idea 1 from ${agent1.name} (${agent1.role}): "${item1.content}"
+Idea 2 from ${agent2.name} (${agent2.role}): "${item2.content}"
 
-KEY ELEMENTS:
-• [element from idea 1]
-• [element from idea 2]  
-• [new element from synthesis]`
+DO NOT just reference both ideas. CREATE something NEW. Produce ACTIONABLE creative output. Think like Wieden+Kennedy, Collins, Droga5.
+
+Output in this EXACT format:
+
+BREAKTHROUGH CONCEPT: [a provocative 3-5 word title]
+
+[2-3 sentences describing the merged idea — specific, bold, unexpected]
+
+NEW CREATIVE DIRECTIONS:
+• HEADLINE: [an actual headline that could run — sharp, memorable, under 12 words]
+• VISUAL: [specific art direction — what the viewer SEES, not abstract description]
+• MEDIA: [unexpected media strategy — where and how this lives in the world]
+• TONE: [the emotional register — be specific, not generic]
+
+WHY THIS WORKS:
+[One sentence explaining the strategic insight that makes this synthesis powerful]`
             },
-            { role: 'user', content: 'Create the merged concept.' }
+            { role: 'user', content: 'Create the breakthrough synthesis. Be bold. Be specific. Produce work, not commentary.' }
           ],
-          max_tokens: 200,
-          temperature: 0.8,
+          max_tokens: 400,
+          temperature: 0.95,
         });
-        return response.choices[0]?.message?.content || 'MERGED CONCEPT:\nA synthesis of both approaches.';
+        return response.choices[0]?.message?.content || 'BREAKTHROUGH CONCEPT:\nA synthesis of both approaches with new creative potential.';
       } catch {
-        return `MERGED CONCEPT:\nCombining ${agent1.name.split(' ')[0]}'s insight with ${agent2.name.split(' ')[0]}'s direction.`;
+        return `BREAKTHROUGH CONCEPT: "The Collision"\n\nWhen ${agent1.name.split(' ')[0]}'s insight meets ${agent2.name.split(' ')[0]}'s vision, something unexpected emerges — a creative direction neither could have reached alone.\n\nNEW CREATIVE DIRECTIONS:\n• HEADLINE: "What you're avoiding is what you need."\n• VISUAL: Macro photography of hands — reaching, hesitating, deciding.\n• MEDIA: Takeover a single city block with wheat-pasted posters. No logo. Just the headline.\n• TONE: Whispered truth. Not shouted. Not sold. Confessed.`;
       }
     };
     
-    // Generate the dialogue
+    // Generate the dialogue — MUST have conflict, tension, then breakthrough
     const generateDialogue = async (): Promise<{agent1: string, agent2: string, agent1_reply: string, resolution: string}> => {
       const defaultDialogue = {
-        agent1: `*studies ${agent2.name.split(' ')[0]}'s work* There's something here. What if we pushed the ${item2.content.slice(0, 20)}... angle harder?`,
-        agent2: `Interesting. But my approach needs the tension from yours. The "${item1.content.slice(0, 20)}..." is the key.`,
-        agent1_reply: `So we're saying... both. But elevated. I can see it.`,
-        resolution: `*nods* Let's build it. The new version is stronger than either alone.`
+        agent1: `*picks up ${agent2.name.split(' ')[0]}'s work, holds it at arm's length like evidence* Wait. Wait. This isn't what I expected. There's something in here that contradicts what I wrote — but contradicts it in a way that makes BOTH pieces stronger. Do you see it? The tension between my approach and yours isn't a problem. It's the IDEA.`,
+        agent2: `*stands, crosses to look at both pieces side by side* You're right. And I hate that you're right, because it means my original approach was missing something. But yours was too. Separately, these are good. Together, they're something I haven't seen before. Something that actually makes me nervous. In a good way.`,
+        agent1_reply: `Nervous is good. Nervous means we're past the safe zone. What if we take the raw honesty from mine and the structural precision from yours and build something that does BOTH — that feels true AND inevitable? Not a compromise. An escalation.`,
+        resolution: `*both staring at the combined work* That's it. That's the version that will make the client's CMO call an emergency meeting — not because it's wrong, but because it's so right it scares them. Let's build it before we lose our nerve.`
       };
       
       if (!openai) return defaultDialogue;
@@ -508,36 +520,55 @@ KEY ELEMENTS:
           messages: [
             {
               role: 'system',
-              content: `You are writing dialogue between two ad agency creatives who are EXCITED about merging their ideas. ${agent1.name} (${agent1.role}) created: "${item1.content}". ${agent2.name} (${agent2.role}) created: "${item2.content}". They see potential in combining them. Be witty, creative, and build to an "aha!" moment. Output as JSON: {"agent1": "first line observing the other's work", "agent2": "response seeing the connection", "agent1_reply": "building on the synthesis", "resolution": "the breakthrough moment"}`
+              content: `Write dialogue between two ad agency creatives who DISCOVER something unexpected when their ideas collide. This is NOT polite agreement — it's creative FRICTION that produces a breakthrough.
+
+${agent1.name} (${agent1.role}) created: "${item1.content}"
+${agent2.name} (${agent2.role}) created: "${item2.content}"
+Brief: "${currentBrief}"
+
+The dialogue should have:
+1. INITIAL TENSION — they see a contradiction between their approaches
+2. RECOGNITION — the contradiction itself is the insight  
+3. ESCALATION — they build on each other, getting more excited
+4. BREAKTHROUGH — the "aha" moment where the new idea crystallizes
+
+Write as if David Mamet wrote advertising dialogue. Sharp. Specific. No filler. Each line should ADVANCE the idea, not just react.
+
+Output as JSON: {"agent1": "sees the contradiction and gets excited by it (2-3 sentences, include stage direction in asterisks)", "agent2": "pushes back but sees the potential (2-3 sentences)", "agent1_reply": "builds on the synthesis with a specific creative proposal (2-3 sentences)", "resolution": "the breakthrough moment — specific, actionable, electric (2-3 sentences)"}`
             },
-            { role: 'user', content: 'Generate their excited collaboration dialogue.' }
+            { role: 'user', content: 'Generate the creative collision dialogue.' }
           ],
-          max_tokens: 300,
-          temperature: 0.9,
+          max_tokens: 500,
+          temperature: 0.95,
         });
         
         const text = response.choices[0]?.message?.content || '';
-        return JSON.parse(text);
+        // Try to parse JSON, handle potential formatting issues
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          return JSON.parse(jsonMatch[0]);
+        }
+        return defaultDialogue;
       } catch {
         return defaultDialogue;
       }
     };
     
     // Execute both in parallel
-    const [mergedIdea, dialogue] = await Promise.all([
+    const [mergedIdea, mergeDialogue] = await Promise.all([
       generateMergedIdea(),
       generateDialogue()
     ]);
     
-    // Play out the conversation
-    addChatMessage(item1.createdBy, dialogue.agent1);
+    // Play out the conversation with more dramatic pacing
+    addChatMessage(item1.createdBy, mergeDialogue.agent1);
     
-    setTimeout(() => addChatMessage(item2.createdBy, dialogue.agent2), 1500);
+    setTimeout(() => addChatMessage(item2.createdBy, mergeDialogue.agent2), 2000);
     
-    setTimeout(() => addChatMessage(item1.createdBy, dialogue.agent1_reply), 3000);
+    setTimeout(() => addChatMessage(item1.createdBy, mergeDialogue.agent1_reply), 4000);
     
     setTimeout(() => {
-      addChatMessage(item2.createdBy, dialogue.resolution);
+      addChatMessage(item2.createdBy, mergeDialogue.resolution);
       
       // Create the merged work item at the midpoint between the two items
       const midX = (item1.position.x + item2.position.x) / 2;
@@ -552,8 +583,8 @@ KEY ELEMENTS:
         true // Type it out
       );
       
-      addChatMessage('apparatus', `MERGER LOGGED — New concept synthesized from ${agent1.name.split(' ')[0]} × ${agent2.name.split(' ')[0]} collaboration.`);
-    }, 4500);
+      addChatMessage('apparatus', `COLLISION LOGGED — Breakthrough concept synthesized. ${agent1.name.split(' ')[0]} × ${agent2.name.split(' ')[0]} produced new creative direction with actionable headline, visual strategy, and media approach. This is how the best work happens — in the collision between perspectives.`);
+    }, 6000);
     
   }, [addChatMessage, createWorkItem, currentPhase, getCharacterInfo]);
 
@@ -1460,17 +1491,18 @@ KEY ELEMENTS:
     const oohFolder = zip.folder('04_OOH');
     const docsFolder = zip.folder('05_DOCUMENTATION');
     
-    // Helper to generate and fetch image using base64 to avoid CORS issues
+    // Helper to generate and fetch image using base64 — AGENCY-QUALITY PROMPTS
     const generateImage = async (prompt: string, filename: string): Promise<{blob: Blob} | null> => {
       if (!openai) return null;
       try {
         const response = await openai.images.generate({
           model: 'dall-e-3',
-          prompt: `Create a minimalist, Swiss-style advertising visual. ${prompt}. Style: Documentary photography aesthetic, muted earth tones, high contrast, no text or logos visible, cinematic composition, editorial quality. The image should feel contemplative and authentic, not commercial.`,
+          prompt: `Create an award-winning advertising visual in the tradition of Wieden+Kennedy, Collins, and Droga5. ${prompt}. Style: Cinematic photography that feels like a still from a prestige film. Bold composition, dramatic lighting (single source, hard shadows), rich color palette with one unexpected accent. NOT stock photography. NOT generic. The image should feel ICONIC — the kind of visual that wins Cannes Lions and D&AD awards. Think Gregory Crewdson's staging meets William Eggleston's color meets Martin Parr's humanity. High contrast, shallow depth of field, the subject commands the frame. No text, no logos, no watermarks.`,
           n: 1,
           size: '1024x1024',
-          quality: 'standard',
-          response_format: 'b64_json', // Get base64 directly to avoid CORS
+          quality: 'hd',
+          style: 'vivid',
+          response_format: 'b64_json', // Get base64 directly to avoid CORS — outputs PNG
         });
         const b64Data = response.data?.[0]?.b64_json;
         if (b64Data) {
@@ -1497,7 +1529,7 @@ KEY ELEMENTS:
     addChatMessage('burl', `*adjusts glasses* Generating hero campaign image for ${product}...`);
     
     const heroImage = await generateImage(
-      `A single powerful image for a ${imageContext} campaign in the ${category} industry. Subject: Someone experiencing a quiet moment of realization while interacting with ${product}. Show the actual ${product} in use. Composition: Rule of thirds, significant negative space on one side for text placement. Mood: ${visualDirection}`,
+      `HERO CAMPAIGN IMAGE for ${product} in the ${category} industry. The ${product} at the center of the frame, shot like an object of quiet reverence. Dramatic chiaroscuro lighting — one strong light source from the upper left creating deep, painterly shadows. The ${product} rendered in sharp detail against a rich, dark background with warm amber undertones. Composition: the ${product} positioned using the golden ratio, with 40% negative space for text placement. The mood is contemplative authority — like a Vermeer painting of an everyday object. Shallow depth of field, Hasselblad medium format aesthetic. ${visualDirection}`,
       'hero_image.png'
     );
     
@@ -1508,7 +1540,7 @@ KEY ELEMENTS:
     
     // Generate print ad mockup
     const printAdImage = await generateImage(
-      `A magazine advertisement layout featuring ${imageContext}. Show the ${product} in its natural context - how it's actually used in daily life. Documentary style, unexpected angle, tells a story without words. Category: ${category}. Think: National Geographic meets Swiss design.`,
+      `Magazine-quality print advertisement visual for ${imageContext}. The ${product} in its natural ${category} context, but photographed with the intentionality of a Martin Parr editorial. An unexpected angle — overhead or extreme close-up — that makes the familiar feel strange and important. Natural daylight, one warm highlight, deep color. The image should tell a complete story in a single frame: someone's relationship with their ${product}, captured in one decisive moment. Think W+K's best print work — visually arresting, emotionally true, impossible to forget.`,
       'print_ad.png'
     );
     
@@ -1568,21 +1600,21 @@ Generated by ADHDAI — The Feral Creative Collective
     // 3. Video storyboard with ACTUAL frame images
     addChatMessage('apparatus', `GENERATING VIDEO STORYBOARD FRAMES for ${product.toUpperCase()}...`);
     
-    // Generate key storyboard frames - specific to the product/category
+    // Generate key storyboard frames — CINEMATIC QUALITY, specific to the product/category
     const frame2Image = await generateImage(
-      `Cinematic still frame for ${category} video ad: A person in a contemplative moment, looking at or about to use their ${product}. The ${product} is clearly visible in frame. Natural lighting, shallow depth of field, 16:9 aspect ratio composition. Documentary style, ${category} context.`,
+      `CINEMATIC FILM STILL: A person in a contemplative moment with ${product}. Shot by Roger Deakins — natural light from a single window, golden hour warmth, the subject's silhouette partially backlit. The ${product} visible in their hands or on the surface before them. Shallow depth of field. 2.39:1 anamorphic widescreen composition. The mood: the moment before a decision. Desaturated color grade with warm skin tones. ${category} context rendered cinematically. Like a still from a Terrence Malick film.`,
       'frame_02.png'
     );
     if (frame2Image) videoFolder?.file('frame_02_fade_in.png', frame2Image.blob);
     
     const frame3Image = await generateImage(
-      `Cinematic close-up detail shot featuring ${imageContext}: The key moment of interaction with ${product}. Extreme close-up on hands using the ${product}, showing texture and detail. Soft focus background, warm natural light. ${category} product photography.`,
+      `EXTREME CLOSE-UP: Hands interacting with ${product}. The texture of skin against the texture of the ${product}. Shot macro with a 100mm lens — razor-sharp focus on the point of contact, everything else dissolving into creamy bokeh. Warm side-light reveals every detail. The hands tell a story: experienced, human, alive. This is the decisive moment of the commercial — when the ${product} becomes personal. ${category} intimacy captured at the molecular level.`,
       'frame_03.png'
     );
     if (frame3Image) videoFolder?.file('frame_03_detail.png', frame3Image.blob);
     
     const frame5Image = await generateImage(
-      `Wide shot establishing context: Subject in their natural environment with ${product}. The ${product} is central to the scene, showing its use case clearly. Pull back to reveal the full ${category} context. Editorial photography style, muted color palette, cinematic composition.`,
+      `WIDE ESTABLISHING SHOT: Pull back to reveal the full world of ${product}. The subject in their complete ${category} environment — home, office, or wherever this ${product} lives. Shot on a long lens from across the room, creating layers of foreground and background. The ${product} is central but contextualized. Wes Anderson-level composition — symmetry, color blocking, every element in its perfect place. Late afternoon light. The image should feel like the final frame of a story: resolved, complete, warm.`,
       'frame_05.png'
     );
     if (frame5Image) videoFolder?.file('frame_05_context.png', frame5Image.blob);
@@ -1669,16 +1701,16 @@ Generated by ADHDAI — The Feral Creative Collective
     // 4. Social media with ACTUAL images
     addChatMessage('apparatus', `GENERATING SOCIAL MEDIA ASSETS for ${product.toUpperCase()}...`);
     
-    // Instagram feed image - product specific
+    // Instagram feed image — SCROLL-STOPPING, Collins-level design thinking
     const instaFeedImage = await generateImage(
-      `Square format social media post featuring ${imageContext}. Show the ${product} as the hero - clean, striking, scroll-stopping. The ${product} should be immediately recognizable. Bold composition, single focal point on the ${product}, muted but distinct colors. ${category} product photography. Should feel premium and editorial, not sales-y.`,
+      `SCROLL-STOPPING Instagram post for ${imageContext}. The ${product} as the sole subject against a bold, unexpected solid color background — think Collins design studio's portfolio. The ${product} floating, casting a dramatic hard shadow. One color dominates: electric blue, deep coral, or vivid yellow. The composition is GRAPHIC — it could be a poster, an album cover, a museum exhibit. The ${product} is immediately recognizable and impossibly cool. Overhead angle, hard studio lighting, zero softness. This image makes people double-tap by instinct. Square format. ${category} elevated to pop art.`,
       'instagram_feed.png'
     );
     if (instaFeedImage) socialFolder?.file('instagram_feed_1080x1080.png', instaFeedImage.blob);
     
-    // Instagram story image
+    // Instagram story image — IMMERSIVE, Droga5-level emotional resonance  
     const instaStoryImage = await generateImage(
-      `Vertical format (9:16) social media story for ${imageContext}. Full screen mobile experience showing someone about to use or just discovering their ${product}. The ${product} centered in lower third, plenty of space at top for text overlay. Immersive, intimate moment in ${category} context.`,
+      `FULL-SCREEN mobile-native story image for ${imageContext}. Someone's hands reaching for or interacting with ${product} — shot from the viewer's POV so it feels like YOUR hands. Intimate, immediate, slightly voyeuristic. Natural light from a phone screen or a window. The ${product} in the lower third with generous headroom for text overlay. This image should feel like a screenshot from someone's real life — unstaged, warm, vulnerable. ${category} context but hyperspecific: we see the coffee stain on the table, the crumpled receipt, the evidence of real life. Film grain, warm tones, Portra 400 aesthetic.`,
       'instagram_story.png'
     );
     if (instaStoryImage) socialFolder?.file('instagram_story_1080x1920.png', instaStoryImage.blob);
@@ -1755,16 +1787,16 @@ ASSETS INCLUDED:
     // 5. OOH with ACTUAL images
     addChatMessage('apparatus', `GENERATING OUT-OF-HOME ASSETS for ${product.toUpperCase()}...`);
     
-    // Billboard image - product specific
+    // Billboard image — ICONIC, the kind that makes people pull over
     const billboardImage = await generateImage(
-      `Wide format billboard advertisement visual featuring ${imageContext}. The ${product} as the sole visual element. Ultra-simple composition that reads from 50 meters away. One striking image of the ${product}, maximum impact. ${category} product photography. Think: Apple billboard simplicity. Landscape orientation, high contrast, clean background.`,
+      `ICONIC billboard visual for ${imageContext}. The ${product} rendered as a monumental graphic statement — think Jenny Holzer meets Apple's silhouette campaign. One powerful image that reads instantly from 50 meters away. Ultra-wide horizontal composition with 60% dramatic negative space. The ${product} isolated, enlarged, almost abstract in its simplicity. High contrast — deep black background with the ${product} lit like a stage performer in a single spot of warm light. The kind of billboard that becomes a landmark. Landscape orientation. ${category} product elevated to cultural symbol.`,
       'billboard.png'
     );
     if (billboardImage) oohFolder?.file('billboard_visual.png', billboardImage.blob);
     
-    // Bus shelter image  
+    // Bus shelter image — STREET-LEVEL POETRY
     const busShelterImage = await generateImage(
-      `Portrait format bus shelter advertisement for ${imageContext}. Street-level viewing showing someone engaging with ${product} in daily life. ${category} lifestyle context. Eye-catching but not aggressive. A moment of human connection with the ${product}. Works in daylight and at night.`,
+      `Bus shelter advertisement visual for ${imageContext}. Shot at eye-level: someone's hands holding or using ${product} while waiting — for a bus, for a train, for something to change. ${category} lifestyle context elevated to quiet drama. Natural mixed lighting — daylight and fluorescent, the way bus shelters actually look at 6 PM. The ${product} in sharp focus, the city blurred behind it. This image should work in daylight AND backlit at night. Portraiture without a face: the story is in the hands, in the gesture, in the relationship between person and ${product}. Documentary warmth. Slightly melancholic. Real.`,
       'bus_shelter.png'
     );
     if (busShelterImage) oohFolder?.file('bus_shelter_visual.png', busShelterImage.blob);

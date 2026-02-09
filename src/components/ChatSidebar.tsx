@@ -132,7 +132,7 @@ export default function ChatSidebar({ messages, characters }: ChatSidebarProps) 
                 </div>
                 {message.code && (
                   <div className="message-code-preview">
-                    <code>{message.code.substring(0, 100)}...</code>
+                    <code>{message.code}</code>
                   </div>
                 )}
               </div>

@@ -92,6 +92,13 @@
   font-size: 16px;
   font-weight: 300;
   margin-top: 8px;
+  /* NEVER truncate — show full text always */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  text-overflow: unset;
+  overflow: visible;
+  -webkit-line-clamp: unset;
 }
 
 .formatted-content {
@@ -144,6 +151,10 @@
   font-size: 12px;
   font-family: 'Courier New', monospace;
   color: #666666;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
   font-weight: 300;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }

@@ -21,6 +21,26 @@ export interface GeneratedImage {
 }
 
 /**
+ * AGENCY-QUALITY IMAGE PROMPTS
+ * 
+ * Reference aesthetics:
+ * - Wieden+Kennedy: Bold, culture-defining, cinematic. "Just Do It" energy.
+ *   High contrast, dramatic lighting, iconic framing. Every image tells a story.
+ * - Collins (wearecollins.com): Minimalist, conceptual, surprising. 
+ *   Bold color, geometric precision, unexpected juxtaposition. Art meets commerce.
+ * - Droga5: Documentary authenticity, cultural relevance, emotional truth.
+ *   Real moments, natural light, unstaged feeling, human vulnerability.
+ * 
+ * KEY PRINCIPLES FOR DALL-E PROMPTS:
+ * 1. Be HYPER-SPECIFIC about composition, lighting, and mood
+ * 2. Reference real photography styles (not generic "professional")
+ * 3. Specify what makes the image DISTINCTIVE — the thing you can't unsee
+ * 4. Always request "no text, no logos, no watermarks"
+ * 5. Use 'hd' quality and 'vivid' style for maximum impact
+ * 6. Request response_format: 'b64_json' for PNGs
+ */
+
+/**
  * Generate a product/hero image for an ad using DALL-E
  */
 export async function generateAdImage(
@@ -41,28 +61,28 @@ export async function generateAdImage(
   const category = parsedBrief.category;
   const imageContext = getImagePromptContext(brief);
   
-  // Build the prompt based on style and brand
+  // Build AGENCY-QUALITY prompts based on style
   let prompt = '';
   
   switch (style) {
     case 'hero':
-      prompt = `Professional advertising photography of ${imageContext}. The ${product} is the clear hero of the image, shown in its full glory. ${category} product photography. Clean, minimalist composition on a neutral background. Studio lighting, high-end commercial quality. Documentary style, authentic feel. No text, no logos, no watermarks. Muted, desaturated colors with subtle warmth.`;
+      prompt = `Award-winning advertising campaign hero image. Subject: ${imageContext}. The ${product} is the undeniable center of the frame, shot with the confidence of a Wieden+Kennedy Nike campaign. Cinematic composition inspired by Gregory Crewdson — dramatic single-source lighting from the left, deep shadows, the ${product} almost glowing against a moody, desaturated background. ${category} context but elevated to feel monumental. The image should feel like a still from a film you desperately want to see. Shallow depth of field, the ${product} in razor-sharp focus while the background dissolves into painterly bokeh. Color palette: predominantly deep navy and warm amber, with one accent of vivid color on the ${product} itself. Shot on Hasselblad medium format. No text, no logos, no watermarks, no human faces.`;
       break;
     case 'product':
-      prompt = `Editorial product photography featuring ${imageContext}. The ${product} photographed from overhead on textured paper background. Natural daylight, soft shadows. Documentary aesthetic like a form or document. Show the ${product} in detail. Minimal styling, honest presentation. No text, no logos, no watermarks.`;
+      prompt = `Bold, minimalist product photography in the style of Collins design studio — where concept meets precision. The ${product} photographed from an unexpected angle against a single bold color background (deep coral or electric blue). Dramatic hard shadow cast at 45 degrees, creating a graphic shape that's as interesting as the ${product} itself. Think Apple product photography meets Bauhaus composition. The ${product} should feel like a sculpture in a museum — elevated, considered, essential. Overhead view or three-quarter angle. Crystal-clear detail, every texture visible. Studio strobe lighting, hard edges, no softness. Modernist composition with mathematical precision. ${category} product but treated as high art. No text, no logos, no watermarks.`;
       break;
     case 'lifestyle':
-      prompt = `Documentary-style lifestyle photography showing hands using ${imageContext}. A real person interacting with their ${product} in a natural ${category} context. Authentic moment. Natural lighting, slightly desaturated colors. Film photography aesthetic. No faces visible, focus on the action and the ${product}. No text, no logos, no watermarks.`;
+      prompt = `Intimate lifestyle photography for ${imageContext} — shot in the style of Droga5's most human campaigns. A pair of hands interacting with ${product} in a natural ${category} moment. Not staged. Not styled. REAL. Think Nan Goldin's intimacy meets Martin Parr's everyday poetry. Natural window light, slightly overexposed highlights, rich shadows. The kind of photograph that makes you feel like you're intruding on a private moment. Warm color temperature, slightly desaturated, film grain visible. The ${product} is present but not performing — it's just THERE, part of life, part of the moment. Shot on 35mm Kodak Portra 400. No faces visible, focus on hands and the ${product}. No text, no logos, no watermarks.`;
       break;
     case 'documentary':
     default:
-      prompt = `Documentary photography of ${imageContext}. The ${product} shot like evidence photography or archival documentation. ${category} context. Neutral background, natural lighting. Honest, unglamorous presentation of the ${product}. Slightly faded, bureaucratic aesthetic. No text, no logos, no watermarks.`;
+      prompt = `Documentary-style campaign photography for ${imageContext} in the tradition of Robert Frank and William Eggleston. The ${product} captured in its natural habitat — a ${category} context that feels found, not constructed. Shot like photojournalism: available light, slightly imperfect framing, the kind of image that feels urgent and necessary. The ${product} occupies the frame with quiet authority. Desaturated color palette with one surprising warm tone. Textured, grain-visible, the opposite of stock photography. This image should feel like EVIDENCE — proof that something real happened. Medium format aesthetic, shallow depth of field, subject slightly off-center (rule of thirds). No text, no logos, no watermarks.`;
       break;
   }
 
   // Add brand color hints if available
   if (brandInfo?.brandColors.primary) {
-    prompt += ` Color accent: subtle ${brandInfo.brandColors.primary} tones.`;
+    prompt += ` Incorporate subtle ${brandInfo.brandColors.primary} tones as an accent color.`;
   }
 
   try {
@@ -71,12 +91,23 @@ export async function generateAdImage(
       prompt: prompt,
       n: 1,
       size: '1024x1024',
-      quality: 'standard',
-      style: 'natural'
+      quality: 'hd',
+      style: 'vivid',
+      response_format: 'b64_json'
     });
 
-    const imageUrl = response.data?.[0]?.url;
+    const b64Data = response.data?.[0]?.b64_json;
     
+    if (b64Data) {
+      return {
+        url: `data:image/png;base64,${b64Data}`,
+        prompt: prompt,
+        style: style
+      };
+    }
+    
+    // Fallback to URL if b64 not available
+    const imageUrl = response.data?.[0]?.url;
     if (imageUrl) {
       return {
         url: imageUrl,
@@ -93,7 +124,7 @@ export async function generateAdImage(
 }
 
 /**
- * Generate multiple images for a campaign
+ * Generate multiple images for a campaign — all as PNGs
  */
 export async function generateCampaignImages(
   brief: string,
@@ -125,7 +156,7 @@ export async function generateCampaignImages(
 }
 
 /**
- * Generate a single storyboard frame image
+ * Generate a single storyboard frame image — cinematic quality
  */
 export async function generateStoryboardFrame(
   visualDescription: string,
@@ -149,7 +180,7 @@ export async function generateStoryboardFrame(
     .replace(/\([^)]+\)/g, '') // Remove parentheticals
     .trim();
 
-  const prompt = `Film still from a ${category} commercial, frame ${frameNumber}. ${cleanDescription}. Feature the ${product} prominently in this scene. Cinematic composition, 16:9 aspect ratio feel. Documentary style, natural lighting, muted colors. Professional advertising production quality. No text overlays, no watermarks.`;
+  const prompt = `Cinematic film still from a ${category} commercial, frame ${frameNumber}. ${cleanDescription}. The ${product} featured prominently. Shot by Emmanuel Lubezki — natural light, long lens, shallow depth of field, the kind of frame that makes you hold your breath. 2.39:1 anamorphic widescreen composition. Documentary realism meets poetic beauty. Desaturated color grade with warm highlights and cool shadows. The image should feel like the decisive moment of the entire commercial. Professional production quality, crew of fifty, budget unlimited. No text overlays, no watermarks.`;
 
   try {
     const response = await openai.images.generate({
@@ -157,10 +188,13 @@ export async function generateStoryboardFrame(
       prompt: prompt,
       n: 1,
       size: '1792x1024', // Wider for video frames
-      quality: 'standard',
-      style: 'natural'
+      quality: 'hd',
+      style: 'vivid',
+      response_format: 'b64_json'
     });
 
+    const b64 = response.data?.[0]?.b64_json;
+    if (b64) return `data:image/png;base64,${b64}`;
     return response.data?.[0]?.url || null;
   } catch (error) {
     console.error('Error generating storyboard frame:', error);
@@ -169,7 +203,7 @@ export async function generateStoryboardFrame(
 }
 
 /**
- * Generate a social media post image
+ * Generate a social media post image — platform-native quality
  */
 export async function generateSocialImage(
   _postCopy: string,
@@ -189,30 +223,32 @@ export async function generateSocialImage(
   const category = parsedBrief.category;
   const imageContext = getImagePromptContext(brief);
 
-  let aspectRatio = '1024x1024'; // Square for Instagram
-  let sizeHint = 'square composition';
+  let aspectRatio: '1024x1024' | '1792x1024' = '1024x1024'; // Square for Instagram
+  let compositionHint = 'square composition with strong central subject';
   
   if (platform.toLowerCase().includes('twitter') || platform.toLowerCase().includes('linkedin')) {
     aspectRatio = '1792x1024';
-    sizeHint = 'horizontal composition, 16:9 feel';
+    compositionHint = 'horizontal composition, 16:9, subject in left third with text space on right';
   }
 
-  const prompt = `Social media photography for ${platform}. Subject: ${imageContext}. The ${product} is clearly featured as the main subject. ${category} lifestyle context. ${sizeHint}. Documentary aesthetic, authentic feel. Natural lighting, muted colors. Not overly polished or commercial. Real, honest, slightly melancholic. No text, no logos, no watermarks.`;
+  const prompt = `Scroll-stopping social media image for ${platform}. Subject: ${imageContext}. The ${product} as the undeniable hero — bold, graphic, impossible to scroll past. ${compositionHint}. Think Collins design studio meets Wieden+Kennedy's social strategy. Not "stock photo with filter" energy — CAMPAIGN energy. The kind of post that gets screenshot and sent to friends. Bold composition, one clear focal point on the ${product}, dramatic contrast. ${category} context elevated to art. Color palette: rich, saturated, with one color that POPS against the others. Contemporary but not trendy. Shot like an editorial spread for The New York Times Magazine. No text, no logos, no watermarks.`;
 
   try {
     const response = await openai.images.generate({
       model: 'dall-e-3',
       prompt: prompt,
       n: 1,
-      size: aspectRatio as '1024x1024' | '1792x1024',
-      quality: 'standard',
-      style: 'natural'
+      size: aspectRatio,
+      quality: 'hd',
+      style: 'vivid',
+      response_format: 'b64_json'
     });
 
+    const b64 = response.data?.[0]?.b64_json;
+    if (b64) return `data:image/png;base64,${b64}`;
     return response.data?.[0]?.url || null;
   } catch (error) {
     console.error('Error generating social image:', error);
     return null;
   }
 }
-
