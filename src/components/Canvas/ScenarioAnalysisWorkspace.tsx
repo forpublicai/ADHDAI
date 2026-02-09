@@ -604,7 +604,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     for (const scenario of oneYearScenarios) {
       createWorkItem('the-cell', 'scenario',
-        `⚡ 1-YEAR THREAT:\n"${scenario.title}"\n\n${scenario.description.slice(0, 100)}...`,
+        `⚡ 1-YEAR THREAT:\n"${scenario.title}"\n\n${scenario.description}`,
         { x: TIMELINE_ZONES['1-year'].x + Math.random() * 50, y: TIMELINE_ZONES['1-year'].y + 20 }, 
         2, true, '1-year', scenario
       );
@@ -626,7 +626,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     for (const scenario of fiveYearScenarios) {
       createWorkItem('burl', 'scenario',
-        `📅 5-YEAR RISK:\n"${scenario.title}"\n\n${scenario.description.slice(0, 100)}...`,
+        `📅 5-YEAR RISK:\n"${scenario.title}"\n\n${scenario.description}`,
         { x: TIMELINE_ZONES['5-year'].x + Math.random() * 50, y: TIMELINE_ZONES['5-year'].y + 20 },
         2, true, '5-year', scenario
       );
@@ -654,11 +654,11 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     for (const scenario of tenYearScenarios) {
       createWorkItem('nadya', 'scenario',
-        `🔮 10-YEAR PROJECTION:\n"${scenario.title}"\n\n${scenario.description.slice(0, 100)}...`,
+        `🔮 10-YEAR PROJECTION:\n"${scenario.title}"\n\n${scenario.description}`,
         { x: TIMELINE_ZONES['10-year'].x + Math.random() * 50, y: TIMELINE_ZONES['10-year'].y + 20 },
         3, true, '10-year', scenario
       );
-      addChatMessage('nadya', `⏱ SCENARIO: "${scenario.title.slice(0, 50)}..."`);
+      addChatMessage('nadya', `⏱ SCENARIO: "${scenario.title}"`);
       await delayOrSkip(1500);
     }
     
@@ -676,11 +676,11 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     for (const scenario of fiftyYearScenarios) {
       createWorkItem('delmore', 'scenario',
-        `🌌 50-YEAR VISION:\n"${scenario.title}"\n\n${scenario.description.slice(0, 100)}...`,
+        `🌌 50-YEAR VISION:\n"${scenario.title}"\n\n${scenario.description}`,
         { x: TIMELINE_ZONES['50-year'].x + Math.random() * 50, y: TIMELINE_ZONES['50-year'].y + 20 },
         3, true, '50-year', scenario
       );
-      addChatMessage('delmore', `*transcribing* "${scenario.title.slice(0, 40)}..."`);
+      addChatMessage('delmore', `*transcribing* "${scenario.title}"`);
       await delayOrSkip(1500);
     }
     

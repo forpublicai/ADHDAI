@@ -609,7 +609,7 @@ export function formatApologyCampaignsAsHTML(
                           <span class="deliverable-format">${campaign.deliverables.socialPosts[0].type}</span>
                         </div>
                         <div class="deliverable-preview">
-                          <div class="deliverable-body">${campaign.deliverables.socialPosts[0].copy.slice(0, 150)}${campaign.deliverables.socialPosts[0].copy.length > 150 ? '...' : ''}</div>
+                          <div class="deliverable-body">${campaign.deliverables.socialPosts[0].copy}</div>
                         </div>
                       </div>
                     ` : ''}

@@ -333,7 +333,7 @@ function generateFallbackDeliverables(
         },
         {
           format: 'Digital Banner — 728x90',
-          headline: headline.length > 50 ? headline.substring(0, 47) + '...' : headline,
+          headline: headline,
           body: tagline,
           visual: `Paper texture background. ${info.product} silhouette. Monospace headline. No animation.`,
           placement: 'Premium editorial sites'
@@ -958,7 +958,7 @@ export function formatDeliverablesAsHTML(
                 </div>
                 <div style="padding: 20px; background: #f0f0f0;">
                   <div class="banner-728x90" ${exec.imageUrl ? `style="background-image: url(${exec.imageUrl}); background-size: cover; background-position: center;"` : ''}>
-                    <div class="headline" ${exec.imageUrl ? 'style="background: rgba(255,255,255,0.9); padding: 4px 8px;"' : ''}>${exec.headline.substring(0, 50)}${exec.headline.length > 50 ? '...' : ''}</div>
+                    <div class="headline" ${exec.imageUrl ? 'style="background: rgba(255,255,255,0.9); padding: 4px 8px;"' : ''}>${exec.headline}</div>
                     <div class="cta">Learn More</div>
                   </div>
                 </div>
@@ -1018,7 +1018,7 @@ export function formatDeliverablesAsHTML(
       <div class="social-grid">
         ${deliverables.socialMedia.posts.slice(0, 6).map(post => {
           const platformInitial = post.platform.charAt(0).toUpperCase();
-          const shortCopy = post.copy.length > 30 ? post.copy.substring(0, 27) + '...' : post.copy;
+          const shortCopy = post.copy;
           return `
             <div class="social-post">
               <div class="platform-header">
