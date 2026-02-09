@@ -39,50 +39,50 @@ export async function analyzeDoomsdayScenarios(
   }
 
   try {
-    const prompt = `You are a risk analyst specializing in corporate catastrophe scenarios. Analyze ${company.name} (${company.industry}, ${company.sector}) and identify potential "doomsday scenarios" - events that could cause maximum damage to people, the environment, or society.
+    const prompt = `You are a world-class investigative journalist crossed with a corporate risk strategist. Your analysis has the depth of a New Yorker long-read and the precision of a McKinsey report. Analyze ${company.name} (${company.industry}, ${company.sector}) and identify potential catastrophe scenarios with the rigor and dark wit of a Michael Lewis book.
 
-COMPANY CONTEXT:
+COMPANY INTELLIGENCE:
 - Name: ${company.name}
 - Industry: ${company.industry}
 - Sector: ${company.sector}
 - Description: ${company.description}
-- Known Risk Areas: ${company.riskProfile.join(', ')}
+- Known Risk Vectors: ${company.riskProfile.join(', ')}
 
-Generate scenarios for FOUR time horizons:
-1. 1-YEAR: Imminent risks, things that could happen tomorrow
-2. 5-YEAR: Near-term emerging risks
-3. 10-YEAR: Medium-term systemic risks
-4. 50-YEAR: Long-term existential or transformative risks
+Generate scenarios across FOUR time horizons:
+1. 1-YEAR: Imminent threats — the crisis that's already forming in their supply chain, their culture, their technology debt
+2. 5-YEAR: Emerging risks — the trend they're ignoring, the regulation coming, the competitor shift that changes everything
+3. 10-YEAR: Systemic exposure — climate, demographics, geopolitics, technology shifts that make their current model obsolete
+4. 50-YEAR: Existential scenarios — the future where ${company.name}'s entire reason to exist is questioned
 
-For EACH time horizon, generate 2-3 scenarios. Each scenario should be:
-- SPECIFIC to this company (not generic)
-- REALISTIC but concerning
-- FOCUSED on HARM to people/environment/society (not just financial loss to the company)
-- Slightly SATIRICAL in tone (think dark corporate humor)
+For EACH horizon, generate 2-3 scenarios. Each MUST be:
+- SPECIFIC to ${company.name} — reference their actual business model, their actual products, their actual supply chains. Not interchangeable with any other company.
+- ROOTED IN REALITY — based on actual industry trends, real precedents, genuine risk factors. The best scenarios feel like they could be next week's headline.
+- FOCUSED ON HUMAN HARM — not abstract "market risk" but specific communities, employees, ecosystems, populations affected.
+- WRITTEN WITH WIT — the titles should read like New York Post headlines or Onion articles that are TOO real. Dark humor that makes you laugh uncomfortably because it's plausible.
 
-Return JSON array with this exact structure:
-[
-  {
-    "timeHorizon": "1-year" | "5-year" | "10-year" | "50-year",
-    "title": "Short punchy title (like a news headline)",
-    "description": "2-3 sentence description of what happens",
-    "category": "environmental" | "social" | "financial" | "technological" | "regulatory" | "reputational" | "operational" | "geopolitical",
-    "severity": "catastrophic" | "severe" | "moderate" | "concerning",
-    "likelihood": number (0-100),
-    "potentialDamage": "What gets damaged/destroyed",
-    "affectedParties": ["List", "of", "affected", "groups"],
-    "precedents": ["Similar past events if any"]
-  }
-]
-
-Be creative, specific, and slightly dark. Think corporate accountability satire.`;
+Return JSON object with "scenarios" array:
+{
+  "scenarios": [
+    {
+      "timeHorizon": "1-year" | "5-year" | "10-year" | "50-year",
+      "title": "A headline that would trend on Twitter — specific, punchy, darkly funny, unmistakably about ${company.name}",
+      "description": "3-4 sentences with specific detail. Name actual products, regions, or operations. Reference real industry dynamics. Make the reader think 'this could actually happen.'",
+      "category": "environmental" | "social" | "financial" | "technological" | "regulatory" | "reputational" | "operational" | "geopolitical",
+      "severity": "catastrophic" | "severe" | "moderate" | "concerning",
+      "likelihood": number (0-100),
+      "potentialDamage": "Specific, quantified where possible — not 'widespread damage' but 'contamination of X affecting Y communities'",
+      "affectedParties": ["Specific groups — not just 'customers' but 'rural communities dependent on...' or 'gig workers in...'"],
+      "precedents": ["Real historical parallels — specific company names, years, outcomes"]
+    }
+  ]
+}`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are a sardonic risk analyst who identifies corporate catastrophe scenarios with dry wit. You're writing for a satirical project about preemptive corporate apologies. Be specific to the company, slightly dark, and focus on harm to stakeholders rather than just financial loss. Output ONLY valid JSON array.`
+          content: `You are the offspring of Michael Lewis's investigative rigor and The Onion's dark precision. Your risk assessments read like the opening chapters of "The Big Short" — specific, character-driven, and uncomfortably prophetic. You write for a satirical project about preemptive corporate apologies, but your scenarios are grounded in real industry knowledge. Every scenario must be specific enough to ${company.name} that it couldn't be about any other company. Reference their actual products, operations, market position, and cultural footprint. Your humor is dry, your analysis is sharp, and your precedents are real. Output ONLY valid JSON object with "scenarios" array.`
         },
         {
           role: 'user',
@@ -91,7 +91,7 @@ Be creative, specific, and slightly dark. Think corporate accountability satire.
       ],
       temperature: 0.9,
       response_format: { type: 'json_object' },
-      max_tokens: 4000
+      max_tokens: 6000
     });
 
     const response = completion.choices[0]?.message?.content?.trim() || '';
@@ -160,7 +160,7 @@ async function generateAnalysisSummary(
       .join('\n');
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',

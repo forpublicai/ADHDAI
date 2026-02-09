@@ -46,17 +46,17 @@ export async function generateAdImage(
   
   switch (style) {
     case 'hero':
-      prompt = `Professional advertising photography of ${imageContext}. The ${product} is the clear hero of the image, shown in its full glory. ${category} product photography. Clean, minimalist composition on a neutral background. Studio lighting, high-end commercial quality. Documentary style, authentic feel. No text, no logos, no watermarks. Muted, desaturated colors with subtle warmth.`;
+      prompt = `Award-winning advertising photography. Hero shot of ${imageContext}. The ${product} is the absolute center of attention — shot with a medium-format camera (Hasselblad or Phase One quality). ${category} product photography at the level of a Pentagram or Landor brand campaign. Clean, considered composition with intentional negative space. Soft directional studio lighting with subtle fill — the quality of light you see in Condé Nast publications. Muted, sophisticated color palette: warm neutrals, desaturated tones, nothing garish. The image feels expensive and restrained. Shallow depth of field draws the eye. No text, no logos, no watermarks, no human faces. This should look like it belongs in a Wallpaper* magazine spread.`;
       break;
     case 'product':
-      prompt = `Editorial product photography featuring ${imageContext}. The ${product} photographed from overhead on textured paper background. Natural daylight, soft shadows. Documentary aesthetic like a form or document. Show the ${product} in detail. Minimal styling, honest presentation. No text, no logos, no watermarks.`;
+      prompt = `Editorial product photography for a premium brand campaign. Subject: ${imageContext}. The ${product} photographed from a carefully considered overhead angle on textured linen or kraft paper. Natural window light with long soft shadows — the golden-hour quality of a David Pearce or Carl Kleiner still life. Every detail of the ${product} visible. Styling is minimal and intentional — nothing extraneous in frame. The composition has the precision of a Pentagram identity system photo. Slightly warm, analog film quality. No text, no logos, no watermarks. This should feel like archival documentation elevated to fine art.`;
       break;
     case 'lifestyle':
-      prompt = `Documentary-style lifestyle photography showing hands using ${imageContext}. A real person interacting with their ${product} in a natural ${category} context. Authentic moment. Natural lighting, slightly desaturated colors. Film photography aesthetic. No faces visible, focus on the action and the ${product}. No text, no logos, no watermarks.`;
+      prompt = `Documentary-style lifestyle photography for an award-winning ${category} brand campaign. Subject: hands interacting with ${imageContext}. Shot on 35mm film (Kodak Portra aesthetic) with natural available light. The ${product} is the emotional center of the frame. Authentic human moment — not posed, captured. Think Rinko Kawauchi meets commercial photography. Slightly desaturated, warm, intimate. No faces visible — the hands and the ${product} tell the story. Shallow depth of field, bokeh in background. Environmental context suggests a real home, real life. No text, no logos, no watermarks. The kind of photograph that makes you feel something before you understand what you're looking at.`;
       break;
     case 'documentary':
     default:
-      prompt = `Documentary photography of ${imageContext}. The ${product} shot like evidence photography or archival documentation. ${category} context. Neutral background, natural lighting. Honest, unglamorous presentation of the ${product}. Slightly faded, bureaucratic aesthetic. No text, no logos, no watermarks.`;
+      prompt = `Archival documentary photography of ${imageContext}. The ${product} photographed with the clinical precision of evidence photography or museum documentation. ${category} context. Shot on a neutral gray or cream background with flat, even lighting — no drama, just truth. The aesthetic of a government form made visual: honest, unglamorous, institutional. Think Walker Evans or Bernd and Hilla Becher — typological, systematic, revealing. Slightly faded warmth, as if the photograph has been in a filing cabinet. Medium format quality, extreme detail. No text, no logos, no watermarks. The image should feel more like a record than an advertisement.`;
       break;
   }
 
@@ -71,7 +71,7 @@ export async function generateAdImage(
       prompt: prompt,
       n: 1,
       size: '1024x1024',
-      quality: 'standard',
+      quality: 'hd',
       style: 'natural'
     });
 
@@ -149,15 +149,15 @@ export async function generateStoryboardFrame(
     .replace(/\([^)]+\)/g, '') // Remove parentheticals
     .trim();
 
-  const prompt = `Film still from a ${category} commercial, frame ${frameNumber}. ${cleanDescription}. Feature the ${product} prominently in this scene. Cinematic composition, 16:9 aspect ratio feel. Documentary style, natural lighting, muted colors. Professional advertising production quality. No text overlays, no watermarks.`;
+  const prompt = `Cinematic film still from an award-winning ${category} commercial directed by Spike Jonze or Hiro Murai. Frame ${frameNumber} of the sequence. ${cleanDescription}. The ${product} is featured prominently in this scene. Shot on Arri Alexa with Cooke anamorphic lenses — the widescreen composition has the quality of a Sundance short film. Natural available light with subtle shaped fill. Muted, desaturated color grade (think Kodak 5219 film stock). Every element in frame is intentional — nothing extraneous. The image tells a story even in a single frame. Professional advertising production at Cannes Lions Film Grand Prix level. No text overlays, no watermarks, no logos.`;
 
   try {
     const response = await openai.images.generate({
       model: 'dall-e-3',
       prompt: prompt,
       n: 1,
-      size: '1792x1024', // Wider for video frames
-      quality: 'standard',
+      size: '1792x1024',
+      quality: 'hd',
       style: 'natural'
     });
 
@@ -197,7 +197,7 @@ export async function generateSocialImage(
     sizeHint = 'horizontal composition, 16:9 feel';
   }
 
-  const prompt = `Social media photography for ${platform}. Subject: ${imageContext}. The ${product} is clearly featured as the main subject. ${category} lifestyle context. ${sizeHint}. Documentary aesthetic, authentic feel. Natural lighting, muted colors. Not overly polished or commercial. Real, honest, slightly melancholic. No text, no logos, no watermarks.`;
+  const prompt = `Premium social media campaign photography optimized for ${platform}. Subject: ${imageContext}. The ${product} is the clear visual hero. ${category} context with lifestyle authenticity. ${sizeHint}. Shot in the style of a Wieden+Kennedy or Droga5 social campaign — native to the platform but elevated above typical branded content. Natural light, documentary authenticity, but with the compositional precision of editorial photography. Muted, sophisticated color palette — warm neutrals and desaturated tones. The kind of image that stops someone mid-scroll because it feels REAL, not because it's loud. Film photography aesthetic (Kodak Portra 400). No text, no logos, no watermarks. This should be the most beautiful thing in someone's feed today.`;
 
   try {
     const response = await openai.images.generate({
@@ -205,7 +205,7 @@ export async function generateSocialImage(
       prompt: prompt,
       n: 1,
       size: aspectRatio as '1024x1024' | '1792x1024',
-      quality: 'standard',
+      quality: 'hd',
       style: 'natural'
     });
 

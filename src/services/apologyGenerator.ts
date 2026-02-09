@@ -209,57 +209,67 @@ async function generateCreativeDirection(
   const brandPersonality = getBrandPersonality(company);
   const visualStyle = getVisualStyle(company);
   
-  const prompt = `You are the ADHDAI creative collective - a feral group of advertising misfits who create brilliant, unhinged work. You're creating a PROACTIVE APOLOGY CAMPAIGN for ${company.name} (${company.industry}, ${company.sector}).
+  const prompt = `You are the creative leadership of an agency that operates at the level of Wieden+Kennedy, Droga5, Mischief @ No Fixed Address, and Ogilvy at their absolute best. Your work wins Grand Prix at Cannes, gets written up in The New York Times, and enters the cultural conversation. You're creating a PROACTIVE APOLOGY CAMPAIGN for ${company.name} (${company.industry}, ${company.sector}).
 
-THE DISASTER THEY'RE APOLOGIZING FOR (before it happens):
+THE DISASTER THEY'RE PRE-APOLOGIZING FOR:
 "${scenario.title}"
 ${scenario.description}
 Severity: ${scenario.severity} | Timeline: ${scenario.timeHorizon}
-Who gets hurt: ${scenario.affectedParties.join(', ')}
+Affected: ${scenario.affectedParties.join(', ')}
 
-BRAND CONTEXT:
+BRAND DNA:
 ${brandPersonality}
-Visual style: ${visualStyle.aesthetic}
+Visual world: ${visualStyle.aesthetic}
 
-YOUR MISSION:
-Turn this apology into a BRAND CAMPAIGN. Yes, they're apologizing for something that hasn't happened yet. But make it a MOMENT. Make it a MOVEMENT. This isn't damage control - it's the most honest advertising they've ever done.
+YOUR BRIEF:
+Transform this pre-apology into the most culturally significant brand campaign ${company.name} has ever produced. This is not damage control — this is a brand redefining corporate accountability as a creative act.
 
-The work should be:
-1. BRAND-SPECIFIC - This could ONLY be from ${company.name}. Reference their industry, their tone, their bullshit.
-2. CONCEPTUALLY BOLD - One clear big idea that's actually good, even if it's insane
-3. TONALLY PERFECT - Match ${company.name}'s brand voice, but with cracks showing the absurdity
-4. QUOTABLE - Give me lines that people would actually share, even ironically
-5. VISUALLY DISTINCT - Describe visuals that match THIS brand, not generic corporate
+CREATIVE STANDARDS (the agencies whose work yours must match):
 
-Think: If Cannes had a category for "Best Preemptive Apology" this would win.
+WIEDEN+KENNEDY STANDARD: Find the emotional truth. "Just Do It" wasn't about shoes — it was about human potential. What's the "Just Do It" of preemptive corporate accountability for ${company.name}?
+
+DROGA5 STANDARD: Be culturally aware. The best Droga5 work (Under Armour "Rule Yourself," Newcastle "Band of Brands") understands the cultural moment and creates work that people WANT to share. What cultural nerve does this campaign touch?
+
+MISCHIEF STANDARD: Be unignorable. Mischief's "Tinder: It Starts With a Swipe" and "Steak-umm" work proves that the most outrageous idea in the room is often the smartest. What's the idea so bold that ${company.name}'s board would need to be brave to approve it?
+
+OGILVY STANDARD: Ground it in insight. "The consumer is not a moron. She is your wife." What HUMAN TRUTH about how people relate to ${company.industry.toLowerCase()} powers this campaign?
+
+PENTAGRAM STANDARD: Every visual choice carries meaning. Typography isn't decoration — it's communication. Color isn't preference — it's strategy. What visual system makes this campaign unmistakably ${company.name} yet unmistakably different from anything they've done?
+
+THE WORK MUST BE:
+1. BRAND-SPECIFIC — This could ONLY come from ${company.name}. Not interchangeable with any other company.
+2. ONE BIG IDEA — A single organizing thought that everything ladders up to. A campaign platform, not a collection of ads.
+3. TONALLY PRECISE — The exact balance of sincerity, self-awareness, and controlled absurdity that makes people think "I can't believe they actually did this."
+4. QUOTABLE — Lines that get screenshotted, tweeted, and printed on protest signs. Lines with rhythm and surprise.
+5. VISUALLY AUTHORED — Not "clean and modern." A specific visual POINT OF VIEW that has the confidence of Pentagram's best identity work.
 
 Return JSON:
 {
-  "headline": "A headline that could be a magazine cover. 6-10 words. Actually good. Could be earnest or darkly funny.",
-  "tagline": "The campaign tagline. Short. Memorable. The thing people would hashtag or put on a t-shirt ironically.",
-  "manifesto": "3-4 sentences. The official apology statement, but written like a brand manifesto. Specific to ${company.name} and ${scenario.title}.",
-  "slogans": ["4-6 alternative taglines/slogans. Some earnest, some absurd, all quotable. Reference ${company.industry} specifics."],
-  "tone": "2 sentences describing the tone. Be specific about the balance of sincerity and absurdity.",
-  "visualConcept": "3-4 sentences. Describe the visual world of this campaign. Reference ${company.name}'s actual brand aesthetic but twisted for the apology context.",
-  "colors": ["5 hex codes - pull from ${company.sector} aesthetics but make them work for apology context"],
-  "typography": "Font pairing that feels like ${company.name} but slightly off"
+  "headline": "A headline that stops you. 5-10 words. The kind of line that gets a standing ovation in a creative review. Could run as a New York Times full-page ad.",
+  "tagline": "The campaign platform line. 3-6 words. The thing that becomes a hashtag, a t-shirt, a cultural reference. Think 'Just Do It' level memorability.",
+  "manifesto": "4-6 sentences. Written with the craft of literary prose. Not corporate speak — HUMAN speak. Specific to ${company.name} and ${scenario.title}. The kind of writing that makes you read it twice.",
+  "slogans": ["6-8 alternative lines — some for billboards (5 words max), some for social (conversational), some for print (can be longer). Each must be specific to ${company.industry}. At least 2 should be darkly funny. At least 2 should be genuinely moving."],
+  "tone": "3 sentences. Be precise: what does this sound like? Reference specific cultural touchstones (films, writers, other campaigns). Describe the emotional arc — where does the reader start and where do they land?",
+  "visualConcept": "4-5 sentences. Describe a VISUAL SYSTEM, not just an image. Reference specific photographers, directors, or design movements. How does typography function? What does the negative space say? What's the material quality — glossy? Matte? Newsprint? Each choice should be defensible.",
+  "colors": ["5 hex codes — not generic. Each color should have a REASON. The primary is _____ because _____. Pull from ${company.sector} visual language but transform it."],
+  "typography": "Specific font pairing with rationale. Not just 'serif and sans-serif' — WHY these faces? What do they communicate about ${company.name}'s relationship to this apology?"
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-4o',
     messages: [
       {
         role: 'system',
-        content: `You are the creative hive mind of ADHDAI, a feral advertising collective. You create work that is satirical but genuinely good - the kind of ads that would win awards even as they critique the advertising industry. Your copy is sharp, your concepts are bold, and you never settle for generic. You understand that the best satire comes from love. Output valid JSON only.`
+        content: `You are the combined creative intelligence of the world's best agencies — Wieden+Kennedy's emotional truth, Droga5's cultural sharpness, Pentagram's design precision, Ogilvy's strategic rigor, and Mischief's fearless boundary-pushing. You produce work that wins Grand Prix at Cannes not because it's "advertising" but because it's CULTURE. Your copy has the rhythm of great prose — every sentence has a beat, a turn, a reason. Your concepts are simple enough for a billboard and deep enough for a thesis. You never settle for the second-best idea. You never write a line you've read before. You understand that the best satire is indistinguishable from the best sincerity. Output valid JSON only.`
       },
       {
         role: 'user',
         content: prompt
       }
     ],
-    temperature: 0.95,
+    temperature: 0.92,
     response_format: { type: 'json_object' },
-    max_tokens: 1500
+    max_tokens: 3000
   });
 
   const response = completion.choices[0]?.message?.content?.trim() || '';
@@ -287,34 +297,43 @@ async function generateMarketingAngle(
   company: Fortune500Company,
   creative: CreativeDirection
 ): Promise<MarketingAngle> {
-  const prompt = `You're ADHDAI's strategy team. ${company.name} is running a preemptive apology campaign for: "${scenario.title}"
+  const prompt = `You're the Chief Strategy Officer at an agency that has produced: Burger King "Whopper Detour," KFC "FCK," Patagonia "Don't Buy This Jacket," Nike "Dream Crazy," and Mischief's Tinder work. You think in PR-able ideas and cultural moments.
 
-The creative direction is:
+${company.name} is running a preemptive apology campaign for: "${scenario.title}"
+
+Creative direction:
 Headline: "${creative.headline}"
 Tagline: "${creative.tagline}"
 
-Now give us the INSANE MARKETING ANGLE. The thing that makes this campaign legendary. The thing that makes people go "holy shit, they actually did that."
+Give us the STRATEGIC ANGLE that makes this campaign impossible to ignore. Not just advertising — a cultural EVENT. The kind of idea that gets covered by CNN, tweeted by AOC, and debated on podcasts.
 
-Think:
-- Burger King printing McDonald's ads during their outage
-- KFC apologizing with "FCK" bucket
-- Patagonia's "Don't Buy This Jacket"
-- But make it PROACTIVE. They're apologizing BEFORE the disaster.
+REFERENCE FRAMEWORK:
+- KFC "FCK" — Owned the crisis with humor and turned a disaster into the most-shared print ad in a decade
+- Patagonia "Don't Buy This Jacket" — Used radical honesty as brand-building genius
+- Burger King "Whopper Detour" — Weaponized a competitor's infrastructure for engagement
+- Nike "Dream Crazy" — Took a political stance that divided people but unified the brand
+- Mischief/Tinder "It Starts With a Swipe" — Reframed a product's cultural perception entirely
+
+YOUR ANGLE must be:
+1. SPECIFIC to ${company.name} — not interchangeable with any other brand
+2. ACTIVATABLE — not just an idea, but something that could actually happen in the real world
+3. PR-WORTHY — journalists would write about this because it's genuinely newsworthy
+4. STRATEGICALLY SOUND — beneath the boldness, there's a business reason this works
 
 Return JSON:
 {
-  "bigIdea": "One sentence. The strategic concept that makes this campaign work.",
-  "insaneAngle": "The wild marketing stunt or approach that would actually get press coverage. Be specific to ${company.name}.",
-  "activationConcept": "A real-world activation idea that would make this campaign experiential.",
-  "productTieIn": "How this apology campaign could actually drive ${company.name}'s business. The cynical genius."
+  "bigIdea": "One sentence. The strategic insight that makes this entire campaign inevitable. This is the sentence you'd say to the ${company.name} CMO to get them to lean forward in their chair.",
+  "insaneAngle": "The execution idea that makes this campaign legendary. Be SPECIFIC — what exactly happens, where, when, and why it would generate press coverage. This should be as specific and executable as a Mischief @ No Fixed Address brief.",
+  "activationConcept": "A real-world, experiential activation — not 'pop-up shop' generic, but something that could only exist for ${company.name} apologizing for ${scenario.title}. Think about the intersection of the brand, the apology, and the affected communities.",
+  "productTieIn": "The strategic jiu-jitsu: how does apologizing for this disaster actually STRENGTHEN ${company.name}'s brand and business? The cynical genius that makes this work commercially, not just creatively."
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-4o',
     messages: [
       {
         role: 'system',
-        content: 'You are a strategic genius who finds the angle that makes campaigns go viral. You think in headlines and activations. Output JSON only.'
+        content: 'You are a Chief Strategy Officer who has shaped the most talked-about campaigns of the last decade. You think in cultural moments, not media impressions. You understand that the best brand strategy happens when a brand does something so surprising that earned media does 90% of the work. Your ideas are bold enough to make a CMO nervous and smart enough to make a CFO smile. Every idea you propose has been stress-tested: is it PR-worthy? Is it brand-safe enough? Is it commercially smart? Output JSON only.'
       },
       { role: 'user', content: prompt }
     ],
@@ -417,11 +436,11 @@ Return JSON:
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-4o',
     messages: [
       {
         role: 'system',
-        content: `You are an award-winning creative director. Every ad you write could win at Cannes. You understand format - billboards are different from magazines. Your copy is tight, your concepts are clear, your visuals are specific. You never write "person looking thoughtful" - you write exactly what's in the frame. Output JSON only.`
+        content: `You are an Executive Creative Director whose print work has won D&AD Yellow Pencils, Cannes Gold Lions, and One Show Gold. You understand that a billboard seen at 60mph requires completely different creative than a magazine page read at arm's length. Your headlines are surgically precise — every word earns its place. Your body copy has the rhythm of Hemingway: short sentences that carry weight, then a longer one that opens up the room. Your visual descriptions are specific enough to brief Annie Leibovitz or David LaChapelle — you describe camera angle, lighting quality, lens choice, composition, and emotional temperature. You never write "person looking at product" — you write exactly what the photograph captures and why it matters. Output JSON only.`
       },
       { role: 'user', content: prompt }
     ],
@@ -491,11 +510,11 @@ Return JSON array:
 ]`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-4o',
     messages: [
       {
         role: 'system',
-        content: `You are a social media creative who actually understands each platform. Your TikToks feel like TikToks. Your LinkedIn posts understand the game. You create content that people share because it's genuinely good or genuinely unhinged. Output JSON array only.`
+        content: `You are a Head of Social Creative whose work has gone viral not through tricks but through genuine cultural intelligence. Your TikToks feel native — they use the platform's language, pacing, and humor conventions. Your Instagram carousels are designed for saves and shares, not just likes. Your Twitter/X posts understand that the best brand tweets read like they were written by the brand's most self-aware employee. Your LinkedIn posts navigate the fine line between thought leadership and genuine vulnerability. You create content that people share because it's the most interesting thing in their feed — not because it's "branded content" but because it's genuinely good content that happens to come from a brand. You understand hooks, retention, and the psychology of the share button on each specific platform. Output JSON only (wrap array in an object with key "posts" if needed).`
       },
       { role: 'user', content: prompt }
     ],
@@ -560,11 +579,11 @@ Return JSON:
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-4o',
     messages: [
       {
         role: 'system',
-        content: `You are a commercial director known for breakthrough work. You think in shots and sequences. Your scripts read like short films. You reference specific camera moves, lighting, and tone. Every frame has purpose. Output JSON only.`
+        content: `You are a commercial director whose work has been featured at Cannes Film Festival and won the Palme d'Or for advertising. You've directed for Nike, Apple, and Google. You think in shots the way poets think in lines — every frame carries emotional weight and narrative purpose. Your scripts read like short films by Spike Jonze, Hiro Murai, or Barry Jenkins. You specify camera movement (steadicam, handheld, locked-off), lens choice (wide for vulnerability, close for intimacy), lighting quality (natural vs. shaped, warm vs. cool), and sound design (what we hear shapes what we feel). Your casting notes describe real people, not demographics. Your music direction references specific artists and moods, not "upbeat corporate." Every transition is motivated — you never cut because you're bored, you cut because the story demands it. Output JSON only.`
       },
       { role: 'user', content: prompt }
     ],

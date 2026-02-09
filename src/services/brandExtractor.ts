@@ -40,44 +40,43 @@ export async function extractBrandInfo(brief: string): Promise<BrandInfo> {
   }
 
   try {
-    const prompt = `Analyze this advertising brief and extract brand information:
+    const prompt = `You are a senior brand strategist at Landor or Pentagram. Analyze this brief and extract comprehensive brand intelligence:
 
 Brief: "${brief}"
 
-Extract:
-1. Client/Brand name (if mentioned or can be inferred)
-2. Brand colors (primary color, secondary if mentioned, accent if mentioned)
-3. Brand fonts (if mentioned, otherwise infer based on brand personality)
-4. Brand tone (playful, serious, luxury, accessible, etc.)
-5. Brand style (minimalist, bold, classic, modern, etc.)
-6. Any brand guidelines or aesthetic notes
+Extract with the precision of a Pentagram brand audit:
+1. Client/Brand name (if mentioned or inferable from context)
+2. Brand colors — if it's a known brand (Coca-Cola, Apple, Nike, etc.), use their ACTUAL brand colors from their official guidelines. If unknown, infer sophisticated colors that match their industry and positioning. No generic blues.
+3. Brand fonts — if known brand, use their actual typography. If unknown, recommend Google Fonts that match their personality (e.g., luxury → Playfair Display; tech → Inter; heritage → Source Serif 4; modern → DM Sans)
+4. Brand tone — be specific and nuanced. Not just "professional" but "confident without being corporate, warm without being casual — the tone of a CEO who actually cares"
+5. Brand style — reference actual design movements or agencies. Not just "modern" but "Pentagram-influenced minimalism" or "Droga5-style cultural intelligence"
+6. Brand guidelines — any aesthetic implications from the brief
 
-Return ONLY valid JSON in this exact structure:
+Return ONLY valid JSON:
 {
-  "clientName": "Brand Name or 'Unknown'",
+  "clientName": "Brand Name or 'The Client'",
   "brandColors": {
-    "primary": "#hexcode",
-    "secondary": "#hexcode or null",
-    "accent": "#hexcode or null"
+    "primary": "#hexcode — the dominant brand color",
+    "secondary": "#hexcode or null — supporting color",
+    "accent": "#hexcode or null — accent/CTA color"
   },
   "brandFonts": {
-    "heading": "Font name or null",
-    "body": "Font name or null"
+    "heading": "Specific Google Font name or null",
+    "body": "Specific Google Font name or null"
   },
-  "brandTone": "tone description",
-  "brandStyle": "style description",
-  "brandGuidelines": "any additional notes or null"
+  "brandTone": "Nuanced tone description — at least one sentence with a specific analogy",
+  "brandStyle": "Specific style description referencing real design approaches",
+  "brandGuidelines": "Additional notes or null"
 }
 
-If brand colors aren't mentioned, infer them based on the brand name (e.g., Coca Cola = #F40009 red, Apple = #000000 black, etc.). If you can't infer, use null.
-If brand fonts aren't mentioned, infer based on brand personality (e.g., tech brands often use sans-serif, luxury brands use serif, etc.).`;
+For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make sophisticated inferences based on industry, positioning, and competitive landscape.`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: 'You are a brand analyst. Extract brand information from briefs. Return ONLY valid JSON, no markdown, no explanations.'
+          content: 'You are a senior brand strategist at Pentagram or Landor. You have encyclopedic knowledge of Fortune 500 brand guidelines, color systems, and typography. When you see "Coca-Cola" you know it\'s #F40009. When you see "Apple" you know it\'s SF Pro Display. For unknown brands, you infer with the sophistication of someone who has designed 200+ brand identity systems. Return ONLY valid JSON.'
         },
         {
           role: 'user',

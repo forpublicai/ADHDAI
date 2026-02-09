@@ -109,76 +109,94 @@ export async function generateCampaignDeliverables(
   }
 
   try {
-    const prompt = `You are a senior creative director at a prestigious advertising agency. Generate campaign deliverables for:
+    const prompt = `You are the Executive Creative Director at a world-class agency on par with Wieden+Kennedy, Droga5, and Pentagram. You've won Cannes Grand Prix, D&AD Black Pencils, and One Show Best of Show. Your work doesn't just sell — it enters culture.
 
 BRIEF: "${brief}"
 BRAND: ${brandInfo?.clientName || briefInfo.brand}
 PRODUCT: ${briefInfo.product}
 CATEGORY: ${briefInfo.category}
 
-EXISTING AD COMPONENTS (use these as the foundation):
-- Headline: ${adComponents.headline || 'Generate one'}
-- Body: ${adComponents.body || 'Generate one'}
-- Tagline: ${adComponents.tagline || 'Generate one'}
+EXISTING CAMPAIGN FOUNDATION:
+- Headline: ${adComponents.headline || 'Generate one that stops people mid-scroll'}
+- Body: ${adComponents.body || 'Generate body copy with rhythm, wit, and emotional truth'}
+- Tagline: ${adComponents.tagline || 'Generate a tagline people would put on a t-shirt'}
 
-BRAND STYLE:
+BRAND IDENTITY:
 ${brandInfo ? `
 - Colors: Primary: ${brandInfo.brandColors.primary || '#000'}, Secondary: ${brandInfo.brandColors.secondary || '#666'}, Accent: ${brandInfo.brandColors.accent || '#c00'}
 - Tone: ${brandInfo.brandTone}
 - Style: ${brandInfo.brandStyle}
-` : 'Use documentary/bureaucratic aesthetic with muted colors'}
+` : 'Use restrained, confident visual language — think Pentagram identity meets Wieden+Kennedy storytelling'}
 
-Generate SPECIFIC, CREATIVE deliverables that:
-1. Directly address the product/brand in the brief
-2. Use original headlines and copy (NEVER echo the brief text)
-3. Include specific visual directions relevant to the product
-4. Sound like real advertising, not descriptions
+YOUR CREATIVE MANDATE:
 
-CRITICAL: All copy must be ORIGINAL and SPECIFIC to this product/brand. Never use generic phrases or repeat the brief.
+Think like the best agencies in the world:
+- WIEDEN+KENNEDY: Emotionally resonant, culturally aware, unexpected. "Just Do It" energy — where the tagline IS the strategy.
+- DROGA5: Smart, culturally plugged-in, with a twist that makes people lean in. Work that's both entertaining and strategically brilliant.
+- PENTAGRAM: Typographic mastery, conceptual clarity, design as meaning. Every element earns its place.
+- OGILVY: Research-driven insight turned into a Big Idea. "The consumer is not a moron. She is your wife."
+- MISCHIEF: Boundary-pushing, conversation-starting, PR-able ideas that blur advertising and culture.
+- LANDOR: Brand systems thinking — where every touchpoint reinforces the same powerful idea.
+
+CREATIVE STANDARDS:
+1. ONE BIG IDEA that unifies everything — a campaign platform, not just ads
+2. HEADLINES that could be magazine covers. Short. Unexpected. Earn every word.
+3. BODY COPY with rhythm and craft — read it aloud, it should sound like good writing, not marketing
+4. VIDEO that tells a story with cinematic ambition — reference real directors, real films, real moods
+5. SOCIAL that's native to each platform — TikTok copy is NOT Instagram copy is NOT LinkedIn
+6. VISUAL DIRECTION that's specific enough to brief a photographer: lens, lighting, composition, mood
+7. EVERY EXECUTION must ladder up to the Big Idea while being format-appropriate
+
+CRITICAL RULES:
+- The raw brief text "${brief}" must NEVER appear verbatim in any copy
+- No clichés. No "in a world where..." No "it's not just a product, it's a..."
+- Every headline must pass the "Would Wieden+Kennedy present this?" test
+- Copy should have the confidence of a brand that doesn't need to shout
+- Visual descriptions should be specific enough to hand to Annie Leibovitz or Hiro Murai
 
 Return JSON with this exact structure:
 {
   "video": {
-    "title": "Specific campaign name",
-    "duration": "30 seconds",
-    "format": "16:9",
+    "title": "Campaign film title — evocative, not descriptive",
+    "duration": "60 seconds",
+    "format": "16:9 | Cinematic",
     "script": [
-      {"shot": "1", "duration": "3s", "visual": "Specific visual description", "audio": "Specific audio/VO", "onScreenText": "Text if any"}
+      {"shot": "1", "duration": "3s", "visual": "SPECIFIC direction: camera move, lens, lighting, subject, setting, mood reference", "audio": "VO/music/SFX — be specific about tone and delivery", "onScreenText": "Supers if any — use restraint"}
     ],
-    "notes": "Production notes"
+    "notes": "Director's notes: tone references, music direction, casting notes, production approach"
   },
   "campaign": {
-    "campaignName": "Campaign name",
-    "overview": "2-3 sentence strategy",
+    "campaignName": "The Big Idea platform name — something a strategist would rally around",
+    "overview": "3-4 sentence strategic narrative: insight → tension → resolution → why this campaign exists in culture",
     "executions": [
-      {"format": "Print/Digital/OOH", "headline": "Specific headline", "body": "Body copy", "visual": "Visual description", "placement": "Media placement"}
+      {"format": "Print/Digital/OOH — be specific about the format", "headline": "Format-appropriate headline (billboard = 5 words, print = can be longer)", "body": "Body copy with craft — not filler", "visual": "Specific art direction brief", "placement": "Specific media placement with rationale"}
     ],
-    "mediaPlan": "Brief media strategy"
+    "mediaPlan": "Strategic media approach — not just channel list, but WHY each channel and in what sequence"
   },
   "socialMedia": {
     "platform": "Multi-platform",
-    "strategy": "Social strategy",
+    "strategy": "Platform strategy with cultural insight — why THIS content on THIS platform",
     "posts": [
-      {"platform": "Instagram/Twitter/etc", "type": "Post type", "copy": "Actual post copy", "visual": "Visual description", "hashtags": ["relevant", "hashtags"]}
+      {"platform": "Instagram/TikTok/Twitter/LinkedIn", "type": "Format type native to the platform", "copy": "ACTUAL post copy — written in the voice of the brand on that specific platform", "visual": "Specific visual/video concept", "hashtags": ["campaign-specific", "culturally-relevant"]}
     ]
   }
 }`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are a creative director generating campaign deliverables. Be SPECIFIC to the product/brand. Generate ORIGINAL copy. NEVER echo the brief text. Output ONLY valid JSON.`
+          content: `You are an Executive Creative Director who has led award-winning work at Wieden+Kennedy, Droga5, and Pentagram. Your campaigns win Cannes Lions Grand Prix and D&AD Black Pencils. You think in Big Ideas — single organizing thoughts that unify an entire campaign across every medium. Your copy has the craft of literary fiction. Your art direction has the precision of fine art. You never settle for "good enough" — every word earns its place, every visual choice carries meaning. You produce work that enters culture, not just media plans. Output ONLY valid JSON.`
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.8,
+      temperature: 0.85,
       response_format: { type: 'json_object' },
-      max_tokens: 4000
+      max_tokens: 8000
     });
 
     const response = completion.choices[0]?.message?.content?.trim() || '';
@@ -441,7 +459,7 @@ export function formatDeliverablesAsHTML(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Campaign Deliverables — ${brandName}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Serif+4:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Serif+4:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -449,82 +467,94 @@ export function formatDeliverablesAsHTML(
       --brand-primary: ${primaryColor};
       --brand-secondary: ${secondaryColor};
       --brand-accent: ${accentColor};
-      --paper: #F7F6F4;
-      --ink: #1a1a1a;
-      --faded: #999;
+      --paper: #FAFAF8;
+      --ink: #111111;
+      --ink-secondary: #444444;
+      --faded: #888888;
+      --rule: #E0E0DE;
+      --bg-warm: #F5F4F0;
     }
     
     body {
-      font-family: 'Source Serif 4', Georgia, serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--paper);
       color: var(--ink);
       line-height: 1.6;
-      padding: 40px 20px;
+      padding: 60px 24px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     
-    .container { max-width: 900px; margin: 0 auto; }
+    .container { max-width: 960px; margin: 0 auto; }
     
     .document-header {
-      border-bottom: 3px solid var(--ink);
-      padding-bottom: 20px;
-      margin-bottom: 40px;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 32px;
+      margin-bottom: 56px;
     }
     
     .document-header h1 {
-      font-family: 'Courier Prime', monospace;
-      font-size: 28px;
-      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 4px;
+      color: var(--ink);
     }
     
     .document-header .meta {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--faded);
-      margin-top: 10px;
-      font-family: 'Courier Prime', monospace;
+      margin-top: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
     }
     
     .section {
-      margin-bottom: 60px;
+      margin-bottom: 72px;
       page-break-inside: avoid;
     }
     
     .section-header {
-      font-family: 'Courier Prime', monospace;
-      font-size: 18px;
-      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 1px solid var(--ink);
-      padding-bottom: 10px;
-      margin-bottom: 30px;
+      letter-spacing: 3px;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 16px;
+      margin-bottom: 36px;
       display: flex;
       justify-content: space-between;
       align-items: baseline;
+      color: var(--ink);
     }
     
     .section-header .number {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--faded);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 400;
+      letter-spacing: 0.5px;
     }
     
-    /* VIDEO STORYBOARD - Actual visual mockups */
+    /* VIDEO STORYBOARD */
     .storyboard {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+      gap: 2px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
     }
     
     .storyboard-frame {
       background: white;
-      border: 1px solid #ddd;
       overflow: hidden;
     }
     
     .frame-visual {
       aspect-ratio: 16/9;
-      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+      background: #111;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -535,7 +565,7 @@ export function formatDeliverablesAsHTML(
     }
     
     .frame-visual.has-image {
-      background-color: #1a1a1a;
+      background-color: #111;
     }
     
     .frame-visual img {
@@ -549,120 +579,133 @@ export function formatDeliverablesAsHTML(
     
     .frame-visual .shot-number {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255,255,255,0.9);
-      color: #000;
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      padding: 2px 6px;
-      font-weight: 700;
+      top: 8px;
+      left: 8px;
+      background: rgba(255,255,255,0.95);
+      color: #111;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      padding: 3px 8px;
+      font-weight: 600;
+      letter-spacing: 1px;
     }
     
     .frame-visual .duration {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 8px;
+      right: 8px;
       background: var(--brand-accent);
       color: white;
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      padding: 2px 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      padding: 3px 8px;
+      font-weight: 500;
     }
     
     .frame-visual .on-screen-text {
       color: white;
-      font-family: 'Courier Prime', monospace;
-      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
       text-align: center;
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
     }
     
     .frame-info {
-      padding: 15px;
-      background: #fafafa;
-      border-top: 1px solid #eee;
+      padding: 16px 20px;
+      background: #fff;
     }
     
     .frame-info .visual-desc {
-      font-size: 12px;
-      color: #666;
+      font-size: 11px;
+      color: var(--ink-secondary);
       margin-bottom: 8px;
-      font-style: italic;
+      line-height: 1.5;
     }
     
     .frame-info .audio {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--ink);
+      font-weight: 500;
     }
     
     .production-notes {
-      background: #fff9e6;
-      border-left: 3px solid #e6c200;
-      padding: 15px 20px;
-      margin-top: 20px;
-      font-size: 13px;
+      background: var(--bg-warm);
+      border-left: 2px solid var(--ink);
+      padding: 20px 24px;
+      margin-top: 24px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--ink-secondary);
     }
     
-    /* CAMPAIGN EXECUTIONS - Actual ad mockups */
+    .production-notes strong {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    
+    /* CAMPAIGN EXECUTIONS */
     .executions-grid {
       display: flex;
       flex-direction: column;
-      gap: 30px;
+      gap: 32px;
     }
     
     .execution-mockup {
       background: white;
-      border: 1px solid #ddd;
+      border: 1px solid var(--rule);
       overflow: hidden;
     }
     
     .execution-label {
       background: var(--ink);
       color: white;
-      font-family: 'Courier Prime', monospace;
-      font-size: 11px;
-      padding: 8px 15px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 10px 20px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       display: flex;
       justify-content: space-between;
+      font-weight: 500;
     }
     
     /* Print Ad Mockup */
     .print-mockup {
       aspect-ratio: 8.5/11;
-      max-height: 500px;
-      background: var(--paper);
-      padding: 40px;
+      max-height: 560px;
+      background: #fff;
+      padding: 48px;
       display: flex;
       flex-direction: column;
     }
     
     .print-mockup .headline {
-      font-family: 'Courier Prime', monospace;
-      font-size: 24px;
+      font-family: 'Inter', sans-serif;
+      font-size: 22px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: -0.01em;
       color: var(--brand-primary);
-      margin-bottom: 30px;
-      line-height: 1.2;
+      margin-bottom: 32px;
+      line-height: 1.15;
     }
     
     .print-mockup .visual-area {
       flex: 1;
-      background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
+      background: #f0f0ee;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #888;
-      font-family: 'Courier Prime', monospace;
-      font-size: 12px;
+      color: #aaa;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
       text-transform: uppercase;
-      margin-bottom: 30px;
-      border: 1px dashed #bbb;
+      letter-spacing: 2px;
+      margin-bottom: 32px;
       overflow: hidden;
       position: relative;
     }
@@ -677,16 +720,16 @@ export function formatDeliverablesAsHTML(
     }
     
     .print-mockup .visual-area.has-image {
-      border: none;
       background: none;
     }
     
     .print-mockup .body-copy {
-      font-family: 'Source Serif 4', serif;
-      font-size: 14px;
-      line-height: 1.7;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      line-height: 1.75;
       margin-bottom: 20px;
-      max-width: 400px;
+      max-width: 420px;
+      color: var(--ink-secondary);
     }
     
     .print-mockup .footer {
@@ -695,13 +738,15 @@ export function formatDeliverablesAsHTML(
       align-items: flex-end;
       margin-top: auto;
       padding-top: 20px;
-      border-top: 1px solid #ddd;
+      border-top: 1px solid var(--rule);
     }
     
     .print-mockup .logo {
-      font-family: 'Courier Prime', monospace;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
       color: var(--brand-primary);
     }
     
@@ -775,109 +820,132 @@ export function formatDeliverablesAsHTML(
     /* SOCIAL MEDIA MOCKUPS */
     .social-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
     }
     
     .social-post {
       background: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+      border: 1px solid var(--rule);
+      border-radius: 12px;
       overflow: hidden;
+      transition: box-shadow 0.2s ease;
+    }
+    
+    .social-post:hover {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
     }
     
     .social-post .platform-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 15px;
-      border-bottom: 1px solid #eee;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid #f0f0ee;
     }
     
     .social-post .platform-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--brand-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--ink);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
     }
     
     .social-post .platform-name {
       font-family: 'Inter', sans-serif;
       font-size: 13px;
       font-weight: 600;
+      color: var(--ink);
     }
     
     .social-post .post-type {
-      font-family: 'Inter', sans-serif;
-      font-size: 11px;
-      color: #888;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--faded);
+      letter-spacing: 0.5px;
     }
     
     .social-post .post-visual {
       aspect-ratio: 1;
-      background: linear-gradient(135deg, var(--paper) 0%, #e0e0e0 100%);
+      background: var(--ink);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 32px;
       text-align: center;
     }
     
     .social-post .post-visual .mock-content {
-      font-family: 'Courier Prime', monospace;
-      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--brand-primary);
-      line-height: 1.4;
+      letter-spacing: 2px;
+      color: #fff;
+      line-height: 1.5;
+      max-width: 220px;
     }
     
     .social-post .post-copy {
-      padding: 15px;
+      padding: 18px;
       font-family: 'Inter', sans-serif;
       font-size: 13px;
-      line-height: 1.5;
-      color: var(--ink);
+      line-height: 1.6;
+      color: var(--ink-secondary);
     }
     
     .social-post .hashtags {
-      padding: 0 15px 15px;
+      padding: 0 18px 18px;
       font-family: 'Inter', sans-serif;
       font-size: 12px;
       color: var(--brand-accent);
+      font-weight: 500;
     }
     
     .overview-text {
-      font-size: 15px;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
       line-height: 1.8;
-      margin-bottom: 30px;
-      max-width: 700px;
+      margin-bottom: 36px;
+      max-width: 720px;
+      color: var(--ink-secondary);
     }
     
     .media-plan {
-      background: #f5f5f5;
-      padding: 20px;
-      font-size: 13px;
-      border-left: 3px solid var(--brand-primary);
-      margin-top: 30px;
+      background: var(--bg-warm);
+      padding: 24px;
+      font-size: 12px;
+      line-height: 1.7;
+      border-left: 2px solid var(--brand-primary);
+      margin-top: 36px;
+      color: var(--ink-secondary);
+    }
+    
+    .media-plan strong {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink);
     }
     
     .footer-document {
-      margin-top: 60px;
-      padding-top: 20px;
-      border-top: 1px solid #ddd;
-      font-family: 'Courier Prime', monospace;
-      font-size: 11px;
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 1px solid var(--rule);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
       color: var(--faded);
       display: flex;
       justify-content: space-between;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
   </style>
 </head>
