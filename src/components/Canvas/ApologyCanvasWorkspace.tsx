@@ -28,7 +28,7 @@ import { CharacterId, DoomsdayScenario, ApologyCampaign } from '../../types';
 import { Fortune500Company } from '../../data/fortune500';
 import { generateApologyCampaign, generateCampaignImage } from '../../services/apologyGenerator';
 import { formatApologyCampaignsAsHTML, formatSingleCampaignAsHTML } from '../../services/apologyDeliverables';
-import { generatePrintAdHtml, generateBillboardHtml, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
+import { generatePrintAdHtml, generateBillboardHtml, generateBillboardSvg, generatePrintAdSvg, generateBannerSvg, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
 import * as dialogue from '../../utils/dialogueGenerator';
 import './CanvasWorkspace.css';
 
@@ -165,6 +165,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   const typingRef = useRef<NodeJS.Timeout[]>([]);
   const skipRef = useRef(false);
   const workItemIdRef = useRef(0);
+  const proximityCheckRef = useRef<((itemId: string) => void) | null>(null);
   const chatIdRef = useRef(0);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
 
@@ -278,6 +279,10 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
     if (draggedItem) {
+      // Trigger bot reactions when items are dropped near each other
+      if (proximityCheckRef.current) {
+        proximityCheckRef.current(draggedItem);
+      }
       setWorkItems(prev => prev.map(item => 
         item.id === draggedItem ? { ...item, isDragging: false } : item
       ));
@@ -320,6 +325,110 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     };
     setChatMessages(prev => [...prev.slice(-30), msg]);
   }, []);
+
+  // ============================================
+  // DRAG PROXIMITY — bots react when items are dragged near each other
+  // ============================================
+  useEffect(() => {
+    proximityCheckRef.current = (droppedItemId: string) => {
+      const allItems = workItems;
+      const droppedItem = allItems.find(i => i.id === droppedItemId);
+      if (!droppedItem || allItems.length < 2) return;
+
+      const PROXIMITY = 200;
+      let nearestItem: WorkItem | null = null;
+      let nearestDist = Infinity;
+
+      for (const item of allItems) {
+        if (item.id === droppedItemId) continue;
+        const dx = item.position.x - droppedItem.position.x;
+        const dy = item.position.y - droppedItem.position.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < nearestDist) { nearestDist = dist; nearestItem = item; }
+      }
+
+      if (!nearestItem || nearestDist > PROXIMITY) return;
+      if (nearestItem.phase === droppedItem.phase && nearestItem.createdBy === droppedItem.createdBy) return;
+
+      const charA = getCharacterInfo(droppedItem.createdBy);
+      const charB = getCharacterInfo(nearestItem.createdBy);
+      const contentA = (droppedItem.content || '').split('\n')[0].slice(0, 50);
+      const contentB = (nearestItem.content || '').split('\n')[0].slice(0, 50);
+
+      const combos: Record<string, string[]> = {
+        'mike+poole': [
+          `*Mike looks at Poole's framework next to his scenario* "The framework maps to the real problem. For once, theory and reality line up."`,
+          `*Poole adjusts glasses* "Slab's instincts and my methodology — side by side, the strategic pathway becomes self-evident."`,
+        ],
+        'mike+the-cell': [
+          `*Mike reads the Cell's copy next to his analysis* "That's the line. You took the tension I found and turned it into a gut punch."`,
+          `[GJON]: Mike's scenario and our copy — they're having a conversation. [VERA]: That's what good work does.`,
+        ],
+        'mike+burl': [
+          `*Mike looks at Burl's visual next to his scenario* "The picture tells the story I spent three pages explaining. One image. Done."`,
+          `*Burl squints* "Scenario and visual — two halves of the same truth. That's a campaign."`,
+        ],
+        'poole+the-cell': [
+          `*Poole studies the Cell's copy against his framework* "The copy operationalizes the reframe without naming it. Remarkable."`,
+          `[GJON]: Poole's strategy and our words — same thing, different languages. [VERA]: That's alignment.`,
+        ],
+        'poole+burl': [
+          `*Poole examines Burl's visual next to his framework* "The color choices encode the permission pathway visually. You've painted my theory."`,
+          `*Burl shrugs* "Don't know about theories. But together, the picture makes sense."`,
+        ],
+        'the-cell+burl': [
+          `[GJON]: Copy and visual together — THAT'S the campaign. Not separately. Together. [THURSDAY]: *taps both approvingly*`,
+          `*Burl frames both items* "Words and picture. When they fight each other a little — that's advertising."`,
+        ],
+        'nadya+apparatus': [
+          `*Nadya checks schedule against Apparatus output* "Timeline and deliverables aligned. The schedule is satisfied."`,
+          `APPARATUS: CROSS-REFERENCING SCHEDULE WITH ASSETS — ALIGNMENT CONFIRMED — DEPLOYMENT VALIDATED —`,
+        ],
+        'delmore+the-cell': [
+          `*Delmore reads Cell's copy next to his translation* "Raw version and client version side by side — same knife, nicer handle."`,
+          `[GJON]: He kept the knife. Just gave it a nicer handle. [VERA]: That's his gift.`,
+        ],
+        'delmore+burl': [
+          `*Delmore studies the visual next to his client deck* "This is going to present beautifully. The board will feel smart approving it."`,
+          `*Burl nods at Delmore's translation* "He made the uncomfortable look approachable. I respect that."`,
+        ],
+        'mike+nadya': [
+          `*Mike and Nadya's work side by side* "The analysis meets the timeline. Nadya, you've already scheduled our honesty."`,
+          `*Nadya, unmoved* "Honesty has a deadline too, Slab. Yours is Thursday."`,
+        ],
+      };
+
+      const ids = [droppedItem.createdBy, nearestItem.createdBy].sort();
+      const key = ids.join('+');
+      const reactions = combos[key] || [
+        `*${charA.name} sees their work next to ${charB.name}'s* "Put these together and the campaign starts to breathe."`,
+        `*${charB.name} studies the pair* "When you see these together... the connections write themselves."`,
+      ];
+
+      const reaction = reactions[Math.floor(Math.random() * reactions.length)];
+      const speaker = Math.random() > 0.5 ? droppedItem.createdBy : nearestItem.createdBy;
+      addChatMessage(speaker, reaction);
+
+      // 40% chance a third bot reacts
+      if (Math.random() > 0.6) {
+        const others: CharacterId[] = (['mike','poole','the-cell','burl','nadya','delmore','apparatus'] as CharacterId[])
+          .filter(id => id !== droppedItem.createdBy && id !== nearestItem!.createdBy);
+        const third = others[Math.floor(Math.random() * others.length)];
+        setTimeout(() => {
+          const lines: Record<string, string> = {
+            mike: `*Mike, from across the room* "Now THAT'S what I'm talking about. The pieces are lining up."`,
+            poole: `*Poole makes rapid notes* "This juxtaposition validates the framework from an unexpected angle."`,
+            'the-cell': `[GJON]: *looks over* That combination — that's the ad. Right there.`,
+            burl: `*Burl frames the pair* "That's the whole campaign in two items."`,
+            nadya: `*Nadya checks watch* "Combining these saves time. Proceed."`,
+            delmore: `*Delmore nods* "The client will love seeing these together."`,
+            apparatus: `CROSS-REFERENCE DETECTED — "${contentA}" + "${contentB}" — STRATEGIC ALIGNMENT LOGGED —`,
+          };
+          addChatMessage(third, lines[third] || `*${getCharacterInfo(third).name} nods approvingly at the combination*`);
+        }, 1500);
+      }
+    };
+  }, [workItems, getCharacterInfo, addChatMessage]);
 
   const createWorkItem = useCallback((
     agentId: CharacterId, 
@@ -889,31 +998,38 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
         const socialImg = campaign.generatedImages?.social;
         
         // ================================
-        // 1. REAL HTML AD MOCKUPS
+        // 1. SVG AD ASSETS (open as images, not HTML)
         // ================================
         const adsFolder = scenarioFolder.folder('ads');
         
-        // Print Ad — full HTML with embedded image
-        const printAdHtml = generatePrintAdHtml(campaign, heroImg || undefined);
-        adsFolder?.file('print_ad_fullpage.html', printAdHtml);
+        // Billboard SVG — opens as a real image
+        const billboardSvg = generateBillboardSvg(campaign, billboardImg || undefined);
+        adsFolder?.file('billboard_14x48ft.svg', billboardSvg);
         
-        // Billboard — full HTML with embedded image
-        const billboardHtml = generateBillboardHtml(campaign, billboardImg || undefined);
-        adsFolder?.file('billboard_14x48.html', billboardHtml);
+        // Print Ad SVG — opens as a real image
+        const printAdSvg = generatePrintAdSvg(campaign, heroImg || undefined);
+        adsFolder?.file('print_ad_fullpage.svg', printAdSvg);
         
-        // Social Media Posts — full HTML deck
+        // Banner SVGs — real image files per size
+        adsFolder?.file('banner_leaderboard_728x90.svg', generateBannerSvg(campaign, 728, 90));
+        adsFolder?.file('banner_medium_rect_300x250.svg', generateBannerSvg(campaign, 300, 250));
+        adsFolder?.file('banner_skyscraper_160x600.svg', generateBannerSvg(campaign, 160, 600));
+        
+        // Social Media Deck — HTML (multi-post, needs scrolling)
         const socialHtml = generateSocialPostsHtml(campaign, socialImg || undefined);
         adsFolder?.file('social_media_deck.html', socialHtml);
         
-        // Digital Banners — full HTML
-        const bannersHtml = generateBannerAdsHtml(campaign);
-        adsFolder?.file('digital_banners.html', bannersHtml);
-        
-        // Video Storyboard — full HTML
+        // Video Storyboard — HTML (multi-frame, needs scrolling)
         const storyboardHtml = generateStoryboardHtml(campaign, heroImg || undefined);
         if (storyboardHtml) {
           adsFolder?.file('video_storyboard.html', storyboardHtml);
         }
+        
+        // Keep HTML versions as bonus previews
+        const previewFolder = scenarioFolder.folder('previews');
+        previewFolder?.file('print_ad_preview.html', generatePrintAdHtml(campaign, heroImg || undefined));
+        previewFolder?.file('billboard_preview.html', generateBillboardHtml(campaign, billboardImg || undefined));
+        previewFolder?.file('banner_suite_preview.html', generateBannerAdsHtml(campaign));
         
         // ================================
         // 2. GENERATED IMAGES (PNG)

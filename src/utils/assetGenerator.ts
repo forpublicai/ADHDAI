@@ -1271,25 +1271,280 @@ export function generateBannerAdsHtml(
 }
 
 // ============================================
+// SVG BILLBOARD — Real image file, not HTML
+// ============================================
+
+export function generateBillboardSvg(
+  campaign: ApologyCampaign,
+  billboardImageBase64?: string
+): string {
+  const companyName = s(campaign.companyName, 'Company');
+  const billboard = campaign.deliverables?.billboard;
+  const headline = s(billboard?.headline, s(campaign.headline, 'We See What\'s Coming. This Is Us, Saying Sorry First.'));
+  const tagline = s(billboard?.body, s(campaign.subheadline, `${companyName}. Accountable before the headline breaks.`));
+  
+  const colors = campaign.colorPalette || ['#0f0f0f', '#1a1a2e', '#4361ee', '#e94560', '#f5f5f5'];
+  const primaryColor = colors[0] || '#0f0f0f';
+  const secondaryColor = colors[1] || '#1a1a2e';
+  const accentColor = colors[3] || '#e94560';
+
+  // Word-wrap headline into lines (max ~40 chars per line for billboard)
+  const words = headline.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  for (const word of words) {
+    if ((currentLine + ' ' + word).trim().length > 38) {
+      lines.push(currentLine.trim());
+      currentLine = word;
+    } else {
+      currentLine = currentLine ? currentLine + ' ' + word : word;
+    }
+  }
+  if (currentLine.trim()) lines.push(currentLine.trim());
+  
+  const fontSize = lines.length > 3 ? 40 : lines.length > 2 ? 48 : 56;
+  const lineHeight = fontSize * 1.12;
+  const headlineY = 120;
+  
+  const headlineText = lines.map((line, i) => 
+    `<text x="72" y="${headlineY + i * lineHeight}" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="${fontSize}" font-weight="800" fill="white" letter-spacing="-1">${escapeXml(line)}</text>`
+  ).join('\n    ');
+  
+  const taglineY = headlineY + lines.length * lineHeight + 20;
+
+  const bgImage = billboardImageBase64 
+    ? `<image href="data:image/png;base64,${billboardImageBase64}" x="0" y="0" width="1440" height="432" preserveAspectRatio="xMidYMid slice"/>
+    <rect x="0" y="0" width="1440" height="432" fill="url(#overlay)"/>`
+    : `<rect x="0" y="0" width="1440" height="432" fill="url(#bgGrad)"/>`;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1440" height="432" viewBox="0 0 1440 432">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:${primaryColor}"/>
+      <stop offset="60%" style="stop-color:${secondaryColor}"/>
+      <stop offset="100%" style="stop-color:${primaryColor}"/>
+    </linearGradient>
+    <linearGradient id="overlay" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:${primaryColor};stop-opacity:0.88"/>
+      <stop offset="50%" style="stop-color:${primaryColor};stop-opacity:0.5"/>
+      <stop offset="100%" style="stop-color:${primaryColor};stop-opacity:0.15"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  ${bgImage}
+  
+  <!-- Accent bar -->
+  <rect x="72" y="${headlineY - 40}" width="56" height="5" fill="${accentColor}" rx="2"/>
+  
+  <!-- Headline -->
+  ${headlineText}
+  
+  <!-- Tagline -->
+  <text x="72" y="${taglineY}" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" font-weight="400" fill="rgba(255,255,255,0.72)" letter-spacing="0.5">${escapeXml(tagline.slice(0, 70))}</text>
+  
+  <!-- Brand badge -->
+  <rect x="${1440 - 200}" y="${432 - 56}" width="200" height="56" fill="${accentColor}"/>
+  <text x="${1440 - 100}" y="${432 - 28}" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" font-weight="800" fill="white" text-anchor="middle" letter-spacing="3" dominant-baseline="middle">${escapeXml(companyName.toUpperCase().slice(0, 16))}</text>
+  <text x="${1440 - 100}" y="${432 - 12}" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7" font-weight="500" fill="rgba(255,255,255,0.6)" text-anchor="middle" letter-spacing="2">A PROACTIVE APOLOGY</text>
+</svg>`;
+}
+
+// ============================================
+// SVG PRINT AD — Real image file
+// ============================================
+
+export function generatePrintAdSvg(
+  campaign: ApologyCampaign,
+  heroImageBase64?: string
+): string {
+  const companyName = s(campaign.companyName, 'Company');
+  const ad = campaign.deliverables?.fullPageAd;
+  const headline = s(ad?.headline, s(campaign.headline, 'We See What\'s Coming.'));
+  const tagline = s(campaign.subheadline, 'A proactive statement of accountability');
+  const bodyCopy = s(ad?.body, s(campaign.apologyStatement, 'We see what is coming. And we believe you deserve to know before it arrives.'));
+  const scenarioTitle = s(campaign.scenarioTitle, '');
+  
+  const colors = campaign.colorPalette || ['#0f0f0f', '#1a1a2e', '#4361ee', '#e94560', '#f5f5f5'];
+  const primaryColor = colors[0] || '#0f0f0f';
+  const accentColor = colors[3] || '#e94560';
+
+  // Word-wrap headline
+  const hlWords = headline.split(' ');
+  const hlLines: string[] = [];
+  let hlCurrent = '';
+  for (const w of hlWords) {
+    if ((hlCurrent + ' ' + w).trim().length > 32) {
+      hlLines.push(hlCurrent.trim());
+      hlCurrent = w;
+    } else {
+      hlCurrent = hlCurrent ? hlCurrent + ' ' + w : w;
+    }
+  }
+  if (hlCurrent.trim()) hlLines.push(hlCurrent.trim());
+  
+  const hlFontSize = hlLines.length > 3 ? 26 : 32;
+  const hlLineHeight = hlFontSize * 1.15;
+  
+  // Word-wrap body copy (shorter lines for print)
+  const bodyWords = bodyCopy.split(' ');
+  const bodyLines: string[] = [];
+  let bodyCurrent = '';
+  for (const w of bodyWords) {
+    if ((bodyCurrent + ' ' + w).trim().length > 62) {
+      bodyLines.push(bodyCurrent.trim());
+      bodyCurrent = w;
+    } else {
+      bodyCurrent = bodyCurrent ? bodyCurrent + ' ' + w : w;
+    }
+  }
+  if (bodyCurrent.trim()) bodyLines.push(bodyCurrent.trim());
+
+  const imageSection = heroImageBase64
+    ? `<image href="data:image/png;base64,${heroImageBase64}" x="0" y="80" width="612" height="280" preserveAspectRatio="xMidYMid slice"/>`
+    : `<rect x="0" y="80" width="612" height="280" fill="${primaryColor}"/>
+       <text x="306" y="226" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" fill="rgba(255,255,255,0.3)" text-anchor="middle">Campaign Visual</text>`;
+
+  const contentY = 395;
+  const headlineTextSvg = hlLines.map((line, i) =>
+    `<text x="48" y="${contentY + i * hlLineHeight}" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="${hlFontSize}" font-weight="700" fill="${primaryColor}" letter-spacing="-0.5">${escapeXml(line)}</text>`
+  ).join('\n  ');
+  
+  const taglineY = contentY + hlLines.length * hlLineHeight + 12;
+  const dividerY = taglineY + 24;
+  const bodyStartY = dividerY + 24;
+  
+  const bodyTextSvg = bodyLines.slice(0, 12).map((line, i) =>
+    `<text x="48" y="${bodyStartY + i * 16}" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10.5" fill="#444" letter-spacing="0.2">${escapeXml(line)}</text>`
+  ).join('\n  ');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="612" height="792" viewBox="0 0 612 792">
+  <!-- Background -->
+  <rect width="612" height="792" fill="white"/>
+  
+  <!-- Brand bar -->
+  <rect x="0" y="0" width="612" height="80" fill="white"/>
+  <text x="48" y="48" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="${primaryColor}" letter-spacing="4">${escapeXml(companyName.toUpperCase())}</text>
+  <text x="564" y="48" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="9" fill="#999" text-anchor="end" letter-spacing="2">A PROACTIVE APOLOGY</text>
+  <line x1="48" y1="66" x2="564" y2="66" stroke="#eee" stroke-width="1"/>
+  
+  ${scenarioTitle ? `<rect x="0" y="68" width="612" height="12" fill="${primaryColor}"/>
+  <text x="306" y="77" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="6" fill="rgba(255,255,255,0.6)" text-anchor="middle" letter-spacing="2">${escapeXml(('RE: ' + scenarioTitle).toUpperCase().slice(0, 80))}</text>` : ''}
+  
+  <!-- Hero image -->
+  ${imageSection}
+  
+  <!-- Content -->
+  ${headlineTextSvg}
+  
+  <text x="48" y="${taglineY}" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" fill="#888" font-style="italic">${escapeXml(tagline.slice(0, 70))}</text>
+  
+  <!-- Accent divider -->
+  <rect x="48" y="${dividerY}" width="40" height="3" fill="${accentColor}"/>
+  
+  <!-- Body copy -->
+  ${bodyTextSvg}
+  
+  <!-- Footer -->
+  <rect x="0" y="742" width="612" height="50" fill="${primaryColor}"/>
+  <text x="48" y="768" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" letter-spacing="1">PROACTIVE ACCOUNTABILITY INITIATIVE</text>
+  <text x="564" y="762" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="10" font-weight="600" fill="white" text-anchor="end">${escapeXml(tagline.slice(0, 50))}</text>
+  <text x="564" y="776" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="7" fill="rgba(255,255,255,0.5)" text-anchor="end">${escapeXml(companyName.toLowerCase().replace(/\s+/g, ''))}.com/accountability</text>
+</svg>`;
+}
+
+// ============================================
+// SVG BANNER AD — Real image file
+// ============================================
+
+export function generateBannerSvg(
+  campaign: ApologyCampaign,
+  width: number = 728,
+  height: number = 90
+): string {
+  const companyName = s(campaign.companyName, 'Company');
+  const headline = s(campaign.headline, 'We Owe You An Apology');
+  const displayHL = headline.length > 45 ? headline.slice(0, 42) + '...' : headline;
+  
+  const colors = campaign.colorPalette || ['#0f0f0f', '#1a1a2e', '#4361ee', '#e94560', '#f5f5f5'];
+  const primaryColor = colors[0] || '#0f0f0f';
+  const secondaryColor = colors[1] || '#1a1a2e';
+  const accentColor = colors[3] || '#e94560';
+  
+  const isWide = width > height * 2;
+  const isTall = height > width;
+  
+  if (isTall) {
+    // Skyscraper format
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:${primaryColor}"/><stop offset="100%" style="stop-color:${secondaryColor}"/></linearGradient></defs>
+  <rect width="${width}" height="${height}" fill="url(#bg)"/>
+  <rect x="0" y="0" width="${width}" height="3" fill="${accentColor}"/>
+  <text x="${width/2}" y="60" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-0.3">${escapeXml(companyName)}</text>
+  <rect x="${width/2 - 16}" y="75" width="32" height="2" fill="${accentColor}"/>
+  <foreignObject x="12" y="90" width="${width - 24}" height="200">
+    <p xmlns="http://www.w3.org/1999/xhtml" style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:white;line-height:1.4;margin:0;font-weight:600;text-align:center;">${escapeXml(headline)}</p>
+  </foreignObject>
+  <rect x="${width/2 - 48}" y="${height - 60}" width="96" height="28" rx="3" fill="${accentColor}"/>
+  <text x="${width/2}" y="${height - 42}" font-family="'Helvetica Neue', Arial, sans-serif" font-size="8" font-weight="700" fill="white" text-anchor="middle" letter-spacing="1">LEARN MORE</text>
+</svg>`;
+  }
+  
+  // Leaderboard / medium rectangle
+  const hlFontSize = isWide ? 14 : 16;
+  const hlY = isWide ? height / 2 + 4 : 50;
+  
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:${primaryColor}"/><stop offset="100%" style="stop-color:${secondaryColor}"/></linearGradient></defs>
+  <rect width="${width}" height="${height}" fill="url(#bg)"/>
+  <rect x="0" y="0" width="${width}" height="3" fill="${accentColor}"/>
+  ${isWide 
+    ? `<text x="24" y="${hlY}" font-family="'Helvetica Neue', Arial, sans-serif" font-size="${hlFontSize}" font-weight="700" fill="white" letter-spacing="-0.3">${escapeXml(displayHL)}</text>
+       <rect x="${width - 180}" y="${height/2 - 16}" width="152" height="32" rx="3" fill="${accentColor}"/>
+       <text x="${width - 104}" y="${height/2 + 1}" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="700" fill="white" text-anchor="middle" letter-spacing="1">READ OUR PRE-APOLOGY</text>`
+    : `<text x="${width/2}" y="28" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="700" fill="rgba(255,255,255,0.6)" text-anchor="middle" letter-spacing="2">${escapeXml(companyName.toUpperCase())}</text>
+       <foreignObject x="20" y="45" width="${width - 40}" height="120">
+         <p xmlns="http://www.w3.org/1999/xhtml" style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;color:white;line-height:1.3;margin:0;font-weight:700;text-align:center;">${escapeXml(headline)}</p>
+       </foreignObject>
+       <rect x="${width/2 - 56}" y="${height - 52}" width="112" height="30" rx="3" fill="${accentColor}"/>
+       <text x="${width/2}" y="${height - 33}" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="700" fill="white" text-anchor="middle" letter-spacing="1">LEARN MORE →</text>`
+  }
+  <text x="${width - 12}" y="${height - 8}" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="rgba(255,255,255,0.35)" text-anchor="end" letter-spacing="1">${escapeXml(companyName.toUpperCase())}</text>
+</svg>`;
+}
+
+/** Escape special XML characters */
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+// ============================================
 // GENERATE ALL ASSETS
 // ============================================
 
 export async function generateAllAssets(
   campaign: ApologyCampaign,
-  generateImages: boolean = true
+  generateImgs: boolean = true
 ): Promise<GeneratedAssets> {
-  // Generate images if API key available and requested
   let images: { hero?: string; billboard?: string; social?: string } = {};
   
-  if (generateImages) {
+  if (generateImgs) {
     try {
       images = await generateCampaignImages(campaign);
     } catch (error) {
-      console.warn('Image generation failed, continuing with HTML-only assets:', error);
+      console.warn('Image generation failed:', error);
     }
   }
 
-  // Generate HTML mockups
   const printAdHtml = generatePrintAdHtml(campaign, images.hero);
   const billboardHtml = generateBillboardHtml(campaign, images.billboard);
   const socialPostsHtml = generateSocialPostsHtml(campaign, images.social);

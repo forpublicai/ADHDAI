@@ -795,7 +795,8 @@ function generateFallbackCampaign(
 }
 
 /**
- * Generate campaign image using DALL-E - BRAND SPECIFIC
+ * Generate campaign image using DALL-E — SCENARIO-SPECIFIC
+ * Each prompt is deeply contextualized to the company, scenario, and campaign creative.
  */
 export async function generateCampaignImage(
   campaign: ApologyCampaign,
@@ -804,15 +805,17 @@ export async function generateCampaignImage(
   const openai = getOpenAIClient();
   if (!openai) return null;
 
-  // Get brand-specific visual direction
-  const brandStyle = getBrandStyleForImage(campaign.companyName);
+  const company = campaign.companyName || 'Corporation';
+  const scenario = campaign.scenarioTitle || 'corporate crisis';
+  const visual = campaign.visualConcept || 'corporate confession aesthetic';
   
+  // Build deeply specific prompts for each format
   const prompts: Record<string, string> = {
-    hero: `Advertising campaign hero image for ${campaign.companyName}. ${brandStyle}. Concept: "${campaign.visualConcept}". The image should feel like a high-end brand campaign - think Apple, Nike, or Patagonia level quality. ${campaign.scenarioTitle} context but approached with artistic sophistication. No text. No logos. Cinematic lighting. Editorial photography quality. The image should evoke ${campaign.tone}.`,
+    hero: `Award-winning advertising campaign photograph for ${company}'s corporate accountability campaign about "${scenario}". The image captures the emotional weight of a major corporation confronting its own future failures. ${visual}. Shot in the style of a Cannes Lions Grand Prix winner — cinematic, editorial, emotionally resonant. Think Annie Leibovitz meets corporate photography. The composition should feel like a Fortune magazine cover story about corporate reckoning. Moody, contemplative lighting. Deep shadows. A sense of institutional gravity. This is not stock photography — this is art direction at the highest level. No text, no logos, no watermarks, no words of any kind.`,
     
-    social: `Social media campaign image for ${campaign.companyName}. ${brandStyle}. Modern, shareable, visually striking. Concept: ${campaign.visualConcept}. Should feel native to Instagram/social but elevated. Not stock photo energy - real campaign energy. Think brand social, not corporate social. No text. Square format consideration.`,
+    social: `Instagram-native campaign image for ${company}'s preemptive apology about "${scenario}". Square format. The image should stop someone mid-scroll — visually arresting, emotionally provocative, impossible to ignore. ${visual}. Think: the kind of brand post that gets screenshotted and shared in group chats. Documentary aesthetic meets high-fashion editorial. Bold color grading, strong composition, a single powerful visual metaphor for corporate accountability. Should feel like it belongs on the feed of a brand that just did something unprecedented. No text, no logos, no watermarks.`,
     
-    billboard: `Outdoor advertising visual for ${campaign.companyName}. ${brandStyle}. Bold, simple, readable at distance. Concept: ${campaign.visualConcept}. Think about negative space. One clear focal point. The kind of billboard that makes you look twice. Cinematic, not corporate. No text. Wide format composition.`
+    billboard: `Outdoor billboard campaign photograph for ${company} about "${scenario}". Ultra-wide 16:9 composition designed for a 14x48 foot billboard. The image must work at massive scale — bold, simple, one clear focal point with dramatic negative space. ${visual}. Think: the billboard you remember from a highway drive. Cinematic landscape-scale imagery that communicates corporate confession without words. The visual equivalent of a company taking a deep breath before telling the truth. Dramatic, slightly unsettling, beautiful. No text, no logos, no watermarks.`
   };
 
   try {
@@ -835,33 +838,4 @@ export async function generateCampaignImage(
     console.error('Error generating campaign image:', error);
     return null;
   }
-}
-
-function getBrandStyleForImage(companyName: string): string {
-  // Create brand-appropriate image style direction
-  const name = companyName.toLowerCase();
-  
-  if (name.includes('apple') || name.includes('tech')) {
-    return 'Minimalist, clean, premium tech aesthetic. Lots of negative space. Product-focused. Apple-style photography.';
-  }
-  if (name.includes('nike') || name.includes('sport')) {
-    return 'Athletic, dynamic, high-energy. Dramatic lighting. Movement and power. Nike campaign energy.';
-  }
-  if (name.includes('bank') || name.includes('financial') || name.includes('capital')) {
-    return 'Sophisticated, trustworthy, premium. Navy and gold tones. Architectural elements. Financial district aesthetic.';
-  }
-  if (name.includes('health') || name.includes('pharma') || name.includes('medical')) {
-    return 'Clinical but warm. Human connection. Medical environments with humanity. Healthcare campaign aesthetic.';
-  }
-  if (name.includes('energy') || name.includes('oil') || name.includes('power')) {
-    return 'Industrial sublime. Dramatic landscapes. Infrastructure as art. Environmental undertones.';
-  }
-  if (name.includes('food') || name.includes('beverage') || name.includes('restaurant')) {
-    return 'Appetizing, warm, inviting. Food photography excellence. Lifestyle and indulgence.';
-  }
-  if (name.includes('retail') || name.includes('store') || name.includes('shop')) {
-    return 'Lifestyle aspiration. People in moments. Product integration. Retail campaign sophistication.';
-  }
-  
-  return 'Premium brand campaign aesthetic. High production value. Editorial quality. Sophisticated color grading.';
 }
