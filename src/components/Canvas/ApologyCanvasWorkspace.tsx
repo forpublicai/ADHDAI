@@ -801,6 +801,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setCurrentScenarioIndex(0);
     setPhaseLabel('Starting...');
     setShowCodePanel(false);
+    setAssetsReady(false);
     
     setAgents(prev => prev.map(agent => ({
       ...agent,
@@ -839,6 +840,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setCurrentScenarioIndex(0);
     setPhaseLabel('Ready to begin');
     setShowCodePanel(false);
+    setAssetsReady(false);
     setAgents(prev => prev.map(agent => ({
       ...agent,
       status: 'idle',
