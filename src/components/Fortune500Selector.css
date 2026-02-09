@@ -4,6 +4,7 @@
   width: 100%;
   max-width: 640px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
 }
 
 /* Input Wrapper */

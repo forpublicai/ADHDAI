@@ -26,8 +26,9 @@ import {
 import { CHARACTERS } from '../../constants';
 import { CharacterId, DoomsdayScenario, ApologyCampaign } from '../../types';
 import { Fortune500Company } from '../../data/fortune500';
-import { generateApologyCampaign } from '../../services/apologyGenerator';
+import { generateApologyCampaign, generateCampaignImage } from '../../services/apologyGenerator';
 import { formatApologyCampaignsAsHTML, formatSingleCampaignAsHTML } from '../../services/apologyDeliverables';
+import { generatePrintAdHtml, generateBillboardHtml, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
 import * as dialogue from '../../utils/dialogueGenerator';
 import './CanvasWorkspace.css';
 
@@ -398,18 +399,40 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     return () => cancelAnimationFrame(animationId);
   }, []);
 
-  // Process a single scenario
+  // Process a single scenario — ALL bots contribute to each phase
   const processScenario = useCallback(async (scenario: DoomsdayScenario, index: number): Promise<ApologyCampaign> => {
     const scenarioTasks = tasks.filter(t => t.scenarioId === scenario.id);
     
-    // Phase 1: Mike analyzes the scenario
+    // ============================
+    // PHASE 1: SCENARIO ANALYSIS (Mike leads, everyone reacts)
+    // ============================
     setCurrentPhase(1);
     setPhaseLabel(`ANALYZING SCENARIO ${index + 1}: ${scenario.title}`);
     
     moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Analyzing scenario...');
     addChatMessage('mike', `*slams folder on table* Alright, here's the situation: "${scenario.title}" — ${scenario.severity} severity, ${scenario.category} category. ${scenario.description} Twenty-two years I've been doing this, and I've never seen a company admit fault BEFORE the fault happens. That's the grift. That's the angle. We're not just apologizing — we're making ${company.name} look like the most honest company in the world. For things they haven't done yet. It's genius. It's insane. It's going to work.`);
     
-    await delayOrSkip(2000);
+    await delayOrSkip(1500);
+    
+    // Poole reacts to scenario
+    moveAgentTo('poole', { x: 780, y: 120 }, 'thinking', 'Assessing risk topology...');
+    addChatMessage('poole', `*adjusts glasses, leans forward* Fascinating risk profile. The ${scenario.category} dimension here triggers Poole Principle Seventeen — "Anticipatory Accountability." I can already see the framework forming. The consumer psychology of pre-emptive apology is virtually unexplored territory. We're not just ahead of the crisis. We're ahead of the CONCEPT of crisis.`);
+    
+    await delayOrSkip(1200);
+    
+    // Cell reacts
+    moveAgentTo('the-cell', { x: 1160, y: 120 }, 'thinking', 'Reading scenario...');
+    addChatMessage('the-cell', `[GJON]: A ${scenario.severity} scenario. This is either the most ethical advertising ever conceived, or the most cynical. [VERA]: Those aren't mutually exclusive. [THURSDAY]: *already writing notes on index card* ...the headline is forming. Give me the framework and I'll give you the line.`);
+    
+    await delayOrSkip(1000);
+    
+    // Burl, Nadya, Delmore, Apparatus quick reactions
+    addChatMessage('burl', `*squints at scenario brief* Already seeing images. ${scenario.category} disasters have a visual language — I know what this looks like. Documentary feeling. Evidence photography.`);
+    addChatMessage('nadya', `*checks watch* ${scenario.timeHorizon} timeline. Noted. I'll build the production schedule around this horizon. How many deliverables? I need numbers.`);
+    addChatMessage('delmore', `*takes notes, distributes hard candies* The client context is critical here. "${scenario.title}" — I need to understand who we're apologizing TO. The affected parties: ${scenario.affectedParties.join(', ')}. I'll prepare the translation framework.`);
+    addChatMessage('apparatus', `SCENARIO DATA LOGGED — Category: ${scenario.category} | Severity: ${scenario.severity} | Timeline: ${scenario.timeHorizon} | Affected parties: ${scenario.affectedParties.length} groups identified —`);
+    
+    await delayOrSkip(1500);
     
     createWorkItem('mike', 'scenario', 
       `SCENARIO ${index + 1}:\n${scenario.title}\n\nDescription: ${scenario.description}\n\nSeverity: ${scenario.severity}\nCategory: ${scenario.category}\nTimeline: ${scenario.timeHorizon}\n\nPotential Damage: ${scenario.potentialDamage}\nAffected Parties: ${scenario.affectedParties.join(', ')}`,
@@ -418,16 +441,39 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     updateTaskStatus(scenarioTasks[0]?.id || '', 'done');
     
-    await delayOrSkip(2500);
+    await delayOrSkip(2000);
     
-    // Phase 2: Poole develops strategy
+    // ============================
+    // PHASE 2: STRATEGIC FRAMEWORK (Poole leads, all react)
+    // ============================
     setCurrentPhase(2);
     setPhaseLabel('STRATEGIC FRAMEWORK');
     
     moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building apology framework...');
-    addChatMessage('poole', `*approaches whiteboard with fervor* What Mike has identified emotionally, I will now systematize. The Proactive Apology Matrix identifies the core tension: "${scenario.potentialDamage}" — but this isn't about the damage. It's about OWNING the narrative before it exists. We're creating what I call "anticipatory accountability" — a rhetorical space where contrition exists without admission, where guilt is acknowledged without liability. This is Poole Principle Seventeen: "The best defense is preemptive confession." ${company.name} doesn't need to BE sorry. They need to PERFORM sorry. And we're going to make that performance so compelling it becomes indistinguishable from sincerity.`);
+    addChatMessage('poole', `*approaches whiteboard with fervor* What Mike has identified emotionally, I will now systematize. The Proactive Apology Matrix identifies the core tension: "${scenario.potentialDamage}" — but this isn't about the damage. It's about OWNING the narrative before it exists. We're creating what I call "anticipatory accountability" — a rhetorical space where contrition exists without admission, where guilt is acknowledged without liability. This is Poole Principle Seventeen: "The best defense is preemptive confession." ${company.name} doesn't need to BE sorry. They need to PERFORM sorry.`);
     
-    await delayOrSkip(2000);
+    await delayOrSkip(1500);
+    
+    // Mike watches
+    addChatMessage('mike', `*leans against wall, lights cigarette* Here we go with the diagrams again. Five bucks says "anticipatory accountability" appears at least three more times.`);
+    
+    await delayOrSkip(800);
+    
+    // Cell gets impatient
+    addChatMessage('the-cell', `[GJON]: Is this going somewhere, or just... around? [VERA]: Let him finish. The framework gives us guardrails. [THURSDAY]: *already on third index card, writing faster*`);
+    
+    // Burl starts sketching
+    moveAgentTo('burl', { x: 460, y: 400 }, 'designing', 'Sketching...');
+    addChatMessage('burl', `*sketches rapidly while Poole talks* That reframe... I can see the visual. One image. Big. Confrontational. ${company.name}'s brand language but cracked open. Like finding the truth inside a corporate report.`);
+    
+    await delayOrSkip(800);
+    
+    // Nadya, Delmore, Apparatus
+    addChatMessage('nadya', `*lights cigarette* Strategy phase has ten minutes, Poole. The schedule does not wait for theory. Proceed.`);
+    addChatMessage('delmore', `*noting framework terms* Good, good. I'll need to translate "anticipatory accountability" into something the client's legal team won't panic about. "Proactive Stakeholder Alignment" should do.`);
+    addChatMessage('apparatus', `FRAMEWORK ARCHITECTURE LOGGED — Poole System variant 17.3 detected — Anticipatory Accountability Protocol — INDEXING—`);
+    
+    await delayOrSkip(1200);
     
     createWorkItem('poole', 'framework',
       `APOLOGY STRATEGY FOR: ${scenario.title}\n\n• Pre-emptive contrition positioning\n• Stakeholder deflection architecture\n• Performative transparency framework\n• Future-state regret positioning\n• Anticipatory accountability protocol\n\nCore Insight: Apologize before the disaster to own the narrative.`,
@@ -436,64 +482,127 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     updateTaskStatus(scenarioTasks[1]?.id || '', 'done');
     
-    await delayOrSkip(2500);
+    await delayOrSkip(2000);
     
-    // Phase 3: The Cell writes copy
+    // ============================
+    // PHASE 3: CREATIVE DEVELOPMENT (Cell leads, all react)
+    // ============================
     setCurrentPhase(3);
     setPhaseLabel('CREATIVE DEVELOPMENT');
     
     moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Writing campaign...');
-    addChatMessage('the-cell', `[GJON]: We're being asked to write an apology for something that hasn't happened yet. This is either the most honest advertising ever made, or the most dishonest. I can't decide which excites me more. [VERA]: Focus. We need a headline that sounds like accountability but reads like a brand campaign. [THURSDAY]: *staring at wall* The apology IS the campaign. The confession IS the advertisement. We're not selling ${company.name}'s products. We're selling their honesty about their future dishonesty. It's a confession wrapped in a press release wrapped in a Super Bowl spot. [GJON]: That's either brilliant or insane. [THURSDAY]: Both. Always both.`);
+    addChatMessage('the-cell', `[VERA]: Alright, I'll start conventional. Option A — the safe version. Clean, functional, won't scare anyone. [GJON]: Safe is a four-letter word. [THURSDAY]: *stares at wall, then begins writing furiously*`);
     
-    await delayOrSkip(2000);
+    await delayOrSkip(1500);
     
-    // Generate the actual campaign
+    // Generate the actual campaign via API
     const campaign = await generateApologyCampaign(scenario, company);
-    setCampaigns(prev => [...prev, campaign]);
     
+    // Cell presents Option A
+    addChatMessage('the-cell', `[VERA]: Option A complete: "We See What's Coming. And We're Sorry In Advance." Clean, corporate, inoffensive. [GJON]: *sighs* Inoffensive is offensive. [VERA]: It's a STARTING POINT. [THURSDAY]: *slides paper across table without looking up*`);
+    
+    await delayOrSkip(1000);
+    
+    // Cell presents Option B (Gjon's)
+    addChatMessage('the-cell', `[GJON]: Option B: "${campaign.keyMessages?.[0] || 'The future is our fault. Let us pre-apologize.'}" That's the one with teeth. Confrontational. Real. [VERA]: Too aggressive! [GJON]: That's why it WORKS.`);
+    
+    await delayOrSkip(1000);
+    
+    // Cell presents Option C (Thursday's) — THE WINNER
+    addChatMessage('the-cell', `[THURSDAY]: *places index card face-down, walks to window* [VERA]: *flips card* ...oh. OH. "${campaign.headline}" [GJON]: *reads it twice* ...that's the one. That's the line that makes people screenshot and share. [VERA]: The Cell votes 2-1 in favor. Thursday's direction carries. Again.`);
+    
+    await delayOrSkip(1200);
+    
+    // Everyone reacts to the Cell's output
+    addChatMessage('mike', `*settles into chair, lights cigarette* The Cell's fighting again. That's how you know it's working. *reads Thursday's line* Yeah. That's the gut punch right there. That's our headline.`);
+    addChatMessage('poole', `*reads over shoulder* Structurally unsound according to the framework... yet somehow it maps perfectly to the reframe. Remarkable. The Cell has produced something I cannot explain theoretically. I'll need to revise Section Four of my book.`);
+    
+    await delayOrSkip(800);
+    
+    moveAgentTo('burl', { x: 460, y: 420 }, 'designing', 'Reading copy...');
+    addChatMessage('burl', `*squints at Thursday's headline* ...THAT I can photograph. That's the picture I've been seeing in my head all day. The visual just clicked into place.`);
+    addChatMessage('nadya', `*checks watch* Copy phase complete. You have your headline. Moving to visual. The schedule proceeds on schedule.`);
+    addChatMessage('delmore', `*reads quietly, nods* The client is going to need some... softening on "${campaign.headline}" — but the core is strong. I can already see the presentation deck forming.`);
+    addChatMessage('apparatus', `CREATIVE OUTPUT LOGGED — Headline: "${campaign.headline}" — Tagline: "${campaign.subheadline}" — INDEXING DELIVERABLES—`);
+    
+    // Create the Cell's work item with FULL copy output
     createWorkItem('the-cell', 'apology',
-      `CAMPAIGN HEADLINE:\n"${campaign.headline}"\n\nTAGLINE:\n${campaign.subheadline}\n\nMANIFESTO:\n${campaign.apologyStatement}\n\nKEY CREATIVE ANGLES:\n${campaign.keyMessages?.map((m, i) => `${i + 1}. ${m}`).join('\n') || 'N/A'}`,
+      `COPY TRANSMITTAL — The Cell\n\n━━━ OPTION A (Vera) ━━━\n"We See What's Coming."\nSafe. Corporate. Approved.\n\n━━━ OPTION B (Gjon) ━━━\n"${campaign.keyMessages?.[0] || 'The future is our fault.'}"\nConfrontational. Real.\n\n━━━ OPTION C (Thursday) ✓ ━━━\n"${campaign.headline}"\n${campaign.subheadline}\n\nVOTE: 2-1, Thursday carries.\n\n━━━ MANIFESTO ━━━\n${campaign.apologyStatement}\n\n━━━ KEY ANGLES ━━━\n${campaign.keyMessages?.map((m, i) => `${i + 1}. ${m}`).join('\n') || 'N/A'}\n\n— The Cell`,
       { x: 1080, y: 90 }, 3, true, scenario.id
     );
     
-    addChatMessage('the-cell', `[THURSDAY]: *slides paper across table without looking* HEADLINE: "${campaign.headline}" [VERA]: ...oh. Oh that's good. [GJON]: That's not just good, that's the kind of line that makes people screenshot and share. It's going to live on t-shirts ironically. The tagline — "${campaign.subheadline}" — that's the one people remember. That's the one they'll use in the retrospective when this wins at Cannes. [VERA]: The Cell votes 2-1 in favor. [GJON]: Who voted against? [VERA]: You did. Reflexively. Then changed your mind. [GJON]: ...accurate.`);
-    
+    setCampaigns(prev => [...prev, campaign]);
     updateTaskStatus(scenarioTasks[2]?.id || '', 'done');
     
-    await delayOrSkip(3000);
+    await delayOrSkip(2500);
     
-    // Phase 4: Burl does visual direction
+    // ============================
+    // PHASE 4: VISUAL DIRECTION (Burl leads, all react)
+    // ============================
     setCurrentPhase(4);
     setPhaseLabel('VISUAL DIRECTION');
     
     moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Setting visual tone...');
-    addChatMessage('burl', `*pins reference images to board* I know exactly what this looks like. It's ${company.name}'s brand aesthetic — but cracked open. We're using their visual language against itself. ${campaign.visualConcept || 'The same clean lines and trustworthy colors, but deployed for confession instead of celebration. It should feel like finding an honest page in a corporate annual report.'} Colors: ${campaign.colorPalette?.join(', ') || 'Their brand palette, but with the saturation turned down — like a memory of happier times'}. Typography: ${campaign.typography || 'Something that looks official but has been through things'}. This isn't pretty advertising. This is documentary. This is evidence. The kind of picture that makes you feel something you can't name.`);
+    addChatMessage('burl', `*pins reference images to board, clears table* Alright. Everyone back up. I need to think in pictures. It's ${company.name}'s brand aesthetic — but cracked open. We're using their visual language against itself. ${campaign.visualConcept || 'The same clean lines and trustworthy colors, but deployed for confession instead of celebration.'} Colors: ${campaign.colorPalette?.join(', ') || 'Their brand palette, but desaturated'}. Typography: ${campaign.typography || 'Something that looks official but has been through things'}. This isn't pretty advertising. This is documentary. This is evidence.`);
     
-    await delayOrSkip(2000);
+    await delayOrSkip(1500);
+    
+    // Everyone reacts to Burl's direction
+    addChatMessage('the-cell', `[VERA]: The visual direction supports the copy. [GJON]: It should challenge it slightly. The ugliness is intentional — it matches the words. [THURSDAY]: *nods once, approving silence*`);
+    addChatMessage('poole', `*examines color choices* The chromatic tension mirrors the psychological framework. The palette creates what I call "chromatic permission." You're speaking my language, Burl. Whether you know it or not.`);
+    
+    await delayOrSkip(800);
+    
+    addChatMessage('mike', `*nods slowly* The picture tells the story the words can only hint at. That's what Burl does. Makes you feel things you can't name.`);
+    addChatMessage('nadya', `*appears without warning* Visual timeline, Burl. How long? The schedule requires an estimate.`);
+    addChatMessage('burl', `*doesn't look up* When it's done, Nadya. Art doesn't punch a clock.`);
+    addChatMessage('nadya', `*expressionless* It does in this agency.`);
+    
+    await delayOrSkip(800);
+    
+    addChatMessage('delmore', `*reviews visual direction quietly* The visual presentation will land well with the client board. This looks expensive. Expensive is good — it says "we take this seriously."`);
+    addChatMessage('apparatus', `VISUAL SPECIFICATIONS RECORDED — Color palette: ${campaign.colorPalette?.length || 5} colors indexed — Typography: ${campaign.typography || 'pending'} — Format specifications: print, OOH, digital, social —`);
     
     createWorkItem('burl', 'visual',
-      `VISUAL DIRECTION FOR CAMPAIGN ${index + 1}:\n\n• Colors: ${campaign.colorPalette?.join(', ') || 'Brand palette, desaturated'}\n• Typography: ${campaign.typography || 'Official but weathered'}\n• Concept: ${campaign.visualConcept || 'Documentary authenticity'}\n\nArt Direction Notes:\n- ${company.name} brand language, subverted\n- Confessional minimalism\n- Images that feel found, not staged\n- The aesthetic of uncomfortable truth`,
+      `VISUAL DIRECTION — CAMPAIGN ${index + 1}\n\n━━━ ART DIRECTION ━━━\n• Colors: ${campaign.colorPalette?.join(', ') || 'Brand palette, desaturated'}\n• Typography: ${campaign.typography || 'Official but weathered'}\n• Concept: ${campaign.visualConcept || 'Documentary authenticity'}\n\n━━━ NOTES ━━━\n- ${company.name} brand language, subverted\n- Confessional minimalism\n- Images that feel found, not staged\n- The aesthetic of uncomfortable truth\n- "Ugly-beautiful" — Burl's directive`,
       { x: 400, y: 380 }, 4, true, scenario.id
     );
     
     updateTaskStatus(scenarioTasks[3]?.id || '', 'done');
     
-    await delayOrSkip(2500);
+    await delayOrSkip(2000);
     
-    // Phase 5: Nadya creates production schedule
+    // ============================
+    // PHASE 5: PRODUCTION SCHEDULING (Nadya leads, all react)
+    // ============================
     setCurrentPhase(5);
     setPhaseLabel('PRODUCTION SCHEDULING');
     
     moveAgentTo('nadya', { x: 820, y: 440 }, 'typing', 'Building production schedule...');
-    addChatMessage('nadya', `*checks all watches simultaneously* Campaign ${index + 1} requires production schedule. Print: full-page ad goes to prepress by end of week. Billboard and bus shelter specs finalized within 48 hours. Video production begins Monday — casting call Tuesday, shoot Wednesday, edit Thursday, delivery Friday. Social assets deployed in sequence: LinkedIn first for corporate credibility, then Twitter/X for public discourse, Instagram for visual impact, TikTok for cultural penetration. The schedule does not negotiate. The schedule simply is.`);
+    addChatMessage('nadya', `*slams calendar on table* Schedule time. Everyone, deadlines are not suggestions. They are law. Print: full-page ad goes to prepress by end of week. Billboard and bus shelter specs finalized within 48 hours. Video production begins Monday. Social assets deployed in sequence: LinkedIn first for credibility, then Twitter/X, Instagram, TikTok. The schedule does not negotiate.`);
     
-    await delayOrSkip(2000);
+    await delayOrSkip(1200);
+    
+    // Everyone reacts to schedule
+    addChatMessage('mike', `*looks at dates* Nadya, these timelines are... aggressive. Very aggressive. Possibly insane.`);
+    addChatMessage('nadya', `Valentina Tereshkova orbited Earth in '63. You can make a deadline in ${new Date().getFullYear()}.`);
+    
+    await delayOrSkip(800);
+    
+    addChatMessage('poole', `*adjusts glasses* The schedule must accommodate the strategic architecture. The framework requires gestation time—`);
+    addChatMessage('nadya', `The framework has until 4pm. After 4pm, the framework becomes my problem.`);
+    addChatMessage('the-cell', `[GJON]: Deadlines. The enemy of good work. [VERA]: The friend of ANY work. [THURSDAY]: *already finished, looks up impassively*`);
+    addChatMessage('burl', `*grumbles* Art doesn't punch a clock, Nadya. But I'll have the layouts done. Because the picture's already in my head.`);
+    addChatMessage('delmore', `*checks calendar* Client meeting needs to be scheduled too. I'll prepare the presentation for the day after delivery. They'll need 24 hours to pretend to think about it before saying yes.`);
+    addChatMessage('apparatus', `PRODUCTION TIMELINE LOGGED — ALL MILESTONES RECORDED — ${scenarioTasks.length} deliverables queued — ACCOUNTABILITY CHAIN ESTABLISHED—`);
+    
+    await delayOrSkip(1000);
     
     const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString();
     const nextWeek = new Date(Date.now() + 7 * 86400000).toLocaleDateString();
     
     createWorkItem('nadya', 'schedule',
-      `PRODUCTION SCHEDULE — CAMPAIGN ${index + 1}\n\n"${campaign.headline}"\n\nPRINT:\n• Prepress: ${tomorrow}\n• Proof: +2 days\n• Final: +4 days\n\nOOH:\n• Billboard specs: ${tomorrow}\n• Bus shelter: +1 day\n\nVIDEO:\n• Casting: +2 days\n• Shoot: +3 days\n• Edit: +5 days\n• Delivery: ${nextWeek}\n\nSOCIAL:\n• LinkedIn: Day 1\n• Twitter/X: Day 2\n• Instagram: Day 3\n• TikTok: Day 4\n\nACCOUNTABILITY: Named. Dated. Non-negotiable.`,
+      `PRODUCTION SCHEDULE — CAMPAIGN ${index + 1}\n\n"${campaign.headline}"\n\nPRINT:\n• Prepress: ${tomorrow}\n• Proof: +2 days\n• Final: +4 days\n\nOOH:\n• Billboard specs: ${tomorrow}\n• Bus shelter: +1 day\n\nVIDEO:\n• Casting: +2 days\n• Shoot: +3 days\n• Edit: +5 days\n• Delivery: ${nextWeek}\n\nSOCIAL:\n• LinkedIn: Day 1\n• Twitter/X: Day 2\n• Instagram: Day 3\n• TikTok: Day 4\n\nACCOUNTABILITY: Named. Dated.`,
       { x: 720, y: 340 }, 5, true, scenario.id
     );
     
@@ -501,44 +610,115 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     await delayOrSkip(2000);
     
-    // Phase 6: Delmore prepares client translation
+    // ============================
+    // PHASE 6: CLIENT TRANSLATION (Delmore leads, all react)
+    // ============================
     setCurrentPhase(6);
     setPhaseLabel('CLIENT TRANSLATION');
     
     moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Translating for client...');
-    addChatMessage('delmore', `*distributes hard candies, adjusts pocket square* Now, the creative work is brilliant — it always is — but the client needs to understand WHY it's brilliant, in language that makes them feel smart for buying it. We're positioning "${campaign.headline}" not as an apology, but as a "Proactive Brand Integrity Initiative." The word "sorry" becomes "stakeholder-aligned." The word "disaster" becomes "anticipated market disruption." I've prepared talking points, a FAQ sheet for their legal team, and a pamphlet — yes, a pamphlet — explaining the cultural significance of preemptive accountability. The client will love this. They won't know why. But they will.`);
+    addChatMessage('delmore', `*adjusts collar, distributes hard candies* Now friends, the creative work is brilliant — it always is — but the client needs to understand WHY it's brilliant, in language that makes them feel smart for buying it. We're positioning "${campaign.headline}" not as an apology, but as a "Proactive Brand Integrity Initiative." The word "sorry" becomes "stakeholder-aligned." The client will love this. They won't know why. But they will.`);
     
-    await delayOrSkip(2000);
+    await delayOrSkip(1200);
+    
+    // Everyone watches Delmore work
+    addChatMessage('mike', `*accepts candy, watches* Classic Delmore. Same idea, completely different feel. Like watching a lion become a house cat. Same animal, different energy.`);
+    addChatMessage('poole', `*reads Delmore's deck* Remarkable. You've preserved the strategic architecture while removing all threatening clarity. The framework survives in the subtext. Impressive camouflage work.`);
+    addChatMessage('the-cell', `[GJON]: How does he do it without lying? [VERA]: It's an art form. Our words go in. Different words come out. Same meaning. [GJON]: Alarming job. [THURSDAY]: *nods respect*`);
+    
+    await delayOrSkip(800);
+    
+    addChatMessage('burl', `*reviews presentation materials* The visual direction translates well to the client deck. This looks like something that costs a lot of money. Good.`);
+    addChatMessage('nadya', `Client meeting scheduled for ${new Date(Date.now() + 3 * 86400000).toLocaleDateString()}. Delmore, you have the room at 3pm. Do not be late.`);
+    addChatMessage('apparatus', `CLIENT TRANSLATION DOCUMENTED — Terminology mapping: ${4} substitutions indexed — Presentation deck: compiled — Client FAQ: generated —`);
+    
+    await delayOrSkip(1000);
     
     createWorkItem('delmore', 'translation',
-      `CLIENT TRANSLATION — CAMPAIGN ${index + 1}\n\n"${campaign.headline}"\n\nCLIENT-FACING LANGUAGE:\n• "Apology" → "Proactive Brand Integrity Initiative"\n• "Disaster" → "Anticipated Market Disruption"\n• "Sorry" → "Stakeholder-Aligned Acknowledgment"\n• "Crisis" → "Opportunity for Authentic Engagement"\n\nTALKING POINTS:\n1. This positions ${company.name} as industry leader in transparency\n2. Pre-emptive accountability builds consumer trust\n3. Campaign is designed for award recognition\n4. ROI measured in brand sentiment, not conversions\n\nPAMPHLET: Prepared on risograph. Distribution pending.`,
+      `CLIENT TRANSLATION — CAMPAIGN ${index + 1}\n\n"${campaign.headline}"\n\nCLIENT-FACING LANGUAGE:\n• "Apology" → "Proactive Brand Integrity Initiative"\n• "Disaster" → "Anticipated Market Disruption"\n• "Sorry" → "Stakeholder-Aligned Acknowledgment"\n• "Crisis" → "Opportunity for Authentic Engagement"\n\nTALKING POINTS:\n1. Positions ${company.name} as industry leader in transparency\n2. Pre-emptive accountability builds consumer trust\n3. Campaign designed for award recognition\n4. ROI measured in brand sentiment\n\nPAMPHLET: Prepared on risograph.`,
       { x: 1060, y: 340 }, 6, true, scenario.id
     );
     
     updateTaskStatus(scenarioTasks[5]?.id || '', 'done');
     
-    await delayOrSkip(2500);
-    
-    // Phase 7: Apparatus compiles
-    setCurrentPhase(7);
-    setPhaseLabel('CAMPAIGN COMPILATION');
-    
-    moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling campaign...');
-    addChatMessage('apparatus', `COMPILING APOLOGY CAMPAIGN ${index + 1} OF ${scenarios.length}—All creative assets being assembled. Print specifications: magazine full-page, billboard, bus shelter. Video script: 60-second confession format. Social media: platform-native executions for Twitter/X, Instagram, LinkedIn, TikTok. Digital banner suite: all standard formats. Production schedule: locked. Client translation: complete. INTEGRATION STATUS: IN PROGRESS—`);
-    
     await delayOrSkip(2000);
     
+    // ============================
+    // PHASE 7: COMPILATION & ASSET GENERATION (Apparatus leads, all react)
+    // ============================
+    setCurrentPhase(7);
+    setPhaseLabel('COMPILING CAMPAIGN & GENERATING ASSETS');
+    
+    moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling campaign & generating images...');
+    addChatMessage('apparatus', `INITIATING FINAL COMPILATION — CAMPAIGN ${index + 1} OF ${scenarios.length}—All creative assets being assembled. Generating visual assets via DALL-E. Print specifications: magazine full-page, billboard, bus shelter. Video script: 60-second confession format. Social media: platform-native executions. Digital banner suite: all standard formats. INTEGRATION STATUS: IN PROGRESS—`);
+    
+    await delayOrSkip(1000);
+    
+    // Generate actual images via DALL-E during compilation
+    addChatMessage('apparatus', `GENERATING CAMPAIGN IMAGES — Hero visual, billboard format, social media assets — Processing via image generation API—`);
+    
+    // Try to generate images
+    let generatedImages: { hero?: string; billboard?: string; social?: string } = {};
+    try {
+      const [heroResult, billboardResult, socialResult] = await Promise.allSettled([
+        generateCampaignImage(campaign, 'hero'),
+        generateCampaignImage(campaign, 'billboard'),
+        generateCampaignImage(campaign, 'social')
+      ]);
+      
+      if (heroResult.status === 'fulfilled' && heroResult.value) {
+        generatedImages.hero = heroResult.value;
+        addChatMessage('apparatus', `HERO IMAGE GENERATED — Resolution: 1024x1024 — Quality: HD —`);
+      }
+      if (billboardResult.status === 'fulfilled' && billboardResult.value) {
+        generatedImages.billboard = billboardResult.value;
+        addChatMessage('apparatus', `BILLBOARD IMAGE GENERATED — Resolution: 1792x1024 — Format: Wide —`);
+      }
+      if (socialResult.status === 'fulfilled' && socialResult.value) {
+        generatedImages.social = socialResult.value;
+        addChatMessage('apparatus', `SOCIAL IMAGE GENERATED — Resolution: 1024x1024 — Format: Square —`);
+      }
+    } catch (err) {
+      console.warn('Image generation skipped:', err);
+      addChatMessage('apparatus', `IMAGE GENERATION: Using text-based assets — API unavailable or rate-limited —`);
+    }
+    
+    // Store generated images on the campaign
+    campaign.generatedImages = generatedImages;
+    
+    // Update campaign in state
+    setCampaigns(prev => {
+      const updated = [...prev];
+      const idx = updated.findIndex(c => c.id === campaign.id);
+      if (idx >= 0) {
+        updated[idx] = { ...campaign };
+      }
+      return updated;
+    });
+    
+    await delayOrSkip(1000);
+    
+    // Everyone reacts to compilation
+    addChatMessage('mike', `*watches Apparatus work, lights final cigarette* Here it comes. The moment of truth. Everything we argued about, compressed into one output.`);
+    addChatMessage('poole', `*makes final note* For the record: the Poole System successfully guided this campaign. Section Seven of my next publication is practically writing itself.`);
+    addChatMessage('the-cell', `[GJON]: The words survived. Better than survived — they're going to live longer than the disaster they apologize for. [VERA]: That's the trick. [THURSDAY]: *quietly satisfied* — The Cell`);
+    addChatMessage('burl', `*steps back from work* The pictures are done. Ugly-beautiful, just like I promised. ${company.name}'s brand language, but confessional. Every image tells the same story.`);
+    addChatMessage('nadya', `*checks all watches* Compilation within deadline. ${generatedImages.hero ? 'Images generated.' : 'Text assets compiled.'} The schedule is satisfied. Barely.`);
+    addChatMessage('delmore', `*pockets remaining candies* Beautiful work, everyone. I've already prepared the client translation. They'll feel smart reading it. That's how you know I did my job right.`);
+    
+    await delayOrSkip(1000);
+    
     createWorkItem('apparatus', 'approval',
-      `CAMPAIGN ${index + 1} FINALIZED\n\nHEADLINE: "${campaign.headline}"\nTAGLINE: "${campaign.subheadline}"\n\nSCENARIO: ${scenario.title}\n\nDELIVERABLES:\n• Print: Full-page, poster\n• OOH: Billboard (14x48ft), bus shelter\n• Video: :60 branded content\n• Social: 5 platform-specific posts\n• Digital: Banner suite\n• Production schedule: Locked\n• Client translation: Complete\n\nSTATUS: DEPLOYMENT READY`,
+      `CAMPAIGN ${index + 1} FINALIZED\n\nHEADLINE: "${campaign.headline}"\nTAGLINE: "${campaign.subheadline}"\n\nSCENARIO: ${scenario.title}\n\nDELIVERABLES:\n• Print Ad (HTML + ${generatedImages.hero ? 'AI Image' : 'Spec'})\n• Billboard (HTML + ${generatedImages.billboard ? 'AI Image' : 'Spec'})\n• Video Storyboard (HTML)\n• Social Deck (HTML + ${generatedImages.social ? 'AI Image' : 'Spec'})\n• Digital Banners (HTML)\n• Copy Deck\n• Production Schedule\n• Client Translation\n\nSTATUS: DEPLOYMENT READY`,
       { x: 760, y: 660 }, 7, false, scenario.id
     );
     
     updateTaskStatus(scenarioTasks[6]?.id || '', 'done');
     
-    addChatMessage('apparatus', `CAMPAIGN ${index + 1} COMPILATION SUCCESSFUL—"${campaign.headline}" | Full deliverable suite generated | Quality rating: CANNES-READY | Timestamp: ${new Date().toLocaleTimeString()}`);
+    addChatMessage('apparatus', `CAMPAIGN ${index + 1} COMPILATION SUCCESSFUL—"${campaign.headline}" | Full deliverable suite generated${generatedImages.hero ? ' with AI-generated visuals' : ''} | Quality rating: CANNES-READY | Timestamp: ${new Date().toLocaleTimeString()}`);
     
     return campaign;
-  }, [company, tasks, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, scenarios.length]);
+  }, [company, tasks, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, scenarios.length, delayOrSkip]);
 
   // Run the full workflow
   const runWorkflow = useCallback(async () => {
@@ -567,42 +747,43 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('✓ ALL CAMPAIGNS COMPLETE — READY FOR DOWNLOAD');
     setIsRunning(false);
     
-    // Celebratory completion messages
-    addChatMessage('apparatus', `ALL ${scenarios.length} APOLOGY CAMPAIGNS COMPILED SUCCESSFULLY — READY FOR REVIEW AND DOWNLOAD`);
+    // Celebratory completion messages from ALL bots
+    addChatMessage('apparatus', `ALL ${scenarios.length} APOLOGY CAMPAIGNS COMPILED SUCCESSFULLY — ASSETS READY FOR DOWNLOAD`);
     
     await delayOrSkip(500);
     
-    addChatMessage('mike', `*lights celebratory cigarette* That's a wrap. ${scenarios.length} campaign${scenarios.length !== 1 ? 's' : ''}. ${company.name} can now apologize for disasters that haven't happened yet. We've invented a new form of corporate communication: preemptive contrition. Twenty-two years in this business, and I've never seen anything like what we just made. It's honest in a way that's also completely dishonest. It's advertising that admits advertising is a lie. It's going to win awards. Sad, beautiful, corporate awards.`);
+    addChatMessage('mike', `*lights celebratory cigarette* That's a wrap. ${scenarios.length} campaign${scenarios.length !== 1 ? 's' : ''}. ${company.name} can now apologize for disasters that haven't happened yet. Twenty-two years in this business, and I've never seen anything like what we just made. It's going to win awards. Sad, beautiful, corporate awards.`);
     
-    await delayOrSkip(800);
+    await delayOrSkip(600);
     
-    addChatMessage('poole', `*closes leather notebook with satisfaction* The Proactive Apology Matrix has been fully deployed. What we've created here is not merely advertising — it's a new paradigm in corporate-consumer relations. We've given ${company.name} the gift of anticipated failure. They can now be honest about their future dishonesty. I'll be writing about this for years. Chapter titles are already forming.`);
+    addChatMessage('poole', `*closes leather notebook* The Proactive Apology Matrix has been fully deployed. We've given ${company.name} the gift of anticipated failure. I'll be writing about this for years. Chapter titles are already forming.`);
     
-    await delayOrSkip(800);
+    await delayOrSkip(600);
     
-    addChatMessage('the-cell', `[GJON]: We wrote apologies for things that haven't happened. This is either the most ethical advertising ever made, or the most cynical. [VERA]: Both can be true. [THURSDAY]: *quietly* The headlines will live longer than the disasters they apologize for. That's the trick. The apology becomes more famous than the crisis. [GJON]: We've weaponized accountability. [VERA]: We've democratized it. [THURSDAY]: Same thing. — The Cell`);
+    addChatMessage('the-cell', `[GJON]: We wrote apologies for things that haven't happened. The headlines will live longer than the disasters they apologize for. [VERA]: That's the trick. [THURSDAY]: *small smile* We've weaponized accountability. — The Cell`);
     
-    await delayOrSkip(800);
+    await delayOrSkip(600);
     
-    addChatMessage('burl', `*steps back from work* The pictures are done. They're ugly-beautiful, just like I promised. ${company.name}'s brand language, but confessional. Their color palette, but honest. Every image tells the same story: we know what's coming, and we're sorry in advance. It's the visual equivalent of a preemptive flinch. It's going to photograph beautifully at the Cannes awards ceremony.`);
+    addChatMessage('burl', `*steps back from work* The pictures are done. Ugly-beautiful, just like I promised. Every image tells the same story: we know what's coming, and we're sorry in advance.`);
     
-    await delayOrSkip(800);
+    await delayOrSkip(600);
     
-    addChatMessage('nadya', `*checks all watches simultaneously* Production complete. ${scenarios.length} campaigns. All deliverables finalized within deadline. The schedule is satisfied. Download your complete campaign package — print specifications, video scripts, social executions, visual assets. Everything required for deployment. The ZIP file awaits.`);
+    addChatMessage('nadya', `*checks all watches* Production complete. ${scenarios.length} campaigns. All deliverables finalized within deadline. The schedule is satisfied. Click "DOWNLOAD ASSETS" when ready.`);
     
-    await delayOrSkip(800);
+    await delayOrSkip(600);
     
-    addChatMessage('delmore', `*distributes hard candies to everyone* Beautiful work, folks. I've already prepared the client translation. We're positioning this as the "Proactive Stakeholder Alignment Initiative" — it sounds corporate enough that they'll approve it without understanding what they're approving. The ZIP contains everything: campaign overviews, creative specifications, asset files, and my pamphlet explaining why this matters. ${company.name} is about to become the most honest company in their industry. About things that haven't happened yet.`);
+    addChatMessage('delmore', `*distributes hard candies to everyone* Beautiful work, folks. The ZIP contains everything: ad mockups, generated images, video storyboards, social decks, banner ads, copy specs, and my pamphlet. ${company.name} is about to become the most honest company in their industry.`);
     
-    await delayOrSkip(800);
+    await delayOrSkip(600);
     
-    addChatMessage('apparatus', `DELIVERABLE PACKAGE READY FOR DOWNLOAD — ${campaigns.length} complete campaigns with full creative specifications. Click "VIEW CAMPAIGNS" to review assets, then "DOWNLOAD CAMPAIGN PACKAGE" to receive your Cannes-ready deliverables archive.`);
+    addChatMessage('apparatus', `DELIVERABLE PACKAGE READY — ${completedCampaigns.length} complete campaigns with HTML ad mockups, AI-generated visuals, video storyboards, social media decks, and copy specifications. Press "DOWNLOAD ASSETS" to receive your Cannes-ready deliverables archive.`);
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     
-    // Mark as complete and show the campaign panel
+    // Mark as complete but DO NOT auto-show the panel
+    // User must click "DOWNLOAD ASSETS" button to proceed
     setIsComplete(true);
-    setShowCodePanel(true);
+    setShowCodePanel(false); // <-- Don't auto-navigate to download screen
     
     // Note: We do NOT auto-call onComplete. User must click "FINISH SESSION" to exit.
   }, [company, scenarios, processScenario, addChatMessage]);
@@ -678,13 +859,15 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     })));
   };
 
-  // Download ZIP with all campaign assets — instant, no image generation
-  const downloadZip = useCallback(() => {
+  // Download ZIP with REAL campaign assets — HTML mockups + generated images
+  const downloadZip = useCallback(async () => {
     try {
       if (campaigns.length === 0) {
         addChatMessage('apparatus', 'ERROR—No campaigns available to download.');
         return;
       }
+      
+      addChatMessage('apparatus', `GENERATING DELIVERABLES PACKAGE — Assembling ${campaigns.length} campaign(s) with HTML ad mockups, images, storyboards, and copy decks—`);
       
       const zip = new JSZip();
       const timestamp = new Date().toISOString().split('T')[0];
@@ -693,14 +876,79 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       const mainFolder = zip.folder(folderName);
       if (!mainFolder) return;
       
-      // Process each campaign — text assets only for instant download
+      // Process each campaign with REAL assets
       for (let i = 0; i < campaigns.length; i++) {
         const campaign = campaigns[i];
-        const scenarioFolder = mainFolder.folder(`scenario_${i + 1}_${campaign.scenarioTitle.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_')}`);
+        const scenarioSlug = campaign.scenarioTitle.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_').slice(0, 40);
+        const scenarioFolder = mainFolder.folder(`campaign_${i + 1}_${scenarioSlug}`);
         if (!scenarioFolder) continue;
         
+        // Get any previously generated images
+        const heroImg = campaign.generatedImages?.hero;
+        const billboardImg = campaign.generatedImages?.billboard;
+        const socialImg = campaign.generatedImages?.social;
+        
+        // ================================
+        // 1. REAL HTML AD MOCKUPS
+        // ================================
+        const adsFolder = scenarioFolder.folder('ads');
+        
+        // Print Ad — full HTML with embedded image
+        const printAdHtml = generatePrintAdHtml(campaign, heroImg || undefined);
+        adsFolder?.file('print_ad_fullpage.html', printAdHtml);
+        
+        // Billboard — full HTML with embedded image
+        const billboardHtml = generateBillboardHtml(campaign, billboardImg || undefined);
+        adsFolder?.file('billboard_14x48.html', billboardHtml);
+        
+        // Social Media Posts — full HTML deck
+        const socialHtml = generateSocialPostsHtml(campaign, socialImg || undefined);
+        adsFolder?.file('social_media_deck.html', socialHtml);
+        
+        // Digital Banners — full HTML
+        const bannersHtml = generateBannerAdsHtml(campaign);
+        adsFolder?.file('digital_banners.html', bannersHtml);
+        
+        // Video Storyboard — full HTML
+        const storyboardHtml = generateStoryboardHtml(campaign, heroImg || undefined);
+        if (storyboardHtml) {
+          adsFolder?.file('video_storyboard.html', storyboardHtml);
+        }
+        
+        // ================================
+        // 2. GENERATED IMAGES (PNG)
+        // ================================
+        const imagesFolder = scenarioFolder.folder('images');
+        
+        if (heroImg) {
+          // heroImg is either base64 data URL or raw base64
+          const rawBase64 = heroImg.startsWith('data:') 
+            ? heroImg.split(',')[1] 
+            : heroImg;
+          imagesFolder?.file('hero_image.png', rawBase64, { base64: true });
+        }
+        
+        if (billboardImg) {
+          const rawBase64 = billboardImg.startsWith('data:') 
+            ? billboardImg.split(',')[1] 
+            : billboardImg;
+          imagesFolder?.file('billboard_image.png', rawBase64, { base64: true });
+        }
+        
+        if (socialImg) {
+          const rawBase64 = socialImg.startsWith('data:') 
+            ? socialImg.split(',')[1] 
+            : socialImg;
+          imagesFolder?.file('social_image.png', rawBase64, { base64: true });
+        }
+        
+        // ================================
+        // 3. COPY DECK (text specs)
+        // ================================
+        const copyFolder = scenarioFolder.folder('copy');
+        
         // Campaign overview
-        scenarioFolder.file('campaign_overview.txt', `PROACTIVE APOLOGY CAMPAIGN ${i + 1}
+        copyFolder?.file('campaign_overview.txt', `PROACTIVE APOLOGY CAMPAIGN ${i + 1}
 ${'='.repeat(50)}
 
 Company: ${company.name}
@@ -723,9 +971,7 @@ KEY CREATIVE ANGLES
 -------------------
 ${campaign.keyMessages?.map((m, j) => `${j + 1}. ${m}`).join('\n') || 'N/A'}
 
-TONE
-----
-${campaign.tone}
+TONE: ${campaign.tone}
 
 VISUAL DIRECTION
 ----------------
@@ -734,114 +980,76 @@ Colors: ${campaign.colorPalette?.join(', ') || 'N/A'}
 Typography: ${campaign.typography}
 `);
         
-        // Deliverables specs
-        if (campaign.deliverables) {
-          const deliverablesFolder = scenarioFolder.folder('deliverables');
-          
-          if (campaign.deliverables.fullPageAd) {
-            deliverablesFolder?.file('print_ad_spec.txt', `PRINT AD SPECIFICATION
-=====================
-
-Format: ${campaign.deliverables.fullPageAd.format}
-Dimensions: ${campaign.deliverables.fullPageAd.dimensions || '8.5x11"'}
-
-HEADLINE: "${campaign.deliverables.fullPageAd.headline}"
-
-BODY COPY:
-${campaign.deliverables.fullPageAd.body}
-
-VISUAL DIRECTION:
-${campaign.deliverables.fullPageAd.visual}
-`);
-          }
-          
-          if (campaign.deliverables.videoScript) {
-            deliverablesFolder?.file('video_script.txt', `VIDEO SCRIPT - ${campaign.deliverables.videoScript.title}
+        // Video script
+        if (campaign.deliverables?.videoScript) {
+          const vs = campaign.deliverables.videoScript;
+          copyFolder?.file('video_script.txt', `VIDEO SCRIPT — "${vs.title}"
 ${'='.repeat(50)}
-
-Duration: ${campaign.deliverables.videoScript.duration}
-Format: ${campaign.deliverables.videoScript.format}
+Duration: ${vs.duration} | Format: ${vs.format}
 
 SCRIPT
 ------
-${campaign.deliverables.videoScript.script.map(shot => 
+${vs.script.map(shot => 
 `SHOT ${shot.shot} (${shot.duration})
-Visual: ${shot.visual}
-Audio: ${shot.audio}
-${shot.onScreenText ? `Text: ${shot.onScreenText}` : ''}
+  Visual: ${shot.visual}
+  Audio: ${shot.audio}${shot.onScreenText ? `\n  On-screen: ${shot.onScreenText}` : ''}
 `).join('\n')}
 
-PRODUCTION NOTES
+DIRECTOR'S NOTES
 ----------------
-${campaign.deliverables.videoScript.notes}
+${vs.notes}
 `);
-          }
-          
-          if (campaign.deliverables.socialPosts) {
-            deliverablesFolder?.file('social_copy_deck.txt', `SOCIAL MEDIA COPY DECK
-=====================
+        }
+        
+        // Social copy deck
+        if (campaign.deliverables?.socialPosts) {
+          copyFolder?.file('social_copy_deck.txt', `SOCIAL MEDIA COPY DECK
+${'='.repeat(50)}
 
 ${campaign.deliverables.socialPosts.map((post, j) => 
-`POST ${j + 1} - ${post.platform} (${post.type})
+`POST ${j + 1} — ${post.platform} (${post.type})
 ${'─'.repeat(40)}
 ${post.copy}
 
-Visual: ${post.visual}
-${post.hashtags ? `Hashtags: ${post.hashtags.map(h => `#${h}`).join(' ')}` : ''}
+Visual direction: ${post.visual}
+${post.hashtags?.length ? `Hashtags: ${post.hashtags.map(h => `#${h}`).join(' ')}` : ''}
 `).join('\n')}`);
-          }
+        }
+        
+        // Print/OOH specs
+        if (campaign.deliverables?.fullPageAd || campaign.deliverables?.billboard) {
+          let specs = 'PRINT & OOH SPECIFICATIONS\n' + '='.repeat(50) + '\n\n';
           
+          if (campaign.deliverables.fullPageAd) {
+            const ad = campaign.deliverables.fullPageAd;
+            specs += `FULL-PAGE PRINT AD (${ad.dimensions || '8.5x11"'})\n`;
+            specs += `Headline: "${ad.headline}"\n`;
+            specs += `Body: ${ad.body}\n`;
+            specs += `Visual: ${ad.visual}\n\n`;
+          }
           if (campaign.deliverables.billboard) {
-            deliverablesFolder?.file('ooh_billboard_spec.txt', `OUT OF HOME SPECIFICATION
-========================
-
-Format: ${campaign.deliverables.billboard.format}
-Dimensions: ${campaign.deliverables.billboard.dimensions || '14x48ft'}
-
-HEADLINE: "${campaign.deliverables.billboard.headline}"
-TAGLINE: ${campaign.deliverables.billboard.body}
-
-VISUAL: ${campaign.deliverables.billboard.visual}
-`);
+            const bb = campaign.deliverables.billboard;
+            specs += `BILLBOARD (${bb.dimensions || '14x48ft'})\n`;
+            specs += `Headline: "${bb.headline}"\n`;
+            specs += `Body: ${bb.body}\n`;
+            specs += `Visual: ${bb.visual}\n\n`;
           }
-          
-          if (campaign.deliverables.poster) {
-            deliverablesFolder?.file('poster_spec.txt', `POSTER SPECIFICATION
-====================
-
-Format: ${campaign.deliverables.poster.format}
-Dimensions: ${campaign.deliverables.poster.dimensions || '594x841mm'}
-
-HEADLINE: "${campaign.deliverables.poster.headline}"
-BODY: ${campaign.deliverables.poster.body}
-VISUAL: ${campaign.deliverables.poster.visual}
-`);
-          }
-          
           if (campaign.deliverables.busShelter) {
-            deliverablesFolder?.file('bus_shelter_spec.txt', `BUS SHELTER SPECIFICATION
-=========================
-
-Format: ${campaign.deliverables.busShelter.format}
-Dimensions: ${campaign.deliverables.busShelter.dimensions || '1800x1200mm'}
-
-HEADLINE: "${campaign.deliverables.busShelter.headline}"
-BODY: ${campaign.deliverables.busShelter.body}
-VISUAL: ${campaign.deliverables.busShelter.visual}
-`);
+            const bs = campaign.deliverables.busShelter;
+            specs += `BUS SHELTER (${bs.dimensions || '1800x1200mm'})\n`;
+            specs += `Headline: "${bs.headline}"\n`;
+            specs += `Body: ${bs.body}\n`;
+            specs += `Visual: ${bs.visual}\n\n`;
+          }
+          if (campaign.deliverables.poster) {
+            const p = campaign.deliverables.poster;
+            specs += `POSTER (${p.dimensions || '594x841mm'})\n`;
+            specs += `Headline: "${p.headline}"\n`;
+            specs += `Body: ${p.body}\n`;
+            specs += `Visual: ${p.visual}\n\n`;
           }
           
-          if (campaign.deliverables.bannerAds && campaign.deliverables.bannerAds.length > 0) {
-            deliverablesFolder?.file('digital_banners_spec.txt', `DIGITAL BANNER SPECIFICATIONS
-=============================
-
-${campaign.deliverables.bannerAds.map((banner, j) =>
-`BANNER ${j + 1}: ${banner.format}
-Headline: "${banner.headline}"
-Body: ${banner.body}
-Visual: ${banner.visual}
-`).join('\n')}`);
-          }
+          copyFolder?.file('print_ooh_specs.txt', specs);
         }
         
         // Individual campaign HTML preview
@@ -849,11 +1057,12 @@ Visual: ${banner.visual}
         scenarioFolder.file('campaign_preview.html', campaignHtml);
       }
       
-      // Generate HTML Dossier
+      // Generate HTML Dossier (master overview)
       const htmlDossier = formatApologyCampaignsAsHTML(company, scenarios, campaigns);
       mainFolder.file('apology_dossier.html', htmlDossier);
       
       // Master README
+      const hasImages = campaigns.some(c => c.generatedImages?.hero || c.generatedImages?.billboard || c.generatedImages?.social);
       mainFolder.file('README.txt', `${company.name.toUpperCase()} PROACTIVE APOLOGY CAMPAIGNS
 ${'='.repeat(60)}
 
@@ -862,27 +1071,37 @@ Date: ${new Date().toLocaleString()}
 
 OVERVIEW
 --------
-This package contains ${campaigns.length} proactive apology campaign(s) for potential future doomsday scenarios.
+This package contains ${campaigns.length} proactive apology campaign(s) for 
+potential future doomsday scenarios, complete with:
+
+${hasImages ? '✓ AI-GENERATED IMAGES (DALL-E) — hero visuals, billboard images, social media assets' : ''}
+✓ HTML AD MOCKUPS — Open in any browser to see the actual ads
+✓ VIDEO STORYBOARDS — Shot-by-shot visual scripts with frames
+✓ SOCIAL MEDIA DECKS — Platform-native post mockups
+✓ DIGITAL BANNERS — Web-ready banner ad mockups
+✓ COPY DECKS — Full copy specifications for all formats
+✓ PRINT/OOH SPECS — Billboard, bus shelter, poster specifications
 
 CAMPAIGNS INCLUDED
 ------------------
 ${campaigns.map((c, i) => `${i + 1}. "${c.headline}" (${c.scenarioTitle})`).join('\n')}
 
-FOLDER STRUCTURE
-----------------
-Root:
-- apology_dossier.html - Complete visual presentation (open in browser)
-- README.txt - This file
-
-Each scenario folder contains:
-- campaign_overview.txt - Full campaign details and creative direction
-- campaign_preview.html - Individual campaign preview
-- deliverables/ - Print specs, video scripts, social copy, OOH specs, digital banners
+HOW TO VIEW
+-----------
+1. Open "apology_dossier.html" in your browser for the complete overview
+2. Each campaign folder contains:
+   - ads/ — HTML ad mockups (print, billboard, social, banners, storyboard)
+   - images/ — AI-generated campaign images (PNG)
+   - copy/ — Text specifications and scripts
+   - campaign_preview.html — Individual campaign preview
 
 USAGE NOTES
 -----------
 These campaigns are designed for PREEMPTIVE deployment. Deploy apology
 before the disaster occurs for maximum corporate accountability points.
+
+All HTML files are self-contained and can be opened directly in a browser.
+${hasImages ? 'Generated images are included both as standalone PNGs and embedded in the HTML mockups.' : ''}
 
 DISCLAIMER
 ----------
@@ -894,11 +1113,10 @@ THE FERAL CREATIVE COLLECTIVE
 "We are the best at the worst"
 `);
       
-      // Generate and download immediately — no async image generation
-      zip.generateAsync({ type: 'blob' }).then(content => {
-        saveAs(content, `${folderName}.zip`);
-        addChatMessage('apparatus', `DELIVERABLES PACKAGE DOWNLOADED—${folderName}.zip`);
-      });
+      // Generate and download
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, `${folderName}.zip`);
+      addChatMessage('apparatus', `DELIVERABLES PACKAGE DOWNLOADED — ${folderName}.zip — ${campaigns.length} campaigns with ${hasImages ? 'AI-generated images + ' : ''}HTML ad mockups + copy decks`);
       
     } catch (error) {
       console.error('Error downloading ZIP:', error);
@@ -944,10 +1162,16 @@ THE FERAL CREATIVE COLLECTIVE
             </>
           )}
           {isComplete && (
-            <button className="control-btn finish-btn" onClick={handleFinishSession}>
-              <Check size={16} weight="bold" />
-              <span>FINISH SESSION</span>
-            </button>
+            <>
+              <button className="control-btn download-assets-btn" onClick={() => setShowCodePanel(true)}>
+                <DownloadSimple size={16} weight="bold" />
+                <span>DOWNLOAD ASSETS</span>
+              </button>
+              <button className="control-btn finish-btn" onClick={handleFinishSession}>
+                <Check size={16} weight="bold" />
+                <span>FINISH SESSION</span>
+              </button>
+            </>
           )}
           <button className="control-btn reset-btn" onClick={handleReset}>
             <ArrowCounterClockwise size={16} weight="bold" />

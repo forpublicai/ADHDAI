@@ -158,6 +158,13 @@ export interface ApologyCampaign {
   // Deliverables
   deliverables?: ApologyDeliverables;
   
+  // Generated images (base64)
+  generatedImages?: {
+    hero?: string;
+    billboard?: string;
+    social?: string;
+  };
+  
   // Metadata
   generatedAt?: number;
   error?: string;
