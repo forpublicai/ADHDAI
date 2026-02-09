@@ -4,6 +4,7 @@
   width: 100%;
   max-width: 640px;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
 }
 
 /* Input Wrapper */
@@ -82,7 +83,7 @@
   background: #fff;
   border: 1px solid #0a0a0a;
   border-top: none;
-  max-height: 400px;
+  max-height: 480px;
   overflow: hidden;
   z-index: 1000;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -112,7 +113,7 @@
 }
 
 .dropdown-list {
-  max-height: 340px;
+  max-height: 420px;
   overflow-y: auto;
 }
 

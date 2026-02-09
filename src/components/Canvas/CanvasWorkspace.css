@@ -1386,3 +1386,162 @@
     text-align: center;
   }
 }
+
+/* ============================================
+   ASSETS READY BANNER
+   ============================================ */
+.assets-ready-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  cursor: pointer;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+.assets-ready-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 32px;
+  background: linear-gradient(135deg, #1a4a1a, #2a6a2a);
+  border: 1px solid #3a8a3a;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(138, 255, 138, 0.1);
+  color: #fff;
+  min-width: 500px;
+}
+
+.assets-ready-content > svg {
+  color: #8f8;
+  flex-shrink: 0;
+}
+
+.assets-ready-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.assets-ready-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.assets-ready-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.assets-ready-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.assets-ready-btn:hover {
+  background: #66BB6A;
+}
+
+/* ============================================
+   DOWNLOAD PROGRESS OVERLAY
+   ============================================ */
+.download-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.download-progress-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 48px 64px;
+  text-align: center;
+  max-width: 480px;
+  color: #fff;
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.5);
+}
+
+.download-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #333;
+  border-top-color: #4CAF50;
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  animation: spin 1s linear infinite;
+}
+
+.download-progress-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.download-status {
+  font-size: 14px;
+  color: #4CAF50;
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.download-note {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.6;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Download button in controls bar when complete */
+.controls-left .control-btn.download-btn {
+  background: #1a4a1a;
+  border-color: #2a7a2a;
+  color: #8f8;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.controls-left .control-btn.download-btn:hover {
+  background: #2a5a2a;
+  border-color: #3a8a3a;
+}
+
+.controls-left .control-btn.download-btn:disabled {
+  animation: none;
+  opacity: 0.7;
+  cursor: wait;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+  50% { box-shadow: 0 0 12px 4px rgba(76, 175, 80, 0.3); }
+}
