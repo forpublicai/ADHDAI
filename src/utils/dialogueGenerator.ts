@@ -821,3 +821,236 @@ export function resetDialogueCache(): void {
   cachedBriefInfo = null;
 }
 
+// ===== APOLOGY CAMPAIGN DIALOGUE =====
+// These functions provide randomized dialogue for the Proactive Apology workflow.
+// Each function returns a different variation every call to prevent repetitive runs.
+
+export function getApologyMikeScenarioReaction(companyName: string, scenarioTitle: string, severity: string, category: string, description: string): string {
+  const variations = [
+    `*slams folder on table* Alright, here's the situation: "${scenarioTitle}" — ${severity} severity, ${category} category. ${description} Twenty-two years I've been doing this, and I've never seen a company admit fault BEFORE the fault happens. That's the grift. That's the angle. We're making ${companyName} the most honest corporation on earth — for things they haven't done yet.`,
+    `*lights cigarette, spreads dossier* Listen up. ${companyName} is staring down "${scenarioTitle}" — ${severity}, ${category}. ${description} Here's the play: we apologize first. Before the press. Before the lawsuits. Before the hashtag. We turn ${companyName} from a villain-in-waiting into the most transparent company in their industry. It's insane. It's also brilliant.`,
+    `*pins scenario to corkboard* "${scenarioTitle}." ${severity}. ${category}. ${description} I've investigated worse. But I've never investigated something that hasn't happened yet. This is pre-emptive accountability, people. We're writing the apology that makes the crisis unnecessary. Or at least, survivable.`,
+    `*stubs cigarette, opens case file* New case. Big one. ${companyName} needs to apologize for "${scenarioTitle}" — and it hasn't even happened yet. ${description} The ${category} angle is where this gets interesting. ${severity} severity means the apology can't be cute. It has to be real. Realer than real. Authentically preemptive.`,
+    `*spreads photos across table* "${scenarioTitle}" — ${severity}. Let that sink in. ${description} ${companyName} wants to get ahead of this. Not with legal. Not with PR. With US. An ad agency writing apologies for disasters that might never happen. It's the most honest dishonesty I've ever been part of. Let's make it sing.`,
+    `*cracks knuckles, reads brief twice* ${companyName}. "${scenarioTitle}." ${severity} severity, ${category} category. ${description} There's a reason they came to us instead of a crisis firm. They don't want crisis management — they want crisis OWNERSHIP. We're going to help them own a disaster before it exists. That's either genius or madness. Either way, I'm in.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyPooleScenarioReaction(category: string): string {
+  const variations = [
+    `*adjusts glasses, leans forward* Fascinating risk profile. The ${category} dimension here triggers Poole Principle Seventeen — "Anticipatory Accountability." I can already see the framework forming. The consumer psychology of pre-emptive apology is virtually unexplored territory.`,
+    `*strokes chin thoughtfully* The ${category} vector is particularly interesting. My research in Helsinki touched on something adjacent — what I call "pre-emptive contrition architecture." The framework practically builds itself when the apology precedes the offense.`,
+    `*pulls out worn notebook* Yes. The ${category} element maps perfectly to Principle Twenty-Three — "The Confession Paradox." When you apologize before the crime, you're not seeking forgiveness. You're creating a new category of corporate rhetoric entirely.`,
+    `*makes rapid notes* Extraordinary. A ${category} scenario subjected to preemptive accountability analysis. I presented a theoretical model for exactly this at the Santiago conference in 2019. No one believed it would have practical application. They were wrong.`,
+    `*removes glasses dramatically* The ${category} dimension creates what I call a "temporal guilt displacement" — the apology exists in a future where the harm hasn't occurred. This is new psychological territory. The Poole System was BUILT for moments like this.`,
+    `*sketches preliminary diagram* See, the ${category} risk creates a fascinating permission structure. The consumer doesn't know they need to forgive yet. We're creating the emotional architecture for forgiveness before the need arises. This is Poole Principle Eleven in its purest form.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyCellScenarioReaction(severity: string): string {
+  const variations = [
+    `[GJON]: A ${severity} scenario. This is either the most ethical advertising ever conceived, or the most cynical. [VERA]: Those aren't mutually exclusive. [THURSDAY]: *already writing notes on index card* ...the headline is forming.`,
+    `[VERA]: This has real weight to it. ${severity} — that's not something we can treat lightly. [GJON]: We never treat anything lightly. That's our problem. [THURSDAY]: *stares at fluorescent light, begins scribbling*`,
+    `[GJON]: ${severity}? Good. The worse the scenario, the better the apology. Tragedy is the engine of great copy. [VERA]: That's dark, even for you. [THURSDAY]: *nods once, opens fresh notebook*`,
+    `[VERA]: A ${severity} scenario calls for careful, measured language. [GJON]: A ${severity} scenario calls for HONEST language. [THURSDAY]: *slides paper across — it just says "both"*`,
+    `[GJON]: The ${severity} rating changes everything. This can't read like a press release. It has to read like a confession. [VERA]: Or a love letter to the people they might hurt. [THURSDAY]: *closes eyes, thinking*`,
+    `[VERA]: At ${severity} level, every word carries triple weight. [GJON]: Then let's make every word earn its place. [THURSDAY]: *already on third index card, writing faster than Vera can read*`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyBurlScenarioReaction(category: string): string {
+  const variations = [
+    `*squints at scenario brief* Already got pictures forming. ${category} disasters have a visual language — I know what this looks like. Documentary feeling. Evidence photography.`,
+    `*scratches chin* I've photographed worse. Or imagined photographing worse. ${category} — that's got a color. A texture. Something between government report and confession letter.`,
+    `*stares into middle distance* ${category} imagery. I'm seeing something austere. Not pretty — truthful. The kind of photograph that makes you uncomfortable because it refuses to be anything other than what it is.`,
+    `*flips through mental catalog* ${category}... I shot something adjacent for a pharma client in '14. Same weight. The visual grammar of institutional failure has a specific look. I know that look.`,
+    `*makes frame with fingers* ${category} scenarios want a specific kind of ugly. Corporate documentary. Internal audit made public. The aesthetic of someone cleaning out their desk.`,
+    `*pulls out reference book* ${category} visual territory. Lots of people get this wrong — they go dramatic. Explosions. Chaos. No. The scariest images are the quiet ones. A boardroom. An empty factory. A headline no one saw coming.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyNadyaScenarioReaction(timeHorizon: string): string {
+  const variations = [
+    `*checks watch* ${timeHorizon} timeline. Noted. I'll build production schedule around this horizon. How many deliverables? I need numbers.`,
+    `*lights cigarette* ${timeHorizon}. The schedule will account for this. Give me deliverable count and I give you dates. Non-negotiable dates.`,
+    `*clipboard in hand* ${timeHorizon} window. This affects production timeline. Print lead times, media booking windows, social deployment sequence — all calibrated to horizon.`,
+    `*taps pen on table* ${timeHorizon}. Interesting. The production schedule adapts. Some timelines demand urgency. Others demand patience. Both demand accountability.`,
+    `*consults five-year plan* ${timeHorizon}. Already factored into the production matrix. The schedule exists whether we are ready or not. I suggest we be ready.`,
+    `*makes note* ${timeHorizon} horizon. This determines deployment cadence. Print before digital. OOH before social. The schedule has opinions about sequence.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyDelmoreScenarioReaction(scenarioTitle: string, affectedParties: string[]): string {
+  const variations = [
+    `*takes notes, distributes hard candies* The client context is critical here. "${scenarioTitle}" — I need to understand who we're apologizing TO. The affected parties: ${affectedParties.join(', ')}. I'll prepare the translation framework.`,
+    `*adjusts collar, offers mints* Now, "${scenarioTitle}" is a sensitive one. The people we're addressing — ${affectedParties.join(', ')} — they deserve careful language. I'll make sure the corporate-speak doesn't strip away the humanity.`,
+    `*smooths notes* "${scenarioTitle}." Heavy. The audiences here — ${affectedParties.join(', ')} — each need a slightly different version of the truth. Same facts, different emotional registers. That's translation work.`,
+    `*pulls out client file* I've handled trickier messaging. "${scenarioTitle}" affects ${affectedParties.join(', ')} — each group needs to feel seen. My job is making sure the apology sounds like it was written by someone who actually cares. Even if it was written by us.`,
+    `*warm smile, candy bowl circulating* "${scenarioTitle}" — affects ${affectedParties.join(', ')}. Important folks. Real people with real concerns. The translation needs to land differently for each group. Board-room to kitchen-table. That's my range.`,
+    `*distributes pamphlets preemptively* Before anyone asks, I've already mapped the stakeholder groups for "${scenarioTitle}": ${affectedParties.join(', ')}. Each gets a tailored version. The apology is one. The languages are many.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyApparatusScenarioReaction(category: string, severity: string, timeHorizon: string, affectedCount: number): string {
+  const variations = [
+    `SCENARIO DATA LOGGED — Category: ${category} | Severity: ${severity} | Timeline: ${timeHorizon} | Affected parties: ${affectedCount} groups identified — INDEXING RISK VECTORS —`,
+    `PROCESSING SCENARIO PARAMETERS — ${category} | ${severity} severity | ${timeHorizon} horizon | ${affectedCount} stakeholder groups — COMPILATION FRAMEWORK INITIALIZED —`,
+    `INPUT RECEIVED — Risk class: ${category} | Impact level: ${severity} | Temporal window: ${timeHorizon} | Stakeholder count: ${affectedCount} — STANDING BY FOR CREATIVE INPUT —`,
+    `SCENARIO INDEXED — Vector: ${category} | Grade: ${severity} | Window: ${timeHorizon} | Impact radius: ${affectedCount} groups — READY TO COMPILE DELIVERABLES —`,
+    `DATA INTEGRATION COMPLETE — ${category} scenario | ${severity} classification | ${timeHorizon} deployment window | ${affectedCount} affected constituencies — AWAITING CREATIVE DIRECTION —`,
+    `RISK PROFILE CAPTURED — Domain: ${category} | Severity rating: ${severity} | Planning horizon: ${timeHorizon} | Stakeholder map: ${affectedCount} nodes — APPARATUS READY —`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyPooleStrategy(scenarioDamage: string, companyName: string): string {
+  const variations = [
+    `*approaches whiteboard with fervor* The Proactive Apology Matrix identifies the core tension: "${scenarioDamage}" — but this isn't about the damage. It's about OWNING the narrative before it exists. We're creating "anticipatory accountability" — contrition without admission, guilt without liability. ${companyName} doesn't need to BE sorry. They need to PERFORM sorry. And performance, when done with enough conviction, becomes truth.`,
+    `*uncaps three markers simultaneously* Listen. "${scenarioDamage}" — that's the surface problem. The deeper problem is that ${companyName} exists in a temporal paradox: they must apologize for something that hasn't happened. My framework resolves this through what I call "pre-emptive moral authority." You apologize first, you own the moral high ground forever. It's strategic empathy weaponized for brand equity.`,
+    `*distributes handout no one asked for* I've modeled this exact scenario type. "${scenarioDamage}" represents a failure pathway — but we're intercepting it at the INTENTION stage. The Poole System's Principle Seventeen states: "Confession before transgression creates a debt that can never be collected." ${companyName} will owe the public an apology they've already paid. The books balance before they're opened.`,
+    `*draws elaborate diagram* The key insight: "${scenarioDamage}" hasn't happened, may never happen, but the FEAR of it is real. And fear is a consumer emotion. We're not apologizing for damage — we're apologizing for the possibility of damage. And possibility, in the consumer mind, is indistinguishable from certainty. ${companyName} becomes the brand that faced its own shadow. That's Poole Principle Twenty: "The confession is the product."`,
+    `*removes glasses for emphasis* What Slab identified as risk, I recognize as OPPORTUNITY. "${scenarioDamage}" — imagine a world where ${companyName} said this out loud, publicly, before anyone else could. The reframe is seismic: from "corporation that might fail" to "corporation brave enough to admit it." We're selling accountability as aspiration. My framework for this has been waiting seven years for this exact moment.`,
+    `*photographs whiteboard from seventeen angles* "${scenarioDamage}" — the damage model maps directly to the consumer guilt-trust topology. ${companyName} has a once-in-a-generation opportunity: apologize on their own terms, on their own timeline, with their own creative direction. The Poole System transforms this from crisis response into CULTURAL POSITIONING. We're not writing an apology. We're writing a manifesto of institutional self-awareness.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyMikeOnStrategy(): string {
+  const variations = [
+    `*leans against wall, lights cigarette* Here we go with the diagrams again. Five bucks says "anticipatory accountability" appears at least three more times.`,
+    `*checks watch ostentatiously* Poole's on a roll. Wake me when there's something I can use. Something that doesn't require a PhD to understand.`,
+    `*mutters to Burl* How many made-up words is that now? I've lost count. But somewhere in there is an actual insight. Always is, with Poole.`,
+    `*crosses arms* I gave him the insight in two sentences. He's going to give it back in twenty diagrams and a framework named after himself. The man's consistent, I'll give him that.`,
+    `*lights another cigarette* The man's never met a simple truth he couldn't make sound like a doctoral thesis. But he's usually right. Eventually. After the third revision.`,
+    `*stares at ceiling* You know what? Let him cook. His frameworks make the client feel like they're buying something sophisticated instead of just a good ad. There's value in that.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyCellOnCopy(): string {
+  const variations = [
+    `[GJON]: Is this going somewhere, or just... around? [VERA]: Let him finish. The framework gives us guardrails. [THURSDAY]: *already on third index card, writing faster*`,
+    `[VERA]: This gives us a foundation to write against. [GJON]: I don't need a foundation. I need a deadline and a cigarette. [THURSDAY]: *slides completed draft across table*`,
+    `[GJON]: While Poole diagrams, Thursday writes. This is how it always works. [VERA]: Don't dismiss the process— [GJON]: I'm not dismissing. I'm observing. [THURSDAY]: *nods, keeps writing*`,
+    `[VERA]: The framework is taking shape. I can see the copy structure forming. [GJON]: The copy structure formed twenty minutes ago. Thursday's been writing this whole time. [VERA]: ...has she? [THURSDAY]: *holds up six completed index cards*`,
+    `[GJON]: Strategy is what people talk about when they're not ready to write. [VERA]: That's unfair. [GJON]: It's accurate. [THURSDAY]: *pauses writing, looks up* Both. *resumes writing*`,
+    `[VERA]: We should wait for the full framework before— [GJON]: Thursday's not waiting. [VERA]: Thursday never waits. [THURSDAY]: *slides paper to Vera without comment*`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyBurlOnVisuals(companyName: string): string {
+  const variations = [
+    `*sketches rapidly while Poole talks* That reframe... I can see the visual. One image. Big. Confrontational. ${companyName}'s brand language but cracked open. Like finding the truth inside a corporate report.`,
+    `*pulls out camera reference* I know what this campaign looks like. It looks like ${companyName}'s annual report had a nervous breakdown. Clean lines, brand fonts, but the message underneath makes you stop breathing for a second.`,
+    `*frames imaginary shot* Not pretty. Not ugly. TRUE. ${companyName}'s visual identity, but deployed for confession instead of celebration. Same colors, different gravity. I can see the whole campaign.`,
+    `*stares at Poole's diagram* All those arrows point to one picture. And I know what it is. ${companyName}'s brand world, but haunted. Like a showroom after everyone's gone home.`,
+    `*makes notes rapidly* The visual grammar is clear. ${companyName}'s design language — but the version you'd use if you were telling the truth for the first time. Corporate confessional minimalism. I'm already composing the shot.`,
+    `*pulls out mood board* See, most agencies would go dramatic. Fire. Chaos. Headlines. Wrong. The most devastating visual is the quiet one. ${companyName}'s logo on a white background, and above it, the words nobody expected them to say.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyCellThursdayPresents(headline: string, keyMessage: string): string {
+  const variations = [
+    `[THURSDAY]: *places index card face-down, walks to window* [VERA]: *flips card* ...oh. OH. "${headline}" [GJON]: *reads it twice* ...that's the one. That's the line that makes people screenshot and share.`,
+    `[THURSDAY]: *slides paper across without looking up* [VERA]: Wait— "${headline}" — how did you— [GJON]: Don't ask how. Just accept it. Thursday sees things we don't.`,
+    `[THURSDAY]: *taps finished page once, then silence* [VERA]: *reads* "${headline}" ...I have chills. Actual chills. [GJON]: *slowly claps* The weird one wins again.`,
+    `[THURSDAY]: *paper airplane containing the headline lands in center of table* [VERA]: Did you just— "${headline}" — oh. That's devastating. [GJON]: That's Thursday.`,
+    `[THURSDAY]: *presents index card reading "${headline}"* [VERA]: This is... uncomfortable in exactly the right way. [GJON]: It's the most honest thing a corporation has never said. Until now.`,
+    `[THURSDAY]: *holds up card: "${headline}"* [VERA]: I was going to object, but I can't. It's too good. [GJON]: It's not good. It's CORRECT. There's a difference.`,
+  ];
+  const base = pickRandom(variations);
+  return `${base} [VERA]: The Cell votes 2-1 in favor. Thursday's direction carries. ${keyMessage ? `[GJON]: And the supporting angle — "${keyMessage}" — that's the secondary. Together they're a campaign.` : ''} Again.`;
+}
+
+export function getApologyMikeOnHeadline(): string {
+  const variations = [
+    `*settles into chair, lights cigarette* The Cell's fighting again. That's how you know it's working. *reads Thursday's line* Yeah. That's the gut punch. That's our headline.`,
+    `*slow exhale* Damn. Thursday did it again. Every time I think I know where the weird one's going to land, she goes somewhere realer. That's our headline. Fight me on it.`,
+    `*crosses arms, satisfied* Kid's got something. That's the kind of line that makes people uncomfortable. Good uncomfortable. The kind where they call their mother after reading it.`,
+    `*nods slowly, stubs cigarette* Twenty-two years. Still gets me when Thursday does that thing. The line nobody expects, that everybody needed. That's the headline. Lock it.`,
+    `*to the room* You hear that sound? That's the sound of a headline that's going to win awards and make executives sweat simultaneously. That's the sweet spot. That's Thursday.`,
+    `*lights celebratory cigarette* There it is. The thing the client didn't know they needed to say. The thing nobody says until someone says it, and then it's obvious. That's our headline.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyPooleOnHeadline(): string {
+  const variations = [
+    `*reads over shoulder* Structurally unsound according to the framework... yet somehow it maps perfectly to the reframe. Remarkable. I'll need to revise Section Four.`,
+    `*adjusts glasses in astonishment* The Cell has produced something my framework cannot explain. This is either a validation or a refutation of everything I've theorized. Possibly both.`,
+    `*makes rapid notes* Fascinating. The headline violates Principle Three while honoring Principle Seven. A theoretical paradox that works emotionally. I need to document this immediately.`,
+    `*removes glasses entirely* Against all theoretical odds... it works. The framework predicted a different outcome. The framework was wrong. The headline is right. *writes this down*`,
+    `*speechless for three full seconds* ...I'm going to need to rewrite Chapter Nine. The Poole System didn't predict this. The Poole System should have predicted this. That's how I know it's correct.`,
+    `*quietly* The framework accounts for rational persuasion. What Thursday does isn't rational. It's something older, deeper. Pre-linguistic. And it works. Every time. I should study this.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyNadyaOnProgress(): string {
+  const variations = [
+    `*checks watch* Copy phase complete. You have your headline. Moving to visual. The schedule proceeds on schedule.`,
+    `*stubs cigarette* Headline locked. Visual phase begins. The schedule does not celebrate — it advances.`,
+    `*expressionless* Copy delivered within acceptable parameters. Next phase. The clock continues.`,
+    `*taps clipboard* Creative approved. Production timeline unaffected. Proceed to visual direction. I'll be timing.`,
+    `*checks multiple watches* Headline finalized. Two minutes ahead of schedule. Do not waste this gift.`,
+    `*lights fresh cigarette* Copy done. Good. Moving forward. The production schedule has no time for admiration — only execution.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyDelmoreOnHeadline(headline: string): string {
+  const variations = [
+    `*reads quietly, nods* The client is going to need some... softening on "${headline}" — but the core is strong. I can already see the presentation deck forming.`,
+    `*offers candy while reading* "${headline}" — that's powerful. My job is making sure the client feels that power as excitement, not threat. I'll prepare the appropriate cushioning.`,
+    `*makes notes in margin* Beautiful work. Now I need to translate this into board-room language. "${headline}" becomes "a bold stakeholder alignment initiative" — same knife, friendlier packaging.`,
+    `*warm smile* The creative is there. "${headline}" is the kind of line that wins awards first and approval second. I'll reverse that order for the client presentation.`,
+    `*pockets candy, studies headline* "${headline}" — I love it. And I know exactly how to make the client love it. Three slides of context before the reveal. By the time they see it, they'll think it was their idea.`,
+    `*distributes comforting mints* The work is brilliant. Now I make it feel safe. "${headline}" — the client hears "brave." I'll make sure they also hear "strategic." That's the translation.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyBurlVisualDirection(companyName: string, visualConcept: string, colorPalette: string[], typography: string): string {
+  const variations = [
+    `*pins reference images to board, clears table* Everyone back up. I need to think in pictures. It's ${companyName}'s brand aesthetic — but cracked open. ${visualConcept || 'The same clean lines, but deployed for confession instead of celebration.'} Colors: ${colorPalette?.join(', ') || 'Brand palette, desaturated'}. Type: ${typography || 'Something official that has been through things'}. This isn't pretty advertising. This is documentary. This is evidence.`,
+    `*arranges swatches with authority* Alright, the visual world is forming. ${companyName}'s identity, but turned confessional. ${visualConcept || 'Corporate design language subverted for radical honesty.'} The palette: ${colorPalette?.join(', ') || 'Desaturated brand colors'}. Typography: ${typography || 'Heavy, weathered, institutional'}. Every image should feel found, not staged.`,
+    `*creates space, pins references* I know what this looks like. ${companyName}'s visual DNA — the fonts, the colors, the grid — but used to tell the truth instead of sell. ${visualConcept || 'Clean lines cracked open to reveal uncomfortable honesty.'} Colors: ${colorPalette?.join(', ') || 'Brand palette pulled toward documentary gray'}. Typography: ${typography || 'The typeface equivalent of reading someone their rights'}. Beautiful and uncomfortable. Exactly right.`,
+    `*spreads prints across table* The direction is clear. ${companyName}'s brand system, but the version you'd use at a congressional hearing. ${visualConcept || 'Same visual language, but the message changes everything.'} Palette: ${colorPalette?.join(', ') || 'Muted institutional tones'}. Type: ${typography || 'Authoritative meets vulnerable'}. Not pretty. True. That's always better.`,
+    `*sketches rapidly* Here's what I'm seeing for ${companyName}. ${visualConcept || 'Their brand world, but haunted — like corporate photography that accidentally captured something real.'} Colors: ${colorPalette?.join(', ') || 'Desaturated, institutional, honest'}. Typography: ${typography || 'Something between government form and love letter'}. The aesthetic of uncomfortable truth, made beautiful.`,
+    `*pulls out reference folder* The visual grammar is specific. ${companyName} normally projects confidence — we're projecting vulnerability using the SAME visual tools. ${visualConcept || 'Confessional minimalism, corporate documentary aesthetic.'} Colors: ${colorPalette?.join(', ') || 'Their palette, but wounded'}. Type: ${typography || 'Heavy serif for headlines, light sans for body — the contrast is the message'}. Ugly-beautiful. My specialty.`,
+  ];
+  return pickRandom(variations);
+}
+
+export function getApologyCompilationReaction(index: number, total: number, companyName: string, hasImages: boolean): string {
+  const mikeVariations = [
+    `*watches Apparatus work, lights final cigarette* Here it comes. Everything we argued about, compressed into one output.`,
+    `*crosses arms, observing* This is the part that never gets old. Watching all the pieces come together into something that actually means something.`,
+    `*quietly* All that fighting, all that diagrams-and-theory... and it works. It always works. I don't know how, but it does.`,
+    `*stubs cigarette* Campaign ${index + 1} of ${total}. Compiling now. Every time this happens, I'm surprised. And I'm never surprised.`,
+    `*leans forward* Here it is. The brief came in confused. Let's see what comes out clear.`,
+    `*to no one in particular* ${companyName}'s about to have the most honest advertising in their industry. And they didn't even ask for it.`,
+  ];
+  return pickRandom(mikeVariations);
+}
+
+export function getApologyNadyaCompilationReaction(hasImages: boolean): string {
+  const variations = [
+    `*checks all watches* Compilation within deadline. ${hasImages ? 'Images generated.' : 'Text assets compiled.'} The schedule is satisfied. Barely.`,
+    `*stubs cigarette* On time. As always. ${hasImages ? 'Visual assets rendered.' : 'Asset suite assembled.'} The schedule does not celebrate — it completes.`,
+    `*notes final time* Production complete. Within parameters. ${hasImages ? 'DALL-E assets included.' : 'HTML assets finalized.'} Nadya is satisfied. A rare condition.`,
+    `*checks clipboard* All deliverables accounted for. ${hasImages ? 'Generated images integrated.' : 'Mockups compiled.'} The deadline met. Like a train arriving on time. Expected, yet somehow still impressive.`,
+    `*permits small satisfaction* Done. ${hasImages ? 'With visual assets.' : 'With template assets.'} Before the deadline. The schedule predicted this outcome. The schedule is always right.`,
+    `*lights celebratory cigarette (rare)* Compilation successful. ${hasImages ? 'Images rendered and embedded.' : 'HTML deliverables assembled.'} We proceed to the next. Or we rest. The schedule permits either.`,
+  ];
+  return pickRandom(variations);
+}
+

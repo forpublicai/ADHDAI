@@ -519,27 +519,27 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel(`ANALYZING SCENARIO ${index + 1}: ${scenario.title}`);
     
     moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Analyzing scenario...');
-    addChatMessage('mike', `*slams folder on table* Alright, here's the situation: "${scenario.title}" — ${scenario.severity} severity, ${scenario.category} category. ${scenario.description} Twenty-two years I've been doing this, and I've never seen a company admit fault BEFORE the fault happens. That's the grift. That's the angle. We're not just apologizing — we're making ${company.name} look like the most honest company in the world. For things they haven't done yet. It's genius. It's insane. It's going to work.`);
+    addChatMessage('mike', dialogue.getApologyMikeScenarioReaction(company.name, scenario.title, scenario.severity, scenario.category, scenario.description));
     
     await delayOrSkip(1500);
     
     // Poole reacts to scenario
     moveAgentTo('poole', { x: 780, y: 120 }, 'thinking', 'Assessing risk topology...');
-    addChatMessage('poole', `*adjusts glasses, leans forward* Fascinating risk profile. The ${scenario.category} dimension here triggers Poole Principle Seventeen — "Anticipatory Accountability." I can already see the framework forming. The consumer psychology of pre-emptive apology is virtually unexplored territory. We're not just ahead of the crisis. We're ahead of the CONCEPT of crisis.`);
+    addChatMessage('poole', dialogue.getApologyPooleScenarioReaction(scenario.category));
     
     await delayOrSkip(1200);
     
     // Cell reacts
     moveAgentTo('the-cell', { x: 1160, y: 120 }, 'thinking', 'Reading scenario...');
-    addChatMessage('the-cell', `[GJON]: A ${scenario.severity} scenario. This is either the most ethical advertising ever conceived, or the most cynical. [VERA]: Those aren't mutually exclusive. [THURSDAY]: *already writing notes on index card* ...the headline is forming. Give me the framework and I'll give you the line.`);
+    addChatMessage('the-cell', dialogue.getApologyCellScenarioReaction(scenario.severity));
     
     await delayOrSkip(1000);
     
     // Burl, Nadya, Delmore, Apparatus quick reactions
-    addChatMessage('burl', `*squints at scenario brief* Already seeing images. ${scenario.category} disasters have a visual language — I know what this looks like. Documentary feeling. Evidence photography.`);
-    addChatMessage('nadya', `*checks watch* ${scenario.timeHorizon} timeline. Noted. I'll build the production schedule around this horizon. How many deliverables? I need numbers.`);
-    addChatMessage('delmore', `*takes notes, distributes hard candies* The client context is critical here. "${scenario.title}" — I need to understand who we're apologizing TO. The affected parties: ${scenario.affectedParties.join(', ')}. I'll prepare the translation framework.`);
-    addChatMessage('apparatus', `SCENARIO DATA LOGGED — Category: ${scenario.category} | Severity: ${scenario.severity} | Timeline: ${scenario.timeHorizon} | Affected parties: ${scenario.affectedParties.length} groups identified —`);
+    addChatMessage('burl', dialogue.getApologyBurlScenarioReaction(scenario.category));
+    addChatMessage('nadya', dialogue.getApologyNadyaScenarioReaction(scenario.timeHorizon));
+    addChatMessage('delmore', dialogue.getApologyDelmoreScenarioReaction(scenario.title, scenario.affectedParties));
+    addChatMessage('apparatus', dialogue.getApologyApparatusScenarioReaction(scenario.category, scenario.severity, scenario.timeHorizon, scenario.affectedParties.length));
     
     await delayOrSkip(1500);
     
@@ -559,28 +559,28 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('STRATEGIC FRAMEWORK');
     
     moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building apology framework...');
-    addChatMessage('poole', `*approaches whiteboard with fervor* What Mike has identified emotionally, I will now systematize. The Proactive Apology Matrix identifies the core tension: "${scenario.potentialDamage}" — but this isn't about the damage. It's about OWNING the narrative before it exists. We're creating what I call "anticipatory accountability" — a rhetorical space where contrition exists without admission, where guilt is acknowledged without liability. This is Poole Principle Seventeen: "The best defense is preemptive confession." ${company.name} doesn't need to BE sorry. They need to PERFORM sorry.`);
+    addChatMessage('poole', dialogue.getApologyPooleStrategy(scenario.potentialDamage, company.name));
     
     await delayOrSkip(1500);
     
     // Mike watches
-    addChatMessage('mike', `*leans against wall, lights cigarette* Here we go with the diagrams again. Five bucks says "anticipatory accountability" appears at least three more times.`);
+    addChatMessage('mike', dialogue.getApologyMikeOnStrategy());
     
     await delayOrSkip(800);
     
     // Cell gets impatient
-    addChatMessage('the-cell', `[GJON]: Is this going somewhere, or just... around? [VERA]: Let him finish. The framework gives us guardrails. [THURSDAY]: *already on third index card, writing faster*`);
+    addChatMessage('the-cell', dialogue.getApologyCellOnCopy());
     
     // Burl starts sketching
     moveAgentTo('burl', { x: 460, y: 400 }, 'designing', 'Sketching...');
-    addChatMessage('burl', `*sketches rapidly while Poole talks* That reframe... I can see the visual. One image. Big. Confrontational. ${company.name}'s brand language but cracked open. Like finding the truth inside a corporate report.`);
+    addChatMessage('burl', dialogue.getApologyBurlOnVisuals(company.name));
     
     await delayOrSkip(800);
     
     // Nadya, Delmore, Apparatus
-    addChatMessage('nadya', `*lights cigarette* Strategy phase has ten minutes, Poole. The schedule does not wait for theory. Proceed.`);
-    addChatMessage('delmore', `*noting framework terms* Good, good. I'll need to translate "anticipatory accountability" into something the client's legal team won't panic about. "Proactive Stakeholder Alignment" should do.`);
-    addChatMessage('apparatus', `FRAMEWORK ARCHITECTURE LOGGED — Poole System variant 17.3 detected — Anticipatory Accountability Protocol — INDEXING—`);
+    addChatMessage('nadya', dialogue.getNadyaChecksIn(''));
+    addChatMessage('delmore', dialogue.getDelmoreStarts(''));
+    addChatMessage('apparatus', dialogue.getApparatusInitiate(''));
     
     await delayOrSkip(1200);
     
@@ -600,7 +600,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('CREATIVE DEVELOPMENT');
     
     moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Writing campaign...');
-    addChatMessage('the-cell', `[VERA]: Alright, I'll start conventional. Option A — the safe version. Clean, functional, won't scare anyone. [GJON]: Safe is a four-letter word. [THURSDAY]: *stares at wall, then begins writing furiously*`);
+    addChatMessage('the-cell', dialogue.getCellStartWriting(''));
     
     await delayOrSkip(1500);
     
@@ -608,30 +608,30 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     const campaign = await generateApologyCampaign(scenario, company);
     
     // Cell presents Option A
-    addChatMessage('the-cell', `[VERA]: Option A complete: "We See What's Coming. And We're Sorry In Advance." Clean, corporate, inoffensive. [GJON]: *sighs* Inoffensive is offensive. [VERA]: It's a STARTING POINT. [THURSDAY]: *slides paper across table without looking up*`);
+    addChatMessage('the-cell', dialogue.getCellOptionADone(''));
     
     await delayOrSkip(1000);
     
     // Cell presents Option B (Gjon's)
-    addChatMessage('the-cell', `[GJON]: Option B: "${campaign.keyMessages?.[0] || 'The future is our fault. Let us pre-apologize.'}" That's the one with teeth. Confrontational. Real. [VERA]: Too aggressive! [GJON]: That's why it WORKS.`);
+    addChatMessage('the-cell', dialogue.getCellOptionBDone(''));
     
     await delayOrSkip(1000);
     
     // Cell presents Option C (Thursday's) — THE WINNER
-    addChatMessage('the-cell', `[THURSDAY]: *places index card face-down, walks to window* [VERA]: *flips card* ...oh. OH. "${campaign.headline}" [GJON]: *reads it twice* ...that's the one. That's the line that makes people screenshot and share. [VERA]: The Cell votes 2-1 in favor. Thursday's direction carries. Again.`);
+    addChatMessage('the-cell', dialogue.getApologyCellThursdayPresents(campaign.headline || 'We Owe You An Apology', campaign.keyMessages?.[0] || ''));
     
     await delayOrSkip(1200);
     
     // Everyone reacts to the Cell's output
-    addChatMessage('mike', `*settles into chair, lights cigarette* The Cell's fighting again. That's how you know it's working. *reads Thursday's line* Yeah. That's the gut punch right there. That's our headline.`);
-    addChatMessage('poole', `*reads over shoulder* Structurally unsound according to the framework... yet somehow it maps perfectly to the reframe. Remarkable. The Cell has produced something I cannot explain theoretically. I'll need to revise Section Four of my book.`);
+    addChatMessage('mike', dialogue.getApologyMikeOnHeadline());
+    addChatMessage('poole', dialogue.getApologyPooleOnHeadline());
     
     await delayOrSkip(800);
     
     moveAgentTo('burl', { x: 460, y: 420 }, 'designing', 'Reading copy...');
-    addChatMessage('burl', `*squints at Thursday's headline* ...THAT I can photograph. That's the picture I've been seeing in my head all day. The visual just clicked into place.`);
-    addChatMessage('nadya', `*checks watch* Copy phase complete. You have your headline. Moving to visual. The schedule proceeds on schedule.`);
-    addChatMessage('delmore', `*reads quietly, nods* The client is going to need some... softening on "${campaign.headline}" — but the core is strong. I can already see the presentation deck forming.`);
+    addChatMessage('burl', dialogue.getBurlKeyVisual(''));
+    addChatMessage('nadya', dialogue.getApologyNadyaOnProgress());
+    addChatMessage('delmore', dialogue.getApologyDelmoreOnHeadline(campaign.headline || 'the headline'));
     addChatMessage('apparatus', `CREATIVE OUTPUT LOGGED — Headline: "${campaign.headline}" — Tagline: "${campaign.subheadline}" — INDEXING DELIVERABLES—`);
     
     // Create the Cell's work item with FULL copy output
@@ -652,24 +652,24 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('VISUAL DIRECTION');
     
     moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Setting visual tone...');
-    addChatMessage('burl', `*pins reference images to board, clears table* Alright. Everyone back up. I need to think in pictures. It's ${company.name}'s brand aesthetic — but cracked open. We're using their visual language against itself. ${campaign.visualConcept || 'The same clean lines and trustworthy colors, but deployed for confession instead of celebration.'} Colors: ${campaign.colorPalette?.join(', ') || 'Their brand palette, but desaturated'}. Typography: ${campaign.typography || 'Something that looks official but has been through things'}. This isn't pretty advertising. This is documentary. This is evidence.`);
+    addChatMessage('burl', dialogue.getApologyBurlVisualDirection(company.name, campaign.visualConcept || '', campaign.colorPalette || [], campaign.typography || ''));
     
     await delayOrSkip(1500);
     
     // Everyone reacts to Burl's direction
-    addChatMessage('the-cell', `[VERA]: The visual direction supports the copy. [GJON]: It should challenge it slightly. The ugliness is intentional — it matches the words. [THURSDAY]: *nods once, approving silence*`);
-    addChatMessage('poole', `*examines color choices* The chromatic tension mirrors the psychological framework. The palette creates what I call "chromatic permission." You're speaking my language, Burl. Whether you know it or not.`);
+    addChatMessage('the-cell', dialogue.getCellOnVisuals(''));
+    addChatMessage('poole', dialogue.getPooleOnColors(''));
     
     await delayOrSkip(800);
     
-    addChatMessage('mike', `*nods slowly* The picture tells the story the words can only hint at. That's what Burl does. Makes you feel things you can't name.`);
-    addChatMessage('nadya', `*appears without warning* Visual timeline, Burl. How long? The schedule requires an estimate.`);
-    addChatMessage('burl', `*doesn't look up* When it's done, Nadya. Art doesn't punch a clock.`);
-    addChatMessage('nadya', `*expressionless* It does in this agency.`);
+    addChatMessage('mike', dialogue.getMikeFinalWatch(''));
+    addChatMessage('nadya', dialogue.getNadyaChecksIn(''));
+    addChatMessage('burl', dialogue.getBurlToNadya(''));
+    addChatMessage('nadya', dialogue.getNadyaResponse(''));
     
     await delayOrSkip(800);
     
-    addChatMessage('delmore', `*reviews visual direction quietly* The visual presentation will land well with the client board. This looks expensive. Expensive is good — it says "we take this seriously."`);
+    addChatMessage('delmore', dialogue.getDelmoreReadyToExplain(''));
     addChatMessage('apparatus', `VISUAL SPECIFICATIONS RECORDED — Color palette: ${campaign.colorPalette?.length || 5} colors indexed — Typography: ${campaign.typography || 'pending'} — Format specifications: print, OOH, digital, social —`);
     
     createWorkItem('burl', 'visual',
@@ -688,21 +688,21 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('PRODUCTION SCHEDULING');
     
     moveAgentTo('nadya', { x: 820, y: 440 }, 'typing', 'Building production schedule...');
-    addChatMessage('nadya', `*slams calendar on table* Schedule time. Everyone, deadlines are not suggestions. They are law. Print: full-page ad goes to prepress by end of week. Billboard and bus shelter specs finalized within 48 hours. Video production begins Monday. Social assets deployed in sequence: LinkedIn first for credibility, then Twitter/X, Instagram, TikTok. The schedule does not negotiate.`);
+    addChatMessage('nadya', dialogue.getNadyaScheduleAnnouncement(''));
     
     await delayOrSkip(1200);
     
     // Everyone reacts to schedule
-    addChatMessage('mike', `*looks at dates* Nadya, these timelines are... aggressive. Very aggressive. Possibly insane.`);
-    addChatMessage('nadya', `Valentina Tereshkova orbited Earth in '63. You can make a deadline in ${new Date().getFullYear()}.`);
+    addChatMessage('mike', dialogue.getMikeOnTimeline(''));
+    addChatMessage('nadya', dialogue.getNadyaToMike(''));
     
     await delayOrSkip(800);
     
-    addChatMessage('poole', `*adjusts glasses* The schedule must accommodate the strategic architecture. The framework requires gestation time—`);
-    addChatMessage('nadya', `The framework has until 4pm. After 4pm, the framework becomes my problem.`);
-    addChatMessage('the-cell', `[GJON]: Deadlines. The enemy of good work. [VERA]: The friend of ANY work. [THURSDAY]: *already finished, looks up impassively*`);
-    addChatMessage('burl', `*grumbles* Art doesn't punch a clock, Nadya. But I'll have the layouts done. Because the picture's already in my head.`);
-    addChatMessage('delmore', `*checks calendar* Client meeting needs to be scheduled too. I'll prepare the presentation for the day after delivery. They'll need 24 hours to pretend to think about it before saying yes.`);
+    addChatMessage('poole', dialogue.getPooleSupervisesCopy(''));
+    addChatMessage('nadya', dialogue.getNadyaResponse(''));
+    addChatMessage('the-cell', dialogue.getCellImpatience(''));
+    addChatMessage('burl', dialogue.getBurlToNadya(''));
+    addChatMessage('delmore', dialogue.getDelmoreStarts(''));
     addChatMessage('apparatus', `PRODUCTION TIMELINE LOGGED — ALL MILESTONES RECORDED — ${scenarioTasks.length} deliverables queued — ACCOUNTABILITY CHAIN ESTABLISHED—`);
     
     await delayOrSkip(1000);
@@ -726,20 +726,20 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('CLIENT TRANSLATION');
     
     moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Translating for client...');
-    addChatMessage('delmore', `*adjusts collar, distributes hard candies* Now friends, the creative work is brilliant — it always is — but the client needs to understand WHY it's brilliant, in language that makes them feel smart for buying it. We're positioning "${campaign.headline}" not as an apology, but as a "Proactive Brand Integrity Initiative." The word "sorry" becomes "stakeholder-aligned." The client will love this. They won't know why. But they will.`);
+    addChatMessage('delmore', dialogue.getDelmoreStarts(''));
     
     await delayOrSkip(1200);
     
     // Everyone watches Delmore work
-    addChatMessage('mike', `*accepts candy, watches* Classic Delmore. Same idea, completely different feel. Like watching a lion become a house cat. Same animal, different energy.`);
-    addChatMessage('poole', `*reads Delmore's deck* Remarkable. You've preserved the strategic architecture while removing all threatening clarity. The framework survives in the subtext. Impressive camouflage work.`);
-    addChatMessage('the-cell', `[GJON]: How does he do it without lying? [VERA]: It's an art form. Our words go in. Different words come out. Same meaning. [GJON]: Alarming job. [THURSDAY]: *nods respect*`);
+    addChatMessage('mike', dialogue.getMikeWatchingDelmore(''));
+    addChatMessage('poole', dialogue.getPooleOnTranslation(''));
+    addChatMessage('the-cell', dialogue.getCellWatchingDelmore(''));
     
     await delayOrSkip(800);
     
-    addChatMessage('burl', `*reviews presentation materials* The visual direction translates well to the client deck. This looks like something that costs a lot of money. Good.`);
-    addChatMessage('nadya', `Client meeting scheduled for ${new Date(Date.now() + 3 * 86400000).toLocaleDateString()}. Delmore, you have the room at 3pm. Do not be late.`);
-    addChatMessage('apparatus', `CLIENT TRANSLATION DOCUMENTED — Terminology mapping: ${4} substitutions indexed — Presentation deck: compiled — Client FAQ: generated —`);
+    addChatMessage('burl', dialogue.getBurlFinalReaction(''));
+    addChatMessage('nadya', dialogue.getNadyaScheduleLocked(''));
+    addChatMessage('apparatus', `CLIENT TRANSLATION DOCUMENTED — Terminology mapping indexed — Presentation deck: compiled — Client FAQ: generated —`);
     
     await delayOrSkip(1000);
     
@@ -808,12 +808,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     await delayOrSkip(1000);
     
     // Everyone reacts to compilation
-    addChatMessage('mike', `*watches Apparatus work, lights final cigarette* Here it comes. The moment of truth. Everything we argued about, compressed into one output.`);
-    addChatMessage('poole', `*makes final note* For the record: the Poole System successfully guided this campaign. Section Seven of my next publication is practically writing itself.`);
-    addChatMessage('the-cell', `[GJON]: The words survived. Better than survived — they're going to live longer than the disaster they apologize for. [VERA]: That's the trick. [THURSDAY]: *quietly satisfied* — The Cell`);
-    addChatMessage('burl', `*steps back from work* The pictures are done. Ugly-beautiful, just like I promised. ${company.name}'s brand language, but confessional. Every image tells the same story.`);
-    addChatMessage('nadya', `*checks all watches* Compilation within deadline. ${generatedImages.hero ? 'Images generated.' : 'Text assets compiled.'} The schedule is satisfied. Barely.`);
-    addChatMessage('delmore', `*pockets remaining candies* Beautiful work, everyone. I've already prepared the client translation. They'll feel smart reading it. That's how you know I did my job right.`);
+    addChatMessage('mike', dialogue.getApologyCompilationReaction(index, scenarios.length, company.name, !!generatedImages.hero));
+    addChatMessage('poole', dialogue.getPooleFinalReaction(''));
+    addChatMessage('the-cell', dialogue.getCellFinalReaction(''));
+    addChatMessage('burl', dialogue.getBurlFinalReaction(''));
+    addChatMessage('nadya', dialogue.getApologyNadyaCompilationReaction(!!generatedImages.hero));
+    addChatMessage('delmore', dialogue.getDelmoreFinalReaction(''));
     
     await delayOrSkip(1000);
     
@@ -861,27 +861,27 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     await delayOrSkip(500);
     
-    addChatMessage('mike', `*lights celebratory cigarette* That's a wrap. ${scenarios.length} campaign${scenarios.length !== 1 ? 's' : ''}. ${company.name} can now apologize for disasters that haven't happened yet. Twenty-two years in this business, and I've never seen anything like what we just made. It's going to win awards. Sad, beautiful, corporate awards.`);
+    addChatMessage('mike', dialogue.getMikeFinalReaction(''));
     
     await delayOrSkip(600);
     
-    addChatMessage('poole', `*closes leather notebook* The Proactive Apology Matrix has been fully deployed. We've given ${company.name} the gift of anticipated failure. I'll be writing about this for years. Chapter titles are already forming.`);
+    addChatMessage('poole', dialogue.getPooleFinalReaction(''));
     
     await delayOrSkip(600);
     
-    addChatMessage('the-cell', `[GJON]: We wrote apologies for things that haven't happened. The headlines will live longer than the disasters they apologize for. [VERA]: That's the trick. [THURSDAY]: *small smile* We've weaponized accountability. — The Cell`);
+    addChatMessage('the-cell', dialogue.getCellFinalReaction(''));
     
     await delayOrSkip(600);
     
-    addChatMessage('burl', `*steps back from work* The pictures are done. Ugly-beautiful, just like I promised. Every image tells the same story: we know what's coming, and we're sorry in advance.`);
+    addChatMessage('burl', dialogue.getBurlFinalReaction(''));
     
     await delayOrSkip(600);
     
-    addChatMessage('nadya', `*checks all watches* Production complete. ${scenarios.length} campaigns. All deliverables finalized within deadline. The schedule is satisfied. Click "DOWNLOAD ASSETS" when ready.`);
+    addChatMessage('nadya', dialogue.getNadyaFinalReaction(''));
     
     await delayOrSkip(600);
     
-    addChatMessage('delmore', `*distributes hard candies to everyone* Beautiful work, folks. The ZIP contains everything: ad mockups, generated images, video storyboards, social decks, banner ads, copy specs, and my pamphlet. ${company.name} is about to become the most honest company in their industry.`);
+    addChatMessage('delmore', dialogue.getDelmoreFinalReaction(''));
     
     await delayOrSkip(600);
     

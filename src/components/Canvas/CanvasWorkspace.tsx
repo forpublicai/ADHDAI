@@ -271,17 +271,18 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     
     try {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: `You are a creative director at an award-winning ad agency known for Swiss-style minimalism meets absurdist wit. Your work is:
-- DECEPTIVELY SIMPLE: Headlines that seem obvious but reveal deeper truth
-- UNCOMFORTABLY HONEST: Acknowledge what everyone thinks but won't say
-- VISUALLY SPARSE: Massive whitespace, single powerful image, Helvetica
-- TONALLY DEADPAN: Dry humor, no exclamation marks, matter-of-fact surrealism
+            content: `You are an Executive Creative Director at an agency on par with Wieden+Kennedy, Droga5, and Pentagram. Your work wins Cannes Grand Prix. Every word earns its place. Your style:
+- DECEPTIVELY SIMPLE: Headlines that seem obvious but reveal devastating truth
+- UNCOMFORTABLY HONEST: Say what everyone thinks but won't say — with craft
+- VISUALLY SPARSE: Pentagram restraint — type, space, meaning
+- TONALLY PRECISE: Dry wit meets emotional intelligence. No exclamation marks. Matter-of-fact surrealism.
+- SPECIFIC: Never generic. Every line is about THIS product, THIS brief, THIS human tension.
 
-Output ONLY the creative content. No explanations. No preamble. Just the work.`
+Output ONLY the creative content. No explanations. No preamble. Just the work. Make it different every time — never repeat yourself.`
           },
           { role: 'user', content: prompt }
         ],
@@ -461,7 +462,7 @@ Output ONLY the creative content. No explanations. No preamble. Just the work.`
       
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
+          model: 'gpt-4o',
           messages: [
             {
               role: 'system',
@@ -504,7 +505,7 @@ KEY ELEMENTS:
       
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
+          model: 'gpt-4o',
           messages: [
             {
               role: 'system',
