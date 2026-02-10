@@ -286,84 +286,6 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
     }
   }, []);
 
-  // ============================================
-  // MERGE ON OVERLAP — when items overlap, generate a new combined idea
-  // ============================================
-  const generateMergeConversation = useCallback(async (item1: WorkItem, item2: WorkItem): Promise<void> => {
-    const agent1 = getCharacterInfo(item1.createdBy);
-    const agent2 = getCharacterInfo(item2.createdBy);
-    const content1 = (item1.content || '').slice(0, 200);
-    const content2 = (item2.content || '').slice(0, 200);
-    const mergeContext = `Company: ${company.name}. Scenario analysis. Item 1 (${agent1.name}): "${content1}". Item 2 (${agent2.name}): "${content2}".`;
-
-    // Generate merged idea + dialogue in parallel
-    const [mergedIdea, dialogueLines] = await Promise.all([
-      generateAgentLine('apparatus',
-        `Synthesize these two risk analysis items for ${company.name} into a NEW combined insight. Item 1 from ${agent1.name}: "${content1}". Item 2 from ${agent2.name}: "${content2}". Create a merged analysis with a title, 2-3 sentences showing the connection, and 3 bullet points with key implications.`,
-        mergeContext
-      ),
-      generateDialogueBatch(
-        [item1.createdBy, item2.createdBy],
-        `${agent1.name} and ${agent2.name} discover their analysis items overlap — they see connections between "${content1}" and "${content2}". They realize the combination reveals a deeper risk pattern. ${agent1.name} speaks first, ${agent2.name} builds on it.`,
-        mergeContext
-      )
-    ]);
-
-    // Play out conversation
-    addChatMessage(item1.createdBy, dialogueLines[item1.createdBy]);
-    
-    setTimeout(() => {
-      addChatMessage(item2.createdBy, dialogueLines[item2.createdBy]);
-    }, 1500);
-
-    setTimeout(() => {
-      // Create the merged work item at the midpoint
-      const midX = (item1.position.x + item2.position.x) / 2;
-      const midY = Math.max(item1.position.y, item2.position.y) + 130;
-      
-      createWorkItem(
-        item1.createdBy,
-        'analysis',
-        mergedIdea,
-        { x: midX, y: midY },
-        currentPhase,
-        true // Type it out
-      );
-      
-      // Apparatus logs the merge
-      generateAgentLine('apparatus',
-        `${agent1.name} and ${agent2.name} combined their analysis items into a deeper insight about ${company.name}. Log the synthesis.`,
-        mergeContext
-      ).then(line => addChatMessage('apparatus', line));
-    }, 3000);
-  }, [company.name, addChatMessage, createWorkItem, currentPhase, getCharacterInfo]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsPanning(false);
-    if (draggedItem) {
-      // Check for collision with other items
-      const draggedItemData = workItems.find(item => item.id === draggedItem);
-      if (draggedItemData) {
-        const collidingItem = workItems.find(item => {
-          if (item.id === draggedItem) return false;
-          if (item.createdBy === draggedItemData.createdBy) return false;
-          const dx = Math.abs(item.position.x - draggedItemData.position.x);
-          const dy = Math.abs(item.position.y - draggedItemData.position.y);
-          return dx < 150 && dy < 80;
-        });
-        
-        if (collidingItem) {
-          generateMergeConversation(draggedItemData, collidingItem);
-        }
-      }
-      
-      setWorkItems(prev => prev.map(item => 
-        item.id === draggedItem ? { ...item, isDragging: false } : item
-      ));
-      setDraggedItem(null);
-    }
-  }, [draggedItem, workItems, generateMergeConversation]);
-
   const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
     e.stopPropagation();
     e.preventDefault();
@@ -475,6 +397,84 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
     
     return id;
   }, []);
+
+  // ============================================
+  // MERGE ON OVERLAP — when items overlap, generate a new combined idea
+  // ============================================
+  const generateMergeConversation = useCallback(async (item1: WorkItem, item2: WorkItem): Promise<void> => {
+    const agent1 = getCharacterInfo(item1.createdBy);
+    const agent2 = getCharacterInfo(item2.createdBy);
+    const content1 = (item1.content || '').slice(0, 200);
+    const content2 = (item2.content || '').slice(0, 200);
+    const mergeContext = `Company: ${company.name}. Scenario analysis. Item 1 (${agent1.name}): "${content1}". Item 2 (${agent2.name}): "${content2}".`;
+
+    // Generate merged idea + dialogue in parallel
+    const [mergedIdea, dialogueLines] = await Promise.all([
+      generateAgentLine('apparatus',
+        `Synthesize these two risk analysis items for ${company.name} into a NEW combined insight. Item 1 from ${agent1.name}: "${content1}". Item 2 from ${agent2.name}: "${content2}". Create a merged analysis with a title, 2-3 sentences showing the connection, and 3 bullet points with key implications.`,
+        mergeContext
+      ),
+      generateDialogueBatch(
+        [item1.createdBy, item2.createdBy],
+        `${agent1.name} and ${agent2.name} discover their analysis items overlap — they see connections between "${content1}" and "${content2}". They realize the combination reveals a deeper risk pattern. ${agent1.name} speaks first, ${agent2.name} builds on it.`,
+        mergeContext
+      )
+    ]);
+
+    // Play out conversation
+    addChatMessage(item1.createdBy, dialogueLines[item1.createdBy]);
+    
+    setTimeout(() => {
+      addChatMessage(item2.createdBy, dialogueLines[item2.createdBy]);
+    }, 1500);
+
+    setTimeout(() => {
+      // Create the merged work item at the midpoint
+      const midX = (item1.position.x + item2.position.x) / 2;
+      const midY = Math.max(item1.position.y, item2.position.y) + 130;
+      
+      createWorkItem(
+        item1.createdBy,
+        'analysis',
+        mergedIdea,
+        { x: midX, y: midY },
+        currentPhase,
+        true // Type it out
+      );
+      
+      // Apparatus logs the merge
+      generateAgentLine('apparatus',
+        `${agent1.name} and ${agent2.name} combined their analysis items into a deeper insight about ${company.name}. Log the synthesis.`,
+        mergeContext
+      ).then(line => addChatMessage('apparatus', line));
+    }, 3000);
+  }, [company.name, addChatMessage, createWorkItem, currentPhase, getCharacterInfo]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+    if (draggedItem) {
+      // Check for collision with other items
+      const draggedItemData = workItems.find(item => item.id === draggedItem);
+      if (draggedItemData) {
+        const collidingItem = workItems.find(item => {
+          if (item.id === draggedItem) return false;
+          if (item.createdBy === draggedItemData.createdBy) return false;
+          const dx = Math.abs(item.position.x - draggedItemData.position.x);
+          const dy = Math.abs(item.position.y - draggedItemData.position.y);
+          return dx < 150 && dy < 80;
+        });
+        
+        if (collidingItem) {
+          generateMergeConversation(draggedItemData, collidingItem);
+        }
+      }
+      
+      setWorkItems(prev => prev.map(item => 
+        item.id === draggedItem ? { ...item, isDragging: false } : item
+      ));
+      setDraggedItem(null);
+    }
+  }, [draggedItem, workItems, generateMergeConversation]);
 
   const moveAgentTo = useCallback((agentId: CharacterId, target: Position, status: AgentState['status'], action: string) => {
     setAgents(prev => prev.map(agent => 

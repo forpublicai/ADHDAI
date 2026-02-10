@@ -361,6 +361,50 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setIsSendingMessage(false);
   }, [selectedAgent, userInput, isSendingMessage, company, scenarios, currentScenarioIndex, currentPhase, campaigns.length, chatMessages, addChatMessage]);
 
+  const createWorkItem = useCallback((
+    agentId: CharacterId, 
+    type: WorkItem['type'], 
+    content: string, 
+    position: Position,
+    phase: number,
+    shouldType: boolean = false,
+    scenarioId?: string
+  ): string => {
+    const id = `item-${workItemIdRef.current++}`;
+    const item: WorkItem = {
+      id,
+      type,
+      content,
+      position,
+      color: ITEM_COLORS[type],
+      createdBy: agentId,
+      timestamp: Date.now(),
+      phase,
+      isTyping: shouldType,
+      displayedContent: shouldType ? '' : content,
+      scenarioId,
+    };
+    setWorkItems(prev => [...prev, item]);
+    
+    if (shouldType && content.length > 0) {
+      let charIndex = 0;
+      const typeInterval = setInterval(() => {
+        charIndex += 2;
+        setWorkItems(prev => prev.map(wi => 
+          wi.id === id 
+            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
+            : wi
+        ));
+        if (charIndex >= content.length) {
+          clearInterval(typeInterval);
+        }
+      }, 30);
+      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
+    }
+    
+    return id;
+  }, []);
+
   // ============================================
   // MERGE ON OVERLAP — when items overlap, generate a new combined idea
   // ============================================
@@ -444,50 +488,6 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       }
     };
   }, [workItems, generateMergeConversation]);
-
-  const createWorkItem = useCallback((
-    agentId: CharacterId, 
-    type: WorkItem['type'], 
-    content: string, 
-    position: Position,
-    phase: number,
-    shouldType: boolean = false,
-    scenarioId?: string
-  ): string => {
-    const id = `item-${workItemIdRef.current++}`;
-    const item: WorkItem = {
-      id,
-      type,
-      content,
-      position,
-      color: ITEM_COLORS[type],
-      createdBy: agentId,
-      timestamp: Date.now(),
-      phase,
-      isTyping: shouldType,
-      displayedContent: shouldType ? '' : content,
-      scenarioId,
-    };
-    setWorkItems(prev => [...prev, item]);
-    
-    if (shouldType && content.length > 0) {
-      let charIndex = 0;
-      const typeInterval = setInterval(() => {
-        charIndex += 2;
-        setWorkItems(prev => prev.map(wi => 
-          wi.id === id 
-            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
-            : wi
-        ));
-        if (charIndex >= content.length) {
-          clearInterval(typeInterval);
-        }
-      }, 30);
-      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
-    }
-    
-    return id;
-  }, []);
 
   const moveAgentTo = useCallback((agentId: CharacterId, target: Position, status: AgentState['status'], action: string) => {
     setAgents(prev => prev.map(agent => 

@@ -1505,6 +1505,9 @@ KEY ELEMENTS:
     const headline = workItems.find(w => w.type === 'headline')?.content?.split('\n').pop()?.replace(/['"]/g, '') || 'The truth was always there';
     const visualDirection = workItems.find(w => w.type === 'visual')?.content || 'Documentary photography, muted tones';
     
+    // Build brief context string for agent dialogue
+    const briefContext = `Brief: "${currentBrief}". Product: ${product}. Category: ${category}. Campaign headline: "${headline}". Visual direction: ${visualDirection}.`;
+    
     const openai = getOpenAI();
     
     addChatMessage('apparatus', await generateAgentLine('apparatus', `Compiling deliverables package for "${product}" — generating visual assets.`, briefContext));
