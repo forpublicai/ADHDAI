@@ -281,6 +281,63 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
     }
   }, []);
 
+  const addChatMessage = useCallback((from: CharacterId, content: string) => {
+    const msg: ChatMessage = {
+      id: `chat-${chatIdRef.current++}`,
+      from,
+      content,
+      timestamp: Date.now(),
+    };
+    setChatMessages(prev => [...prev.slice(-30), msg]);
+  }, []);
+
+  const createWorkItem = useCallback((
+    agentId: CharacterId, 
+    type: WorkItem['type'], 
+    content: string, 
+    position: Position,
+    phase: number,
+    shouldType: boolean = false,
+    timeHorizon?: TimeHorizon,
+    scenario?: DoomsdayScenario
+  ): string => {
+    const id = `item-${workItemIdRef.current++}`;
+    const color = timeHorizon ? HORIZON_COLORS[timeHorizon] : ITEM_COLORS[type];
+    const item: WorkItem = {
+      id,
+      type,
+      content,
+      position,
+      color,
+      createdBy: agentId,
+      timestamp: Date.now(),
+      phase,
+      isTyping: shouldType,
+      displayedContent: shouldType ? '' : content,
+      timeHorizon,
+      scenario,
+    };
+    setWorkItems(prev => [...prev, item]);
+    
+    if (shouldType && content.length > 0) {
+      let charIndex = 0;
+      const typeInterval = setInterval(() => {
+        charIndex += 2;
+        setWorkItems(prev => prev.map(wi => 
+          wi.id === id 
+            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
+            : wi
+        ));
+        if (charIndex >= content.length) {
+          clearInterval(typeInterval);
+        }
+      }, 30);
+      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
+    }
+    
+    return id;
+  }, []);
+
   // ============================================
   // MERGE ON OVERLAP — when items overlap, generate a new combined idea
   // ============================================
@@ -383,63 +440,6 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
     setTasks(prev => prev.map(task => 
       task.id === taskId ? { ...task, status: newStatus } : task
     ));
-  }, []);
-
-  const addChatMessage = useCallback((from: CharacterId, content: string) => {
-    const msg: ChatMessage = {
-      id: `chat-${chatIdRef.current++}`,
-      from,
-      content,
-      timestamp: Date.now(),
-    };
-    setChatMessages(prev => [...prev.slice(-30), msg]);
-  }, []);
-
-  const createWorkItem = useCallback((
-    agentId: CharacterId, 
-    type: WorkItem['type'], 
-    content: string, 
-    position: Position,
-    phase: number,
-    shouldType: boolean = false,
-    timeHorizon?: TimeHorizon,
-    scenario?: DoomsdayScenario
-  ): string => {
-    const id = `item-${workItemIdRef.current++}`;
-    const color = timeHorizon ? HORIZON_COLORS[timeHorizon] : ITEM_COLORS[type];
-    const item: WorkItem = {
-      id,
-      type,
-      content,
-      position,
-      color,
-      createdBy: agentId,
-      timestamp: Date.now(),
-      phase,
-      isTyping: shouldType,
-      displayedContent: shouldType ? '' : content,
-      timeHorizon,
-      scenario,
-    };
-    setWorkItems(prev => [...prev, item]);
-    
-    if (shouldType && content.length > 0) {
-      let charIndex = 0;
-      const typeInterval = setInterval(() => {
-        charIndex += 2;
-        setWorkItems(prev => prev.map(wi => 
-          wi.id === id 
-            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
-            : wi
-        ));
-        if (charIndex >= content.length) {
-          clearInterval(typeInterval);
-        }
-      }, 30);
-      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
-    }
-    
-    return id;
   }, []);
 
   const moveAgentTo = useCallback((agentId: CharacterId, target: Position, status: AgentState['status'], action: string) => {
