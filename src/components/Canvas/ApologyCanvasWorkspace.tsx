@@ -29,7 +29,7 @@ import { Fortune500Company } from '../../data/fortune500';
 import { generateApologyCampaign, generateCampaignImage } from '../../services/apologyGenerator';
 import { formatApologyCampaignsAsHTML, formatSingleCampaignAsHTML } from '../../services/apologyDeliverables';
 import { generatePrintAdHtml, generateBillboardHtml, generateBillboardSvg, generatePrintAdSvg, generateBannerSvg, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
-import { generateDialogueBatch, generateAgentLine } from '../../services/dialogueService';
+import { generateDialogueBatch, generateAgentLine, resetDialogueHistory } from '../../services/dialogueService';
 import './CanvasWorkspace.css';
 
 // Get icon component for character
@@ -168,6 +168,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   const proximityCheckRef = useRef<((itemId: string) => void) | null>(null);
   const chatIdRef = useRef(0);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
+  
+  // @-mention chat input state
+  const [chatInput, setChatInput] = useState('');
+  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const [mentionFilter, setMentionFilter] = useState('');
+  const [mentionCursorPos, setMentionCursorPos] = useState(0);
+  const [isBotReplying, setIsBotReplying] = useState(false);
+  const chatInputRef = useRef<HTMLInputElement>(null);
 
   // Delay helper that can be skipped
   const delayOrSkip = useCallback((ms: number) => {
@@ -501,9 +509,15 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     const scenarioContext = `Company: ${company.name} (${company.industry}). Scenario: "${scenario.title}" — ${scenario.severity} severity, ${scenario.category} category. ${scenario.description}. Affected: ${scenario.affectedParties.join(', ')}. Timeline: ${scenario.timeHorizon}.`;
     
     // Phase 1: All agents react to the scenario — one batched API call
+    const phase1Situations = [
+      `The team is seeing doomsday scenario #${index + 1} for the first time: "${scenario.title}" (${scenario.severity}, ${scenario.category}). Mike opens the dossier and gives his assessment. Everyone reacts differently — some see opportunity, some see danger. This is their FIRST unfiltered reaction.`,
+      `Mike just dropped the case file for "${scenario.title}" on the table. ${scenario.severity} severity. The room goes quiet. Then everyone starts talking at once. Each agent processes this ${scenario.category} scenario through their own lens — strategy, copy, visual, schedule, client relations.`,
+      `New scenario hitting the board: "${scenario.title}." Nobody expected ${scenario.category} to be the vector. Mike's already two cigarettes in. Poole is sketching diagrams before anyone speaks. The Cell is whispering. Burl squints at the brief like it's a photograph. Nadya checks her watch.`,
+      `"${scenario.title}" — that's what the dossier says. ${scenario.severity}. ${scenario.category}. ${scenario.affectedParties.join(', ')} at risk. Mike reads it aloud. The reactions cascade: professional, personal, strategic, creative. Nobody agrees on where to start. That's how it always starts.`,
+    ];
     const phase1Lines = await generateDialogueBatch(
       ['mike', 'poole', 'the-cell', 'burl', 'nadya', 'delmore', 'apparatus'],
-      `The team is seeing a new doomsday scenario for the first time: "${scenario.title}" (${scenario.severity}, ${scenario.category}). Mike opens the dossier and gives his assessment. Poole maps the strategic implications. The Cell starts thinking about copy angles. Burl sees visual possibilities. Nadya notes the timeline. Delmore considers the client communication. Apparatus logs the data.`,
+      phase1Situations[Math.floor(Math.random() * phase1Situations.length)],
       scenarioContext
     );
     
@@ -545,9 +559,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('STRATEGIC FRAMEWORK');
     
     // Phase 2: Strategy — batched API call
+    const phase2Situations = [
+      `Poole is building the strategic framework for the preemptive apology. He's mapping "${scenario.potentialDamage}" into his methodology. Mike watches skeptically. The Cell gets impatient. Burl starts seeing visuals. Someone challenges whether Poole's approach actually works for ${scenario.category} scenarios.`,
+      `Poole's at the whiteboard again. "${scenario.potentialDamage}" is the focus. Mike has already identified three things Poole is overcomplicating. The Cell wants to skip straight to writing. Burl can see the color palette forming. Nadya is calculating deadlines while Poole is still drawing arrows. Delmore is taking notes for the client deck.`,
+      `The strategy phase begins — Poole's favorite moment. He's dissecting the ${scenario.category} dimensions of "${scenario.title}." Mike interrupts with a blunt question. The Cell is visibly restless. Burl sketches thumbnails in the margin. Nadya gives everyone a deadline they don't want. Delmore smooths over the tension.`,
+    ];
     const phase2Lines = await generateDialogueBatch(
       ['poole', 'mike', 'the-cell', 'burl', 'nadya', 'delmore', 'apparatus'],
-      `Poole is building the strategic framework for the preemptive apology. He's mapping "${scenario.potentialDamage}" into his methodology. Mike watches skeptically. The Cell gets impatient waiting for the framework to finish so they can write. Burl starts seeing visuals. Nadya checks the timeline. Delmore prepares for client translation. Apparatus logs the framework.`,
+      phase2Situations[Math.floor(Math.random() * phase2Situations.length)],
       scenarioContext
     );
     
@@ -605,9 +624,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     // Cell presents options and Thursday's winner
     const copyContext = `${scenarioContext} Campaign headline: "${campaign.headline}". Tagline: "${campaign.subheadline}". Key message: "${campaign.keyMessages?.[0] || ''}".`;
     
+    const phase3Situations = [
+      `The Cell just presented three options. Thursday's headline — "${campaign.headline}" — won 2-1 as usual. The room's reaction is mixed: admiration, shock, strategic approval, and one person who didn't see it coming. Everyone speaks from their specific expertise about what this headline means for the campaign.`,
+      `Thursday slides a card across the table. It reads: "${campaign.headline}". The room goes silent. Then everyone erupts — Mike with grudging respect, Poole trying to fit it into his framework, Burl already composing the shot. The Cell's internal vote was 2-1. Vera lost again.`,
+      `COPY IS LOCKED. After Vera's safe option and Gjon's confrontational one, Thursday delivered: "${campaign.headline}". It's the kind of line that makes you read it twice. Now each agent processes what this means for their piece of the campaign. Someone should push back. Someone should celebrate.`,
+    ];
     const phase3Lines = await generateDialogueBatch(
       ['the-cell', 'mike', 'poole', 'burl', 'nadya', 'delmore', 'apparatus'],
-      `The Cell has finished writing three options. Option A was safe (Vera's). Option B was confrontational (Gjon's). Option C was Thursday's — strange, devastating, and perfect: "${campaign.headline}". Thursday wins the vote 2-1, as usual. Now everyone reacts to the winning headline. Mike is impressed. Poole is theoretically baffled but approves. Burl sees the visual instantly. Nadya notes progress. Delmore considers client presentation. Apparatus logs the creative output.`,
+      phase3Situations[Math.floor(Math.random() * phase3Situations.length)],
       copyContext
     );
     
@@ -626,9 +650,25 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     addChatMessage('delmore', phase3Lines['delmore']);
     addChatMessage('apparatus', phase3Lines['apparatus']);
     
-    // Create the Cell's work item with FULL copy output
+    // Create the Cell's work item with ACTUAL generated campaign data — never hardcoded
+    const optionALines = [
+      `"${company.name} Takes Responsibility."`,
+      `"An Open Letter to Our Stakeholders."`,
+      `"We Owe You Better Than Silence."`,
+      `"Ahead of the Curve: A Note from ${company.name}."`,
+      `"Transparency Starts Here."`,
+      `"${company.name}: A Promise to Do Better."`,
+    ];
+    const optionBLines = [
+      campaign.keyMessages?.[1] || campaign.keyMessages?.[0] || `${company.name} owns their future mistakes before anyone else can`,
+      `"${scenario.title}" — and why ${company.name} is the one telling you`,
+      `What happens when a ${company.industry.toLowerCase()} company stops lying`,
+      `${company.name}: the confession your feed didn't expect`,
+    ];
+    const pickOne = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+    
     createWorkItem('the-cell', 'apology',
-      `COPY TRANSMITTAL — The Cell\n\n━━━ OPTION A (Vera) ━━━\n"We See What's Coming."\nSafe. Corporate. Approved.\n\n━━━ OPTION B (Gjon) ━━━\n"${campaign.keyMessages?.[0] || 'The future is our fault.'}"\nConfrontational. Real.\n\n━━━ OPTION C (Thursday) ✓ ━━━\n"${campaign.headline}"\n${campaign.subheadline}\n\nVOTE: 2-1, Thursday carries.\n\n━━━ MANIFESTO ━━━\n${campaign.apologyStatement}\n\n━━━ KEY ANGLES ━━━\n${campaign.keyMessages?.map((m, i) => `${i + 1}. ${m}`).join('\n') || 'N/A'}\n\n— The Cell`,
+      `COPY TRANSMITTAL — The Cell\n\n━━━ OPTION A (Vera) ━━━\n${pickOne(optionALines)}\nSafe. Corporate. Approved.\n\n━━━ OPTION B (Gjon) ━━━\n"${pickOne(optionBLines)}"\nConfrontational. Real.\n\n━━━ OPTION C (Thursday) ✓ ━━━\n"${campaign.headline}"\n${campaign.subheadline}\n${company.name}. ${campaign.tone?.split('.')[0] || 'Accountable before the headline breaks'}.\n\nVOTE: 2-1, Thursday carries.\n\n━━━ MANIFESTO ━━━\n${campaign.apologyStatement}\n\n━━━ KEY ANGLES ━━━\n${campaign.keyMessages?.map((m, i) => `${i + 1}. ${m}`).join('\n') || 'N/A'}\n\n— The Cell`,
       { x: 1080, y: 90 }, 3, true, scenario.id
     );
     
@@ -647,9 +687,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Setting visual tone...');
     
+    const phase4Situations = [
+      `Burl is defining the visual world for the campaign. He's using ${company.name}'s brand aesthetic but cracking it open for confession. Colors: ${campaign.colorPalette?.slice(0, 3).join(', ') || 'unknown'}. Everyone reacts to the visual direction — does it match the words? Is it too bold? Not bold enough? Nadya and Burl have their classic deadline argument.`,
+      `The visual phase is Burl's territory. He's pinning references, muttering about colors that "mean something." ${campaign.visualConcept?.slice(0, 80) || 'The concept is forming'}. The Cell checks if it supports their copy. Poole sees his framework in the palette. Mike trusts Burl's instincts. Nadya wants a timeline. Burl refuses to give one.`,
+      `Burl takes over. He's building the visual grammar for "${campaign.headline}" — every color, typeface, and image choice has to earn its place. The team watches. Some get it immediately. Others push back. Nadya gives him a deadline he doesn't want. Delmore is already thinking about the client deck.`,
+    ];
     const phase4Lines = await generateDialogueBatch(
       ['burl', 'the-cell', 'poole', 'mike', 'nadya', 'delmore', 'apparatus'],
-      `Burl is defining the visual direction for ${company.name}'s apology campaign. He's using their brand aesthetic but subverting it for confession. The Cell evaluates whether the visual supports the copy. Poole sees his framework reflected in the color choices. Mike appreciates the emotional weight. Nadya demands a timeline for visual deliverables, Burl resists deadlines. Delmore considers how it'll present to the client board. Apparatus logs specs.`,
+      phase4Situations[Math.floor(Math.random() * phase4Situations.length)],
       visualContext
     );
     
@@ -687,9 +732,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     moveAgentTo('nadya', { x: 820, y: 440 }, 'typing', 'Building production schedule...');
     
+    const phase5Situations = [
+      `Nadya takes control. Production schedule time. She announces dates that nobody thought were possible. The classic arguments begin — Mike on the timeline, Burl on creative freedom, Poole wanting revisions. But Nadya's schedule is law. The team learns to work within it.`,
+      `The schedule drops like a guillotine. Nadya has dates for every deliverable across ${scenarioTasks.length} items. The team reacts: some protest, some accept, all comply. Nadya references either Valentina Tereshkova or Soviet-era production wisdom. Nobody argues twice.`,
+      `"The schedule is the schedule." Nadya has entered production mode. Print, billboard, video, social — all dated, all assigned. Mike and Burl push back on the timeline. Nadya doesn't negotiate. She never does. The tension between creative ambition and production reality plays out.`,
+    ];
     const phase5Lines = await generateDialogueBatch(
       ['nadya', 'mike', 'poole', 'the-cell', 'burl', 'delmore', 'apparatus'],
-      `Nadya is locking the production schedule — print, billboard, video, social, digital. She announces aggressive deadlines. Mike protests the timeline. Nadya counters with her trademark Tereshkova reference or Soviet-inspired wisdom. Poole wants more time for the framework. The Cell is impatient. Burl grumbles about art not punching a clock. Delmore prepares for the client meeting. Apparatus logs the schedule with ${scenarioTasks.length} deliverables.`,
+      phase5Situations[Math.floor(Math.random() * phase5Situations.length)],
       visualContext
     );
     
@@ -729,9 +779,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Translating for client...');
     
+    const phase6Situations = [
+      `It's Delmore's turn. He's translating "${campaign.headline}" from creative-brilliant to boardroom-palatable. The team watches in fascination as dangerous ideas become safe language. Mike finds it funny. The Cell finds it alarming. Poole sees his framework preserved beneath the surface. Nadya schedules the client meeting. Hard candies are distributed.`,
+      `Delmore performs his magic act: making the uncomfortable comfortable without losing the point. "${campaign.headline}" becomes something a board will approve. Each agent reacts differently — some impressed by the translation, some mourning the edge. Delmore offers candies and reassurance in equal measure.`,
+      `Client translation phase. Delmore takes everything they've built and wraps it in language that won't scare a boardroom. Mike calls it "the knife in a velvet glove." The Cell watches their confrontational copy become "strategic communication." Poole's framework survives as subtext. It's art in its own way.`,
+    ];
     const phase6Lines = await generateDialogueBatch(
       ['delmore', 'mike', 'poole', 'the-cell', 'burl', 'nadya', 'apparatus'],
-      `Delmore is translating the creative work into client-friendly language. He's taking "${campaign.headline}" and making it sound strategic and boardroom-safe. Mike watches with amusement — same knife, different handle. Poole admires how the framework survives in translation. The Cell is fascinated/disturbed by how their words get softened. Burl evaluates the presentation aesthetics. Nadya locks the client meeting schedule. Apparatus documents the translation.`,
+      phase6Situations[Math.floor(Math.random() * phase6Situations.length)],
       visualContext
     );
     
@@ -824,9 +879,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     await delayOrSkip(1000);
     
     // Everyone reacts to compilation — batched
+    const phase7Situations = [
+      `Campaign ${index + 1} of ${scenarios.length} just compiled. "${campaign.headline}" is real now. ${generatedImages.hero ? 'AI images generated.' : 'Template assets assembled.'} Each agent gives a UNIQUE final reaction — not a generic "good work" but something specific to what THIS campaign means to THEM. One sentence each, maximum.`,
+      `It's done. "${campaign.headline}" exists in the world. ${generatedImages.hero ? 'With AI-generated visuals.' : 'With template-based mockups.'} This is the moment of truth — was it worth the arguing, the frameworks, the deadlines? Each agent reflects briefly, personally, specifically. No generic wrap-up.`,
+      `COMPILATION COMPLETE. Campaign ${index + 1}: "${campaign.headline}" for ${company.name}. The team has a brief moment before moving to the next scenario. What does each person feel? Not what they'd SAY at a meeting — what they actually feel. Keep it to one sharp line each.`,
+    ];
     const phase7Lines = await generateDialogueBatch(
       ['mike', 'poole', 'the-cell', 'burl', 'nadya', 'delmore'],
-      `Campaign ${index + 1} of ${scenarios.length} has just been compiled for ${company.name}. Headline: "${campaign.headline}". ${generatedImages.hero ? 'AI-generated images were created.' : 'Template assets were used.'} Each agent gives their final reaction to this campaign — a brief, character-specific closing thought.`,
+      phase7Situations[Math.floor(Math.random() * phase7Situations.length)],
       visualContext
     );
     
@@ -856,14 +916,20 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
 
   // Run the full workflow
   const runWorkflow = useCallback(async () => {
-    // Dialogue is now fully API-generated — no cache to reset
+    // Reset dialogue history to prevent cross-session deduplication
+    resetDialogueHistory();
     
     // Opening
     const workflowContext = `${company.name} (${company.industry}, ${company.sector}). ${scenarios.length} doomsday scenarios queued for proactive apology campaign generation.`;
     
+    const openingSituations = [
+      `The proactive apology campaign workflow is starting. Apparatus initiates the protocol for ${company.name} with ${scenarios.length} scenarios. Mike rallies the team — he's cynical but excited about the concept of pre-emptive corporate apologies.`,
+      `A new case hits the agency. ${company.name}. ${scenarios.length} doomsday scenarios. Apparatus powers up the system. Mike is already reading the dossier with his "this-is-going-to-be-interesting" face.`,
+      `The Apparatus hums to life. ${company.name} — ${scenarios.length} scenarios queued. Mike cracks his knuckles. This isn't a normal brief. This is an agency that writes apologies for things that haven't happened yet. He loves it.`,
+    ];
     const openingLines = await generateDialogueBatch(
       ['apparatus', 'mike'],
-      `The proactive apology campaign workflow is starting. Apparatus initiates the protocol for ${company.name} with ${scenarios.length} scenarios. Mike rallies the team — he's cynical but excited about the concept of pre-emptive corporate apologies.`,
+      openingSituations[Math.floor(Math.random() * openingSituations.length)],
       workflowContext
     );
     addChatMessage('apparatus', openingLines['apparatus']);
@@ -894,9 +960,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     // Celebratory completion messages from ALL bots
     const completionContext = `${company.name}. ${completedCampaigns.length} campaigns completed. Headlines: ${completedCampaigns.map(c => `"${c.headline}"`).join(', ')}.`;
     
+    const completionSituations = [
+      `ALL ${completedCampaigns.length} campaigns are done for ${company.name}. Final wrap-up. Each agent gives ONE genuinely personal, specific closing thought about the body of work — not generic congratulations. What surprised them? What are they proud of? What would they change? 1 sentence each.`,
+      `Session complete. ${completedCampaigns.length} campaigns for ${company.name}. The team exhales. This is the rare quiet moment. Each person reflects on what they just built — is it their best work? Close to it? Far from it? Be honest, be specific, be brief.`,
+      `Done. ${completedCampaigns.length} proactive apology campaigns for ${company.name}. The Apparatus logs the final timestamp. The team has a moment before they scatter. Each agent says something that only THEY would say about this specific body of work. One line. Make it count.`,
+    ];
     const completionLines = await generateDialogueBatch(
       ['apparatus', 'mike', 'poole', 'the-cell', 'burl', 'nadya', 'delmore'],
-      `ALL campaigns are done. ${completedCampaigns.length} total for ${company.name}. This is the final wrap-up. Apparatus announces completion. Each agent gives their final personal reaction to the body of work they've created — a brief closing thought. Mike is satisfied. Poole validates his framework. The Cell is proud. Burl sees the campaign as a whole. Nadya confirms the schedule was met. Delmore is ready for the client. Keep it brief — 1-2 sentences each.`,
+      completionSituations[Math.floor(Math.random() * completionSituations.length)],
       completionContext
     );
     
@@ -972,6 +1043,112 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     setTimeout(() => runWorkflow(), 500);
   }, [generateTasks, runWorkflow]);
+
+  // ============================================
+  // @-MENTION CHAT INPUT — message bots directly
+  // ============================================
+  const handleChatInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setChatInput(value);
+    
+    // Check if user just typed @
+    const cursorPos = e.target.selectionStart || 0;
+    const textBeforeCursor = value.slice(0, cursorPos);
+    const atMatch = textBeforeCursor.match(/@(\w*)$/);
+    
+    if (atMatch) {
+      setShowMentionDropdown(true);
+      setMentionFilter(atMatch[1].toLowerCase());
+      setMentionCursorPos(cursorPos - atMatch[0].length);
+    } else {
+      setShowMentionDropdown(false);
+      setMentionFilter('');
+    }
+  }, []);
+  
+  const handleMentionSelect = useCallback((agentId: CharacterId) => {
+    const char = getCharacterInfo(agentId);
+    const beforeAt = chatInput.slice(0, mentionCursorPos);
+    const afterAt = chatInput.slice(mentionCursorPos).replace(/@\w*/, '');
+    const newValue = `${beforeAt}@${char.name}${afterAt} `;
+    setChatInput(newValue);
+    setShowMentionDropdown(false);
+    chatInputRef.current?.focus();
+  }, [chatInput, mentionCursorPos, getCharacterInfo]);
+  
+  const handleChatSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isBotReplying) return;
+    
+    // Parse @mentions to find targeted agents
+    const mentionRegex = /@([\w\s.]+?)(?=\s@|\s|$)/g;
+    const mentions: CharacterId[] = [];
+    let match;
+    while ((match = mentionRegex.exec(chatInput)) !== null) {
+      const mentionName = match[1].trim().toLowerCase();
+      const found = CHARACTERS.find(c => 
+        c.name.toLowerCase().includes(mentionName) || 
+        c.id.toLowerCase() === mentionName ||
+        c.id.replace('-', ' ').toLowerCase() === mentionName
+      );
+      if (found) mentions.push(found.id as CharacterId);
+    }
+    
+    // Add user message to chat
+    const userMsg: ChatMessage = {
+      id: `chat-${chatIdRef.current++}`,
+      from: 'mike' as CharacterId, // Display as "You"
+      content: chatInput,
+      timestamp: Date.now(),
+    };
+    // We'll use a special marker for user messages
+    setChatMessages(prev => [...prev.slice(-30), { ...userMsg, id: `user-${chatIdRef.current}`, from: 'user' as unknown as CharacterId }]);
+    setChatInput('');
+    setIsBotReplying(true);
+    
+    // Build context for bot responses
+    const recentChat = chatMessages.slice(-5).map(m => {
+      const c = getCharacterInfo(m.from);
+      return `${c.name}: ${m.content.slice(0, 100)}`;
+    }).join('\n');
+    
+    const respondingAgents = mentions.length > 0 
+      ? mentions 
+      : ['mike', 'the-cell'] as CharacterId[]; // Default: Mike and The Cell respond
+    
+    try {
+      const scenarioCtx = scenarios[currentScenarioIndex] 
+        ? `Company: ${company.name}. Current scenario: "${scenarios[currentScenarioIndex].title}".` 
+        : `Company: ${company.name}.`;
+      
+      const responses = await generateDialogueBatch(
+        respondingAgents,
+        `A human user just sent a message to the team: "${chatInput}". ${mentions.length > 0 ? `They specifically tagged ${mentions.map(id => getCharacterInfo(id).name).join(' and ')} for a response.` : 'No specific agent was tagged, so Mike and The Cell respond.'} Each tagged agent should respond directly to the user's message, in character, with a thoughtful and specific reply. This is a CONVERSATION — they should engage with what the user actually said.`,
+        `${scenarioCtx}\n\nRecent conversation:\n${recentChat}\n\nUser message: "${chatInput}"`
+      );
+      
+      // Add bot responses with delays
+      for (let i = 0; i < respondingAgents.length; i++) {
+        const agentId = respondingAgents[i];
+        const response = responses[agentId];
+        if (response) {
+          await new Promise(resolve => setTimeout(resolve, 600 + i * 800));
+          addChatMessage(agentId, response);
+        }
+      }
+    } catch (err) {
+      console.error('Bot reply failed:', err);
+      addChatMessage('apparatus', `COMMUNICATION ERROR — Unable to process message. Please try again. —`);
+    }
+    
+    setIsBotReplying(false);
+  }, [chatInput, isBotReplying, chatMessages, company, scenarios, currentScenarioIndex, addChatMessage, getCharacterInfo]);
+  
+  // Filter characters for @-mention dropdown
+  const filteredCharacters = CHARACTERS.filter(c => 
+    c.name.toLowerCase().includes(mentionFilter) || 
+    c.id.toLowerCase().includes(mentionFilter)
+  );
 
   const handleSkipToEnd = useCallback(() => {
     skipRef.current = true;
@@ -1598,17 +1775,76 @@ THE FERAL CREATIVE COLLECTIVE
           </div>
           <div className="chat-messages" ref={chatMessagesRef}>
             {chatMessages.map(msg => {
-              const char = getCharacterInfo(msg.from);
+              const isUser = msg.id.startsWith('user-');
+              const char = isUser ? null : getCharacterInfo(msg.from);
               return (
-                <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
+                <div key={msg.id} className={`chat-message ${isUser ? 'user-message' : ''}`} style={{ borderLeftColor: isUser ? '#4fc3f7' : char?.color }}>
                   <div className="chat-sender">
-                    <span className="chat-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
-                    <span className="chat-name" style={{ color: char.color }}>{char.name}</span>
+                    {isUser ? (
+                      <>
+                        <span className="chat-icon" style={{ color: '#4fc3f7' }}>👤</span>
+                        <span className="chat-name" style={{ color: '#4fc3f7' }}>You</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="chat-icon" style={{ color: char?.color }}>{getCharacterIcon(char?.icon || 'gear', 14)}</span>
+                        <span className="chat-name" style={{ color: char?.color }}>{char?.name}</span>
+                      </>
+                    )}
                   </div>
                   <div className="chat-content">{msg.content}</div>
                 </div>
               );
             })}
+            {isBotReplying && (
+              <div className="chat-message typing-indicator" style={{ borderLeftColor: '#888' }}>
+                <div className="chat-sender">
+                  <span className="chat-icon" style={{ color: '#888' }}>💬</span>
+                  <span className="chat-name" style={{ color: '#888' }}>Typing...</span>
+                </div>
+                <div className="chat-content typing-dots">
+                  <span>●</span><span>●</span><span>●</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Chat Input with @-mention */}
+          <div className="chat-input-container">
+            {showMentionDropdown && filteredCharacters.length > 0 && (
+              <div className="mention-dropdown">
+                {filteredCharacters.map(char => (
+                  <button 
+                    key={char.id}
+                    className="mention-option"
+                    onClick={() => handleMentionSelect(char.id as CharacterId)}
+                    style={{ borderLeftColor: char.color }}
+                  >
+                    <span className="mention-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
+                    <span className="mention-name">{char.name}</span>
+                    <span className="mention-role">{char.role}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <form className="chat-input-form" onSubmit={handleChatSubmit}>
+              <input
+                ref={chatInputRef}
+                type="text"
+                className="chat-input"
+                placeholder="Message the team... (type @ to tag a bot)"
+                value={chatInput}
+                onChange={handleChatInputChange}
+                disabled={isBotReplying}
+              />
+              <button 
+                type="submit" 
+                className="chat-send-btn"
+                disabled={!chatInput.trim() || isBotReplying}
+              >
+                Send
+              </button>
+            </form>
           </div>
         </div>
       </div>

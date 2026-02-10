@@ -43,6 +43,59 @@ export interface DialogueBatch {
   [agentId: string]: string;
 }
 
+// ============================================
+// DIALOGUE HISTORY — prevents repetitive lines
+// ============================================
+const recentLines: string[] = [];
+const MAX_HISTORY = 60;
+
+function recordLine(line: string): void {
+  recentLines.push(line.slice(0, 120));
+  if (recentLines.length > MAX_HISTORY) recentLines.shift();
+}
+
+function isDuplicate(line: string): boolean {
+  const short = line.slice(0, 80).toLowerCase();
+  return recentLines.some(prev => {
+    const prevShort = prev.slice(0, 80).toLowerCase();
+    // Levenshtein-ish: if 70%+ of the words match, it's a repeat
+    const lineWords = new Set(short.split(/\s+/));
+    const prevWords = prevShort.split(/\s+/);
+    const overlap = prevWords.filter(w => lineWords.has(w)).length;
+    return overlap / Math.max(prevWords.length, 1) > 0.7;
+  });
+}
+
+/** Reset dialogue history (call when starting a new workflow) */
+export function resetDialogueHistory(): void {
+  recentLines.length = 0;
+}
+
+// ============================================
+// SITUATION PROMPT RANDOMIZER — prevents identical prompts
+// ============================================
+const SITUATION_SPICE = [
+  'Be surprising. Don\'t start with the obvious reaction.',
+  'One character should say something no one expects.',
+  'At least one character should disagree or push back.',
+  'Reference a specific detail from the scenario — a number, a name, a date.',
+  'Make it feel like we caught them mid-conversation, not at the beginning.',
+  'One character should reference something that happened earlier in the process.',
+  'Include a moment of humor — dark, dry, or absurd.',
+  'Someone should be physically doing something unusual while they speak.',
+  'This time, the quietest character speaks first.',
+  'One line should be only 3-5 words. The shortest lines hit hardest.',
+  'Someone should quote or reference another character\'s earlier point.',
+  'Include a beat of genuine emotion — not performed, felt.',
+  'At least one character should be skeptical of the direction.',
+  'One character sees something the others missed entirely.',
+  'Someone should make a reference to their personal history.',
+];
+
+function getRandomSpice(): string {
+  return SITUATION_SPICE[Math.floor(Math.random() * SITUATION_SPICE.length)];
+}
+
 /**
  * Try an API call with model fallback: gpt-4o → gpt-4o-mini
  */
@@ -90,6 +143,16 @@ export async function generateDialogueBatch(
     .map(a => `"${a}": ${AGENT_VOICES[a] || 'A creative professional.'}`)
     .join('\n\n');
 
+  // Add randomized spice to prevent identical prompts
+  const spice = getRandomSpice();
+  const callId = Math.random().toString(36).slice(2, 8);
+  
+  // Build "do not repeat" instruction from recent history
+  const avoidLines = recentLines.slice(-12).map(l => `"${l.slice(0, 60)}..."`).join(', ');
+  const avoidInstruction = avoidLines
+    ? `\nDO NOT write anything similar to these recent lines: ${avoidLines}`
+    : '';
+
   const messages: OpenAI.ChatCompletionMessageParam[] = [
     {
       role: 'system',
@@ -107,8 +170,10 @@ RULES:
 - NEVER be generic. Every line should feel like it could only exist in THIS moment
 - Vary tone: some lines funny, some serious, some surprising
 - Characters should occasionally reference or react to what other characters would say
+- ${spice}${avoidInstruction}
 
-Output ONLY valid JSON with agent IDs as keys: { "agentId": "their line", ... }`
+Output ONLY valid JSON with agent IDs as keys: { "agentId": "their line", ... }
+[Call ${callId}]`
     },
     {
       role: 'user',
@@ -130,6 +195,12 @@ Output ONLY valid JSON with agent IDs as keys: { "agentId": "their line", ... }`
         if (!parsed[agent]) {
           parsed[agent] = await generateAgentLine(agent, situation, context);
         }
+        // If the line is a near-duplicate, regenerate from fallback
+        if (parsed[agent] && isDuplicate(parsed[agent])) {
+          parsed[agent] = buildFallbackLine(agent, situation + ' ' + Math.random(), context);
+        }
+        // Record the line to prevent future repeats
+        recordLine(parsed[agent]);
       }
       return parsed;
     } catch (parseError) {
@@ -139,7 +210,10 @@ Output ONLY valid JSON with agent IDs as keys: { "agentId": "their line", ... }`
 
   // All API attempts failed — generate unique fallbacks
   console.warn('[DialogueService] All API calls failed — generating unique fallbacks');
-  return generateUniqueFallbacks(agents, situation, context);
+  const batch = generateUniqueFallbacks(agents, situation, context);
+  // Record all fallback lines too
+  Object.values(batch).forEach(line => recordLine(line));
+  return batch;
 }
 
 /**
@@ -181,7 +255,13 @@ Output ONLY the dialogue line. No quotes wrapping it. No explanation.`
     max_tokens: 120,
   });
 
-  return result || buildFallbackLine(agentId, situation, context);
+  let line = result || buildFallbackLine(agentId, situation, context);
+  // Deduplicate
+  if (isDuplicate(line)) {
+    line = buildFallbackLine(agentId, situation + ' ' + Date.now(), context);
+  }
+  recordLine(line);
+  return line;
 }
 
 /**

@@ -732,6 +732,167 @@
 }
 
 /* ============================================
+   USER MESSAGES & TYPING INDICATOR
+   ============================================ */
+.chat-message.user-message {
+  background: rgba(79, 195, 247, 0.08);
+  border-left-color: #4fc3f7 !important;
+}
+
+.chat-message.typing-indicator .typing-dots {
+  display: flex;
+  gap: 4px;
+  padding-left: 22px;
+}
+
+.chat-message.typing-indicator .typing-dots span {
+  color: #888;
+  font-size: 16px;
+  animation: typingBounce 1.4s infinite;
+}
+
+.chat-message.typing-indicator .typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.chat-message.typing-indicator .typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ============================================
+   CHAT INPUT & @-MENTION DROPDOWN
+   ============================================ */
+.chat-input-container {
+  flex-shrink: 0;
+  border-top: 1px solid #333;
+  background: #1a1a1a;
+  position: relative;
+}
+
+.chat-input-form {
+  display: flex;
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #e0e0e0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+  border-color: #4fc3f7;
+}
+
+.chat-input::placeholder {
+  color: #666;
+  font-size: 11px;
+}
+
+.chat-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-send-btn {
+  padding: 8px 14px;
+  background: #4fc3f7;
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.chat-send-btn:hover:not(:disabled) {
+  background: #81d4fa;
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* @-mention dropdown */
+.mention-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  right: 12px;
+  background: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.6);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 100;
+  animation: mentionSlide 0.15s ease-out;
+}
+
+@keyframes mentionSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mention-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.mention-option:hover {
+  background: rgba(79, 195, 247, 0.1);
+  color: #fff;
+}
+
+.mention-option + .mention-option {
+  border-top: 1px solid #2a2a2a;
+}
+
+.mention-icon {
+  flex-shrink: 0;
+}
+
+.mention-name {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.mention-role {
+  font-size: 10px;
+  color: #666;
+  margin-left: auto;
+}
+
+/* ============================================
    CODE PANEL MODAL
    ============================================ */
 .code-panel-overlay {

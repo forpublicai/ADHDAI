@@ -659,16 +659,57 @@ function getDefaultCreativeDirection(scenario: DoomsdayScenario, company: Fortun
     : scenario.title;
   
   const colors = getSectorColors(company.sector);
+  
+  // Multiple headline templates — pick randomly so assets never look the same
+  const headlineTemplates = [
+    `We See "${scenarioShort}" Coming. This Is Us, Saying Sorry First.`,
+    `"${scenarioShort}" — A Letter From ${company.name}, Before It's Too Late`,
+    `Dear Future: ${company.name} Owes You an Explanation About "${scenarioShort}"`,
+    `What Happens When ${company.name} Tells the Truth About "${scenarioShort}"`,
+    `${company.name} Could Wait for "${scenarioShort}" to Happen. We Won't.`,
+    `Before the Headline Breaks: ${company.name} on "${scenarioShort}"`,
+    `The Disaster We See Coming — And Why ${company.name} Is Saying Something Now`,
+    `An Open Confession From ${company.name}: "${scenarioShort}" Is Our Fault`,
+    `"${scenarioShort}" — ${company.name}'s Pre-Apology to the People Who Matter`,
+    `This Ad Shouldn't Exist. But "${scenarioShort}" Changes That.`,
+  ];
+  
+  const taglineTemplates = [
+    `${company.name}. Accountable before the headline breaks.`,
+    `Accountability first. ${company.name}.`,
+    `${company.name}: We'd rather you hear it from us.`,
+    `Sorry in advance. Serious right now. ${company.name}.`,
+    `${company.name}. Honest before we have to be.`,
+    `The apology that arrives before the disaster. ${company.name}.`,
+    `Pre-emptive truth from ${company.name}.`,
+    `${company.name}: Because silence is complicity.`,
+  ];
+  
+  const manifestoTemplates = [
+    `At ${company.name}, we've spent years building trust in ${company.industry.toLowerCase()}. Today, we're risking that trust to tell you the truth: we see "${scenario.title}" as a real possibility. Not a distant fear — a credible threat that our own actions could bring about. We could wait. We could let the PR machine spin up after the fact. Instead, we're choosing to stand here, before the damage is done, and say: we know. We're sorry. And here's what we're doing about it.`,
+    `There's a version of this story where ${company.name} says nothing. Where we wait for "${scenario.title}" to unfold and then hire a crisis firm. That's the version most ${company.industry.toLowerCase()} companies would write. We're writing a different one. One where we stand in front of ${scenario.affectedParties?.join(', ') || 'the people we serve'} and say: we saw this coming. We didn't look away. Here's what we're going to do.`,
+    `This is not a press release. This is a confession. ${company.name} has identified "${scenario.title}" as a ${scenario.severity} threat — one that we contributed to. The standard playbook says: deny, delay, deflect. We're throwing out the playbook. You deserve to know what we know, when we know it. Not after the fact. Not when it's convenient. Now.`,
+    `You didn't ask for honesty from a ${company.industry.toLowerCase()} company. You've been conditioned to expect the opposite. But "${scenario.title}" is too important — too real — for us to stay silent. ${company.name} is choosing discomfort over complicity. This is our apology for what hasn't happened yet, and our promise that we're working to make sure it never does.`,
+    `Every corporation has a moment where they choose between comfort and courage. For ${company.name}, that moment is now. "${scenario.title}" represents a future we can still change — but only if we acknowledge it exists. So here we are. Not with a spin doctor. Not with a legal team. With the truth. And with a plan.`,
+  ];
+
+  const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+  const headline = pick(headlineTemplates);
+  const tagline = pick(taglineTemplates);
+  const manifesto = pick(manifestoTemplates);
 
   return {
-    headline: `We See "${scenarioShort}" Coming. This Is Us, Saying Sorry First.`,
-    tagline: `${company.name}. Accountable before the headline breaks.`,
-    manifesto: `At ${company.name}, we've spent years building trust in ${company.industry.toLowerCase()}. Today, we're risking that trust to tell you the truth: we see "${scenario.title}" as a real possibility. Not a distant fear — a credible threat that our own actions could bring about. We could wait. We could let the PR machine spin up after the fact. Instead, we're choosing to stand here, before the damage is done, and say: we know. We're sorry. And here's what we're doing about it. Because you didn't ask for a corporation that apologizes after the crisis. You asked for one that prevents it.`,
+    headline,
+    tagline,
+    manifesto,
     slogans: [
       `${company.name}: Sorry in advance. Serious right now.`,
       `The crisis hasn't happened. The apology has.`,
       `Pre-emptive accountability from ${company.name}`,
       `"${scenarioShort}" — We'd rather you hear it from us.`,
+      `${company.name}. Honest before it's required.`,
+      `Before the storm: a letter from ${company.name}.`,
     ],
     tone: `The voice of a ${company.industry.toLowerCase()} executive who just pulled the fire alarm on their own company. Not performative — genuinely unsettled. ${company.name}'s polished brand voice cracking open with uncomfortable honesty. Think: the 3am email the CEO actually sends, not the one legal approved.`,
     visualConcept: `${company.name}'s brand identity turned confessional. Their ${company.sector.toLowerCase()} aesthetic — normally used to project confidence — is now deployed for radical transparency. Desaturated ${company.industry.toLowerCase()} imagery. Documentary-style photography. Bold typography that feels like evidence, not advertising. Every visual choice says: "This is real."`,

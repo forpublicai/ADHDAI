@@ -374,7 +374,7 @@ export function generateBillboardHtml(
 ): string {
   const billboard = campaign.deliverables?.billboard;
   const companyName = s(campaign.companyName, 'Company');
-  const bbHeadline = s(billboard?.headline, s(campaign.headline, 'We See What\'s Coming. This Is Us, Saying Sorry First.'));
+  const bbHeadline = s(billboard?.headline, s(campaign.headline, 'A Proactive Apology'));
   const bbTagline = s(billboard?.body, s(campaign.subheadline, `${companyName}. Accountable before the headline breaks.`));
   const bbDimensions = s(billboard?.dimensions, '14x48 ft');
   const bbFormat = s(billboard?.format, 'Billboard');
@@ -1280,8 +1280,8 @@ export function generateBillboardSvg(
 ): string {
   const companyName = s(campaign.companyName, 'Company');
   const billboard = campaign.deliverables?.billboard;
-  const headline = s(billboard?.headline, s(campaign.headline, 'We See What\'s Coming. This Is Us, Saying Sorry First.'));
-  const tagline = s(billboard?.body, s(campaign.subheadline, `${companyName}. Accountable before the headline breaks.`));
+  const headline = s(billboard?.headline, s(campaign.headline, 'A Proactive Apology'));
+  const tagline = s(billboard?.body, s(campaign.subheadline, `${companyName}. Accountability first.`));
   
   const colors = campaign.colorPalette || ['#0f0f0f', '#1a1a2e', '#4361ee', '#e94560', '#f5f5f5'];
   const primaryColor = colors[0] || '#0f0f0f';
@@ -1361,7 +1361,7 @@ export function generatePrintAdSvg(
 ): string {
   const companyName = s(campaign.companyName, 'Company');
   const ad = campaign.deliverables?.fullPageAd;
-  const headline = s(ad?.headline, s(campaign.headline, 'We See What\'s Coming.'));
+  const headline = s(ad?.headline, s(campaign.headline, 'A Proactive Apology'));
   const tagline = s(campaign.subheadline, 'A proactive statement of accountability');
   const bodyCopy = s(ad?.body, s(campaign.apologyStatement, 'We see what is coming. And we believe you deserve to know before it arrives.'));
   const scenarioTitle = s(campaign.scenarioTitle, '');
