@@ -25,7 +25,7 @@ import { CHARACTERS } from '../../constants';
 import { CharacterId, DoomsdayScenario, ScenarioAnalysis, TimeHorizon, RiskCategory, SeverityLevel } from '../../types';
 import { Fortune500Company } from '../../data/fortune500';
 import { getHorizonLabel } from '../../services/doomsdayAnalyzer';
-import { generateDialogueBatch, generateAgentLine } from '../../services/dialogueService';
+import { generateDialogueBatch, generateAgentLine, sendUserMessageToAgent, clearConversationHistory } from '../../services/dialogueService';
 import './CanvasWorkspace.css';
 import './ScenarioAnalysisWorkspace.css';
 
@@ -175,6 +175,11 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 });
   
+  // User-to-bot messaging state
+  const [selectedAgent, setSelectedAgent] = useState<CharacterId | null>(null);
+  const [userInput, setUserInput] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  
   const typingRef = useRef<NodeJS.Timeout[]>([]);
   const skipRef = useRef(false);
   const workItemIdRef = useRef(0);
@@ -281,6 +286,118 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
     }
   }, []);
 
+  const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    if (!canvasRef.current) return;
+    
+    const item = workItems.find(i => i.id === itemId);
+    if (item) {
+      const containerRect = canvasRef.current.getBoundingClientRect();
+      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
+      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
+      
+      setDragOffset({
+        x: mouseXInCanvas - item.position.x,
+        y: mouseYInCanvas - item.position.y,
+      });
+      setDraggedItem(itemId);
+    }
+  }, [workItems, zoom, canvasOffset]);
+
+  const updateTaskStatus = useCallback((taskId: string, newStatus: KanbanTask['status']) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, status: newStatus } : task
+    ));
+  }, []);
+
+  const addChatMessage = useCallback((from: CharacterId, content: string) => {
+    const msg: ChatMessage = {
+      id: `chat-${chatIdRef.current++}`,
+      from,
+      content,
+      timestamp: Date.now(),
+    };
+    setChatMessages(prev => [...prev.slice(-30), msg]);
+  }, []);
+
+  // Handle user sending a direct message to an agent
+  const handleSendUserMessage = useCallback(async () => {
+    if (!selectedAgent || !userInput.trim() || isSendingMessage) return;
+    
+    const message = userInput.trim();
+    setUserInput('');
+    setIsSendingMessage(true);
+    
+    // Add user message to chat
+    setChatMessages(prev => [...prev.slice(-30), {
+      id: `chat-${chatIdRef.current++}`,
+      from: selectedAgent,
+      content: `[YOU → ${CHARACTERS.find(c => c.id === selectedAgent)?.name || selectedAgent}]: ${message}`,
+      timestamp: Date.now(),
+    }]);
+    
+    try {
+      const workContext = `Analyzing ${company.name} (${company.industry}). Doomsday scenario analysis in progress. Phase: ${currentPhase}. ${scenarios.length} scenarios identified so far. Recent messages: ${chatMessages.slice(-5).map(m => `${CHARACTERS.find(c => c.id === m.from)?.name}: ${m.content.slice(0, 50)}`).join('; ')}`;
+      
+      const response = await sendUserMessageToAgent(selectedAgent, message, workContext);
+      addChatMessage(selectedAgent, response);
+    } catch (error) {
+      console.error('Error sending message to agent:', error);
+      addChatMessage(selectedAgent, '*looks up briefly* Give me a moment.');
+    }
+    
+    setIsSendingMessage(false);
+  }, [selectedAgent, userInput, isSendingMessage, company, currentPhase, scenarios.length, chatMessages, addChatMessage]);
+
+  const createWorkItem = useCallback((
+    agentId: CharacterId, 
+    type: WorkItem['type'], 
+    content: string, 
+    position: Position,
+    phase: number,
+    shouldType: boolean = false,
+    timeHorizon?: TimeHorizon,
+    scenario?: DoomsdayScenario
+  ): string => {
+    const id = `item-${workItemIdRef.current++}`;
+    const color = timeHorizon ? HORIZON_COLORS[timeHorizon] : ITEM_COLORS[type];
+    const item: WorkItem = {
+      id,
+      type,
+      content,
+      position,
+      color,
+      createdBy: agentId,
+      timestamp: Date.now(),
+      phase,
+      isTyping: shouldType,
+      displayedContent: shouldType ? '' : content,
+      timeHorizon,
+      scenario,
+    };
+    setWorkItems(prev => [...prev, item]);
+    
+    if (shouldType && content.length > 0) {
+      let charIndex = 0;
+      const typeInterval = setInterval(() => {
+        charIndex += 2;
+        setWorkItems(prev => prev.map(wi => 
+          wi.id === id 
+            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
+            : wi
+        ));
+        if (charIndex >= content.length) {
+          clearInterval(typeInterval);
+        }
+      }, 30);
+      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
+    }
+    
+    return id;
+  }, []);
+
   // ============================================
   // MERGE ON OVERLAP — when items overlap, generate a new combined idea
   // ============================================
@@ -358,89 +475,6 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
       setDraggedItem(null);
     }
   }, [draggedItem, workItems, generateMergeConversation]);
-
-  const handleItemMouseDown = useCallback((e: React.MouseEvent, itemId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
-    if (!canvasRef.current) return;
-    
-    const item = workItems.find(i => i.id === itemId);
-    if (item) {
-      const containerRect = canvasRef.current.getBoundingClientRect();
-      const mouseXInCanvas = (e.clientX - containerRect.left - canvasOffset.x) / zoom;
-      const mouseYInCanvas = (e.clientY - containerRect.top - canvasOffset.y) / zoom;
-      
-      setDragOffset({
-        x: mouseXInCanvas - item.position.x,
-        y: mouseYInCanvas - item.position.y,
-      });
-      setDraggedItem(itemId);
-    }
-  }, [workItems, zoom, canvasOffset]);
-
-  const updateTaskStatus = useCallback((taskId: string, newStatus: KanbanTask['status']) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
-  }, []);
-
-  const addChatMessage = useCallback((from: CharacterId, content: string) => {
-    const msg: ChatMessage = {
-      id: `chat-${chatIdRef.current++}`,
-      from,
-      content,
-      timestamp: Date.now(),
-    };
-    setChatMessages(prev => [...prev.slice(-30), msg]);
-  }, []);
-
-  const createWorkItem = useCallback((
-    agentId: CharacterId, 
-    type: WorkItem['type'], 
-    content: string, 
-    position: Position,
-    phase: number,
-    shouldType: boolean = false,
-    timeHorizon?: TimeHorizon,
-    scenario?: DoomsdayScenario
-  ): string => {
-    const id = `item-${workItemIdRef.current++}`;
-    const color = timeHorizon ? HORIZON_COLORS[timeHorizon] : ITEM_COLORS[type];
-    const item: WorkItem = {
-      id,
-      type,
-      content,
-      position,
-      color,
-      createdBy: agentId,
-      timestamp: Date.now(),
-      phase,
-      isTyping: shouldType,
-      displayedContent: shouldType ? '' : content,
-      timeHorizon,
-      scenario,
-    };
-    setWorkItems(prev => [...prev, item]);
-    
-    if (shouldType && content.length > 0) {
-      let charIndex = 0;
-      const typeInterval = setInterval(() => {
-        charIndex += 2;
-        setWorkItems(prev => prev.map(wi => 
-          wi.id === id 
-            ? { ...wi, displayedContent: content.slice(0, charIndex), isTyping: charIndex < content.length }
-            : wi
-        ));
-        if (charIndex >= content.length) {
-          clearInterval(typeInterval);
-        }
-      }, 30);
-      typingRef.current.push(typeInterval as unknown as NodeJS.Timeout);
-    }
-    
-    return id;
-  }, []);
 
   const moveAgentTo = useCallback((agentId: CharacterId, target: Position, status: AgentState['status'], action: string) => {
     setAgents(prev => prev.map(agent => 
@@ -850,6 +884,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
   }, [company, scenarios, onComplete]);
 
   const handleStart = useCallback(() => {
+    clearConversationHistory();
     setIsRunning(true);
     setWorkItems([]);
     setChatMessages([]);
@@ -1193,16 +1228,62 @@ Be creative, specific, and think like an investigative journalist uncovering wha
           <div className="chat-messages" ref={chatMessagesRef}>
             {chatMessages.map(msg => {
               const char = getCharacterInfo(msg.from);
+              const isUserMsg = msg.content.startsWith('[YOU →');
               return (
-                <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
+                <div key={msg.id} className={`chat-message ${isUserMsg ? 'user-message' : ''}`} style={{ borderLeftColor: isUserMsg ? '#4a9' : char.color }}>
                   <div className="chat-sender">
-                    <span className="chat-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
-                    <span className="chat-name" style={{ color: char.color }}>{char.name}</span>
+                    <span className="chat-icon" style={{ color: isUserMsg ? '#4a9' : char.color }}>{isUserMsg ? '👤' : getCharacterIcon(char.icon, 14)}</span>
+                    <span className="chat-name" style={{ color: isUserMsg ? '#4a9' : char.color }}>{isUserMsg ? 'You' : char.name}</span>
                   </div>
-                  <div className="chat-content">{msg.content}</div>
+                  <div className="chat-content">{isUserMsg ? msg.content.replace(/^\[YOU → [^\]]+\]: /, '') : msg.content}</div>
                 </div>
               );
             })}
+          </div>
+          
+          {/* User-to-Bot Direct Messaging */}
+          <div className="chat-input-area">
+            <div className="chat-agent-selector">
+              {CHARACTERS.map(char => (
+                <button
+                  key={char.id}
+                  className={`agent-select-btn ${selectedAgent === char.id ? 'selected' : ''}`}
+                  style={{ color: char.color }}
+                  onClick={() => setSelectedAgent(selectedAgent === char.id ? null : char.id)}
+                  title={`Message ${char.name}`}
+                >
+                  {getCharacterIcon(char.icon, 12)}
+                </button>
+              ))}
+            </div>
+            {selectedAgent && (
+              <>
+                <div className="chat-selected-label">
+                  <span>Talking to</span>
+                  <span className="chat-selected-name" style={{ color: getCharacterInfo(selectedAgent).color }}>
+                    {getCharacterInfo(selectedAgent).name}
+                  </span>
+                </div>
+                <div className="chat-input-row">
+                  <input
+                    className="chat-input"
+                    type="text"
+                    placeholder={`Message ${getCharacterInfo(selectedAgent).name}...`}
+                    value={userInput}
+                    onChange={e => setUserInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSendUserMessage(); }}
+                    disabled={isSendingMessage}
+                  />
+                  <button
+                    className="chat-send-btn"
+                    onClick={handleSendUserMessage}
+                    disabled={!userInput.trim() || isSendingMessage}
+                  >
+                    {isSendingMessage ? '...' : 'Send'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
