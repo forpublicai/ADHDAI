@@ -29,11 +29,8 @@ import { Fortune500Company } from '../../data/fortune500';
 import { generateApologyCampaign, generateCampaignImage } from '../../services/apologyGenerator';
 import { formatApologyCampaignsAsHTML, formatSingleCampaignAsHTML } from '../../services/apologyDeliverables';
 import { generatePrintAdHtml, generateBillboardHtml, generateBillboardSvg, generatePrintAdSvg, generateBannerSvg, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
-import * as dialogue from '../../utils/dialogueGenerator';
+import { generateDialogueBatch, generateAgentLine } from '../../services/dialogueService';
 import './CanvasWorkspace.css';
-
-// Randomized dialogue helper
-const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
 // Get icon component for character
 const getCharacterIcon = (icon: string, size: number = 16) => {
@@ -358,59 +355,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       const contentA = (droppedItem.content || '').split('\n')[0].slice(0, 50);
       const contentB = (nearestItem.content || '').split('\n')[0].slice(0, 50);
 
-      const combos: Record<string, string[]> = {
-        'mike+poole': [
-          `*Mike looks at Poole's framework next to his scenario* "The framework maps to the real problem. For once, theory and reality line up."`,
-          `*Poole adjusts glasses* "Slab's instincts and my methodology — side by side, the strategic pathway becomes self-evident."`,
-        ],
-        'mike+the-cell': [
-          `*Mike reads the Cell's copy next to his analysis* "That's the line. You took the tension I found and turned it into a gut punch."`,
-          `[GJON]: Mike's scenario and our copy — they're having a conversation. [VERA]: That's what good work does.`,
-        ],
-        'mike+burl': [
-          `*Mike looks at Burl's visual next to his scenario* "The picture tells the story I spent three pages explaining. One image. Done."`,
-          `*Burl squints* "Scenario and visual — two halves of the same truth. That's a campaign."`,
-        ],
-        'poole+the-cell': [
-          `*Poole studies the Cell's copy against his framework* "The copy operationalizes the reframe without naming it. Remarkable."`,
-          `[GJON]: Poole's strategy and our words — same thing, different languages. [VERA]: That's alignment.`,
-        ],
-        'poole+burl': [
-          `*Poole examines Burl's visual next to his framework* "The color choices encode the permission pathway visually. You've painted my theory."`,
-          `*Burl shrugs* "Don't know about theories. But together, the picture makes sense."`,
-        ],
-        'the-cell+burl': [
-          `[GJON]: Copy and visual together — THAT'S the campaign. Not separately. Together. [THURSDAY]: *taps both approvingly*`,
-          `*Burl frames both items* "Words and picture. When they fight each other a little — that's advertising."`,
-        ],
-        'nadya+apparatus': [
-          `*Nadya checks schedule against Apparatus output* "Timeline and deliverables aligned. The schedule is satisfied."`,
-          `APPARATUS: CROSS-REFERENCING SCHEDULE WITH ASSETS — ALIGNMENT CONFIRMED — DEPLOYMENT VALIDATED —`,
-        ],
-        'delmore+the-cell': [
-          `*Delmore reads Cell's copy next to his translation* "Raw version and client version side by side — same knife, nicer handle."`,
-          `[GJON]: He kept the knife. Just gave it a nicer handle. [VERA]: That's his gift.`,
-        ],
-        'delmore+burl': [
-          `*Delmore studies the visual next to his client deck* "This is going to present beautifully. The board will feel smart approving it."`,
-          `*Burl nods at Delmore's translation* "He made the uncomfortable look approachable. I respect that."`,
-        ],
-        'mike+nadya': [
-          `*Mike and Nadya's work side by side* "The analysis meets the timeline. Nadya, you've already scheduled our honesty."`,
-          `*Nadya, unmoved* "Honesty has a deadline too, Slab. Yours is Thursday."`,
-        ],
-      };
-
-      const ids = [droppedItem.createdBy, nearestItem.createdBy].sort();
-      const key = ids.join('+');
-      const reactions = combos[key] || [
-        `*${charA.name} sees their work next to ${charB.name}'s* "Put these together and the campaign starts to breathe."`,
-        `*${charB.name} studies the pair* "When you see these together... the connections write themselves."`,
-      ];
-
-      const reaction = reactions[Math.floor(Math.random() * reactions.length)];
+      // Generate novel reaction via API
       const speaker = Math.random() > 0.5 ? droppedItem.createdBy : nearestItem.createdBy;
-      addChatMessage(speaker, reaction);
+      generateAgentLine(speaker,
+        `${charA.name}'s work ("${contentA}") has been placed next to ${charB.name}'s work ("${contentB}"). React to seeing these two pieces of work side by side — what connections or synergies do you see?`,
+        `Two work items from different agents are now adjacent on the canvas.`
+      ).then(reaction => {
+        addChatMessage(speaker, reaction);
+      });
 
       // 40% chance a third bot reacts
       if (Math.random() > 0.6) {
@@ -418,22 +370,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
           .filter(id => id !== droppedItem.createdBy && id !== nearestItem!.createdBy);
         const third = others[Math.floor(Math.random() * others.length)];
         setTimeout(() => {
-          const lines: Record<string, string> = {
-            mike: `*Mike, from across the room* "Now THAT'S what I'm talking about. The pieces are lining up."`,
-            poole: `*Poole makes rapid notes* "This juxtaposition validates the framework from an unexpected angle."`,
-            'the-cell': `[GJON]: *looks over* That combination — that's the ad. Right there.`,
-            burl: `*Burl frames the pair* "That's the whole campaign in two items."`,
-            nadya: `*Nadya checks watch* "Combining these saves time. Proceed."`,
-            delmore: `*Delmore nods* "The client will love seeing these together."`,
-            apparatus: `CROSS-REFERENCE DETECTED — "${contentA}" + "${contentB}" — STRATEGIC ALIGNMENT LOGGED —`,
-          };
-          const fallbacks = [
-            `*${getCharacterInfo(third).name} nods approvingly at the combination*`,
-            `*${getCharacterInfo(third).name} studies both items* "Together, these are stronger."`,
-            `*${getCharacterInfo(third).name} glances over* "Now THAT's a connection worth exploring."`,
-            `*${getCharacterInfo(third).name} looks up from work* "Those two belong together. I can feel it."`,
-          ];
-          addChatMessage(third, lines[third] || pickRandom(fallbacks));
+          generateAgentLine(third,
+            `You notice that ${charA.name}'s work ("${contentA}") has been placed next to ${charB.name}'s work ("${contentB}"). React from across the room — what do you see in this combination?`,
+            `Two colleagues' work items are now adjacent.`
+          ).then(line => {
+            addChatMessage(third, line);
+          });
         }, 1500);
       }
     };
@@ -527,28 +469,34 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setCurrentPhase(1);
     setPhaseLabel(`ANALYZING SCENARIO ${index + 1}: ${scenario.title}`);
     
+    const scenarioContext = `Company: ${company.name} (${company.industry}). Scenario: "${scenario.title}" — ${scenario.severity} severity, ${scenario.category} category. ${scenario.description}. Affected: ${scenario.affectedParties.join(', ')}. Timeline: ${scenario.timeHorizon}.`;
+    
+    // Phase 1: All agents react to the scenario — one batched API call
+    const phase1Lines = await generateDialogueBatch(
+      ['mike', 'poole', 'the-cell', 'burl', 'nadya', 'delmore', 'apparatus'],
+      `The team is seeing a new doomsday scenario for the first time: "${scenario.title}" (${scenario.severity}, ${scenario.category}). Mike opens the dossier and gives his assessment. Poole maps the strategic implications. The Cell starts thinking about copy angles. Burl sees visual possibilities. Nadya notes the timeline. Delmore considers the client communication. Apparatus logs the data.`,
+      scenarioContext
+    );
+    
     moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Analyzing scenario...');
-    addChatMessage('mike', dialogue.getApologyMikeScenarioReaction(company.name, scenario.title, scenario.severity, scenario.category, scenario.description));
+    addChatMessage('mike', phase1Lines['mike']);
     
     await delayOrSkip(1500);
     
-    // Poole reacts to scenario
     moveAgentTo('poole', { x: 780, y: 120 }, 'thinking', 'Assessing risk topology...');
-    addChatMessage('poole', dialogue.getApologyPooleScenarioReaction(scenario.category));
+    addChatMessage('poole', phase1Lines['poole']);
     
     await delayOrSkip(1200);
     
-    // Cell reacts
     moveAgentTo('the-cell', { x: 1160, y: 120 }, 'thinking', 'Reading scenario...');
-    addChatMessage('the-cell', dialogue.getApologyCellScenarioReaction(scenario.severity));
+    addChatMessage('the-cell', phase1Lines['the-cell']);
     
     await delayOrSkip(1000);
     
-    // Burl, Nadya, Delmore, Apparatus quick reactions
-    addChatMessage('burl', dialogue.getApologyBurlScenarioReaction(scenario.category));
-    addChatMessage('nadya', dialogue.getApologyNadyaScenarioReaction(scenario.timeHorizon));
-    addChatMessage('delmore', dialogue.getApologyDelmoreScenarioReaction(scenario.title, scenario.affectedParties));
-    addChatMessage('apparatus', dialogue.getApologyApparatusScenarioReaction(scenario.category, scenario.severity, scenario.timeHorizon, scenario.affectedParties.length));
+    addChatMessage('burl', phase1Lines['burl']);
+    addChatMessage('nadya', phase1Lines['nadya']);
+    addChatMessage('delmore', phase1Lines['delmore']);
+    addChatMessage('apparatus', phase1Lines['apparatus']);
     
     await delayOrSkip(1500);
     
@@ -567,29 +515,32 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setCurrentPhase(2);
     setPhaseLabel('STRATEGIC FRAMEWORK');
     
+    // Phase 2: Strategy — batched API call
+    const phase2Lines = await generateDialogueBatch(
+      ['poole', 'mike', 'the-cell', 'burl', 'nadya', 'delmore', 'apparatus'],
+      `Poole is building the strategic framework for the preemptive apology. He's mapping "${scenario.potentialDamage}" into his methodology. Mike watches skeptically. The Cell gets impatient waiting for the framework to finish so they can write. Burl starts seeing visuals. Nadya checks the timeline. Delmore prepares for client translation. Apparatus logs the framework.`,
+      scenarioContext
+    );
+    
     moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building apology framework...');
-    addChatMessage('poole', dialogue.getApologyPooleStrategy(scenario.potentialDamage, company.name));
+    addChatMessage('poole', phase2Lines['poole']);
     
     await delayOrSkip(1500);
     
-    // Mike watches
-    addChatMessage('mike', dialogue.getApologyMikeOnStrategy());
+    addChatMessage('mike', phase2Lines['mike']);
     
     await delayOrSkip(800);
     
-    // Cell gets impatient
-    addChatMessage('the-cell', dialogue.getApologyCellOnCopy());
+    addChatMessage('the-cell', phase2Lines['the-cell']);
     
-    // Burl starts sketching
     moveAgentTo('burl', { x: 460, y: 400 }, 'designing', 'Sketching...');
-    addChatMessage('burl', dialogue.getApologyBurlOnVisuals(company.name));
+    addChatMessage('burl', phase2Lines['burl']);
     
     await delayOrSkip(800);
     
-    // Nadya, Delmore, Apparatus
-    addChatMessage('nadya', dialogue.getNadyaChecksIn(''));
-    addChatMessage('delmore', dialogue.getDelmoreStarts(''));
-    addChatMessage('apparatus', dialogue.getApparatusInitiate(''));
+    addChatMessage('nadya', phase2Lines['nadya']);
+    addChatMessage('delmore', phase2Lines['delmore']);
+    addChatMessage('apparatus', phase2Lines['apparatus']);
     
     await delayOrSkip(1200);
     
@@ -609,44 +560,42 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('CREATIVE DEVELOPMENT');
     
     moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Writing campaign...');
-    addChatMessage('the-cell', dialogue.getCellStartWriting(''));
+    
+    // Cell announces they're starting — single line
+    const cellStartLine = await generateAgentLine('the-cell',
+      `The Cell is beginning to write copy options for the preemptive apology campaign. Vera starts conventional, Gjon pushes back, Thursday is already silently writing something strange.`,
+      scenarioContext
+    );
+    addChatMessage('the-cell', cellStartLine);
     
     await delayOrSkip(1500);
     
     // Generate the actual campaign via API
     const campaign = await generateApologyCampaign(scenario, company);
     
-    // Cell presents Option A
-    addChatMessage('the-cell', dialogue.getCellOptionADone(''));
+    // Cell presents options and Thursday's winner
+    const copyContext = `${scenarioContext} Campaign headline: "${campaign.headline}". Tagline: "${campaign.subheadline}". Key message: "${campaign.keyMessages?.[0] || ''}".`;
     
-    await delayOrSkip(1000);
+    const phase3Lines = await generateDialogueBatch(
+      ['the-cell', 'mike', 'poole', 'burl', 'nadya', 'delmore', 'apparatus'],
+      `The Cell has finished writing three options. Option A was safe (Vera's). Option B was confrontational (Gjon's). Option C was Thursday's — strange, devastating, and perfect: "${campaign.headline}". Thursday wins the vote 2-1, as usual. Now everyone reacts to the winning headline. Mike is impressed. Poole is theoretically baffled but approves. Burl sees the visual instantly. Nadya notes progress. Delmore considers client presentation. Apparatus logs the creative output.`,
+      copyContext
+    );
     
-    // Cell presents Option B (Gjon's)
-    addChatMessage('the-cell', dialogue.getCellOptionBDone(''));
-    
-    await delayOrSkip(1000);
-    
-    // Cell presents Option C (Thursday's) — THE WINNER
-    addChatMessage('the-cell', dialogue.getApologyCellThursdayPresents(campaign.headline || 'We Owe You An Apology', campaign.keyMessages?.[0] || ''));
+    addChatMessage('the-cell', phase3Lines['the-cell']);
     
     await delayOrSkip(1200);
     
-    // Everyone reacts to the Cell's output
-    addChatMessage('mike', dialogue.getApologyMikeOnHeadline());
-    addChatMessage('poole', dialogue.getApologyPooleOnHeadline());
+    addChatMessage('mike', phase3Lines['mike']);
+    addChatMessage('poole', phase3Lines['poole']);
     
     await delayOrSkip(800);
     
     moveAgentTo('burl', { x: 460, y: 420 }, 'designing', 'Reading copy...');
-    addChatMessage('burl', dialogue.getBurlKeyVisual(''));
-    addChatMessage('nadya', dialogue.getApologyNadyaOnProgress());
-    addChatMessage('delmore', dialogue.getApologyDelmoreOnHeadline(campaign.headline || 'the headline'));
-    addChatMessage('apparatus', pickRandom([
-      `CREATIVE OUTPUT LOGGED — Headline: "${campaign.headline}" — Tagline: "${campaign.subheadline}" — INDEXING —`,
-      `COPY ASSETS CAPTURED — Primary: "${campaign.headline}" — Secondary: "${campaign.subheadline}" — FILED —`,
-      `HEADLINE REGISTERED — "${campaign.headline}" — Supporting line: "${campaign.subheadline}" — COMPILATION QUEUE UPDATED —`,
-      `CREATIVE DIRECTION ARCHIVED — "${campaign.headline}" | "${campaign.subheadline}" — DELIVERABLE GENERATION PENDING —`,
-    ]));
+    addChatMessage('burl', phase3Lines['burl']);
+    addChatMessage('nadya', phase3Lines['nadya']);
+    addChatMessage('delmore', phase3Lines['delmore']);
+    addChatMessage('apparatus', phase3Lines['apparatus']);
     
     // Create the Cell's work item with FULL copy output
     createWorkItem('the-cell', 'apology',
@@ -665,31 +614,32 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setCurrentPhase(4);
     setPhaseLabel('VISUAL DIRECTION');
     
+    const visualContext = `${copyContext} Visual concept: ${campaign.visualConcept || 'confessional minimalism'}. Colors: ${campaign.colorPalette?.join(', ') || 'desaturated brand palette'}. Typography: ${campaign.typography || 'institutional serif meets clean sans'}.`;
+    
     moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Setting visual tone...');
-    addChatMessage('burl', dialogue.getApologyBurlVisualDirection(company.name, campaign.visualConcept || '', campaign.colorPalette || [], campaign.typography || ''));
+    
+    const phase4Lines = await generateDialogueBatch(
+      ['burl', 'the-cell', 'poole', 'mike', 'nadya', 'delmore', 'apparatus'],
+      `Burl is defining the visual direction for ${company.name}'s apology campaign. He's using their brand aesthetic but subverting it for confession. The Cell evaluates whether the visual supports the copy. Poole sees his framework reflected in the color choices. Mike appreciates the emotional weight. Nadya demands a timeline for visual deliverables, Burl resists deadlines. Delmore considers how it'll present to the client board. Apparatus logs specs.`,
+      visualContext
+    );
+    
+    addChatMessage('burl', phase4Lines['burl']);
     
     await delayOrSkip(1500);
     
-    // Everyone reacts to Burl's direction
-    addChatMessage('the-cell', dialogue.getCellOnVisuals(''));
-    addChatMessage('poole', dialogue.getPooleOnColors(''));
+    addChatMessage('the-cell', phase4Lines['the-cell']);
+    addChatMessage('poole', phase4Lines['poole']);
     
     await delayOrSkip(800);
     
-    addChatMessage('mike', dialogue.getMikeFinalWatch(''));
-    addChatMessage('nadya', dialogue.getNadyaChecksIn(''));
-    addChatMessage('burl', dialogue.getBurlToNadya(''));
-    addChatMessage('nadya', dialogue.getNadyaResponse(''));
+    addChatMessage('mike', phase4Lines['mike']);
+    addChatMessage('nadya', phase4Lines['nadya']);
     
     await delayOrSkip(800);
     
-    addChatMessage('delmore', dialogue.getDelmoreReadyToExplain(''));
-    addChatMessage('apparatus', pickRandom([
-      `VISUAL SPECS RECORDED — ${campaign.colorPalette?.length || 5} colors indexed — Typography: ${campaign.typography || 'pending'} — All formats queued —`,
-      `ART DIRECTION LOGGED — Palette: ${campaign.colorPalette?.length || 5} swatches — Type system: ${campaign.typography || 'pending'} — Format matrix: complete —`,
-      `VISUAL SYSTEM ARCHIVED — Color: ${campaign.colorPalette?.length || 5} values — Typography: ${campaign.typography || 'awaiting final'} — Deliverable specs: locked —`,
-      `DESIGN PARAMETERS CAPTURED — ${campaign.colorPalette?.length || 5}-color system — ${campaign.typography || 'Typography pending'} — Production specifications: filed —`,
-    ]));
+    addChatMessage('delmore', phase4Lines['delmore']);
+    addChatMessage('apparatus', phase4Lines['apparatus']);
     
     createWorkItem('burl', 'visual',
       `VISUAL DIRECTION — CAMPAIGN ${index + 1}\n\n━━━ ART DIRECTION ━━━\n• Colors: ${campaign.colorPalette?.join(', ') || 'Brand palette, desaturated'}\n• Typography: ${campaign.typography || 'Official but weathered'}\n• Concept: ${campaign.visualConcept || 'Documentary authenticity'}\n\n━━━ NOTES ━━━\n- ${company.name} brand language, subverted\n- Confessional minimalism\n- Images that feel found, not staged\n- The aesthetic of uncomfortable truth\n- "Ugly-beautiful" — Burl's directive`,
@@ -707,27 +657,26 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('PRODUCTION SCHEDULING');
     
     moveAgentTo('nadya', { x: 820, y: 440 }, 'typing', 'Building production schedule...');
-    addChatMessage('nadya', dialogue.getNadyaScheduleAnnouncement(''));
+    
+    const phase5Lines = await generateDialogueBatch(
+      ['nadya', 'mike', 'poole', 'the-cell', 'burl', 'delmore', 'apparatus'],
+      `Nadya is locking the production schedule — print, billboard, video, social, digital. She announces aggressive deadlines. Mike protests the timeline. Nadya counters with her trademark Tereshkova reference or Soviet-inspired wisdom. Poole wants more time for the framework. The Cell is impatient. Burl grumbles about art not punching a clock. Delmore prepares for the client meeting. Apparatus logs the schedule with ${scenarioTasks.length} deliverables.`,
+      visualContext
+    );
+    
+    addChatMessage('nadya', phase5Lines['nadya']);
     
     await delayOrSkip(1200);
     
-    // Everyone reacts to schedule
-    addChatMessage('mike', dialogue.getMikeOnTimeline(''));
-    addChatMessage('nadya', dialogue.getNadyaToMike(''));
+    addChatMessage('mike', phase5Lines['mike']);
     
     await delayOrSkip(800);
     
-    addChatMessage('poole', dialogue.getPooleSupervisesCopy(''));
-    addChatMessage('nadya', dialogue.getNadyaResponse(''));
-    addChatMessage('the-cell', dialogue.getCellImpatience(''));
-    addChatMessage('burl', dialogue.getBurlToNadya(''));
-    addChatMessage('delmore', dialogue.getDelmoreStarts(''));
-    addChatMessage('apparatus', pickRandom([
-      `PRODUCTION TIMELINE LOGGED — ${scenarioTasks.length} deliverables queued — ACCOUNTABILITY CHAIN ESTABLISHED —`,
-      `SCHEDULE MATRIX COMPILED — ${scenarioTasks.length} milestones — ALL RESPONSIBLE PARTIES NOTIFIED —`,
-      `TIMELINE LOCKED — ${scenarioTasks.length} deliverables scheduled — DEADLINE ENFORCEMENT: ACTIVE —`,
-      `PRODUCTION PROTOCOL FILED — ${scenarioTasks.length} tasks dated and assigned — COMPLIANCE MONITORING: ENGAGED —`,
-    ]));
+    addChatMessage('poole', phase5Lines['poole']);
+    addChatMessage('the-cell', phase5Lines['the-cell']);
+    addChatMessage('burl', phase5Lines['burl']);
+    addChatMessage('delmore', phase5Lines['delmore']);
+    addChatMessage('apparatus', phase5Lines['apparatus']);
     
     await delayOrSkip(1000);
     
@@ -750,25 +699,26 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('CLIENT TRANSLATION');
     
     moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Translating for client...');
-    addChatMessage('delmore', dialogue.getDelmoreStarts(''));
+    
+    const phase6Lines = await generateDialogueBatch(
+      ['delmore', 'mike', 'poole', 'the-cell', 'burl', 'nadya', 'apparatus'],
+      `Delmore is translating the creative work into client-friendly language. He's taking "${campaign.headline}" and making it sound strategic and boardroom-safe. Mike watches with amusement — same knife, different handle. Poole admires how the framework survives in translation. The Cell is fascinated/disturbed by how their words get softened. Burl evaluates the presentation aesthetics. Nadya locks the client meeting schedule. Apparatus documents the translation.`,
+      visualContext
+    );
+    
+    addChatMessage('delmore', phase6Lines['delmore']);
     
     await delayOrSkip(1200);
     
-    // Everyone watches Delmore work
-    addChatMessage('mike', dialogue.getMikeWatchingDelmore(''));
-    addChatMessage('poole', dialogue.getPooleOnTranslation(''));
-    addChatMessage('the-cell', dialogue.getCellWatchingDelmore(''));
+    addChatMessage('mike', phase6Lines['mike']);
+    addChatMessage('poole', phase6Lines['poole']);
+    addChatMessage('the-cell', phase6Lines['the-cell']);
     
     await delayOrSkip(800);
     
-    addChatMessage('burl', dialogue.getBurlFinalReaction(''));
-    addChatMessage('nadya', dialogue.getNadyaScheduleLocked(''));
-    addChatMessage('apparatus', pickRandom([
-      `CLIENT TRANSLATION DOCUMENTED — Terminology mapping indexed — Deck compiled — FAQ generated —`,
-      `TRANSLATION LAYER ARCHIVED — Corporate lexicon applied — Presentation materials: ready —`,
-      `CLIENT-FACING ASSETS LOGGED — Language softened per Delmore protocol — Deck: assembled —`,
-      `STAKEHOLDER COMMUNICATION COMPILED — Terminology: translated — Presentation: formatted — Pamphlet: risographed —`,
-    ]));
+    addChatMessage('burl', phase6Lines['burl']);
+    addChatMessage('nadya', phase6Lines['nadya']);
+    addChatMessage('apparatus', phase6Lines['apparatus']);
     
     await delayOrSkip(1000);
     
@@ -788,22 +738,20 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('COMPILING CAMPAIGN & GENERATING ASSETS');
     
     moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling campaign & generating images...');
-    addChatMessage('apparatus', pickRandom([
-      `INITIATING FINAL COMPILATION — CAMPAIGN ${index + 1} OF ${scenarios.length} — All creative assets assembling — Visual generation via DALL-E — INTEGRATION: IN PROGRESS —`,
-      `COMPILATION SEQUENCE ${index + 1}/${scenarios.length} — Aggregating copy, visual, and production assets — Image generation: queued — ASSEMBLY: ACTIVE —`,
-      `CAMPAIGN ${index + 1} ASSEMBLY PROTOCOL — ${scenarios.length} total — Merging all department outputs — Rendering visual assets — STATUS: COMPILING —`,
-      `DOSSIER CONSTRUCTION ${index + 1}/${scenarios.length} — Strategy + Copy + Visual + Production + Translation = Campaign — Image pipeline: engaged —`,
-    ]));
+    
+    const compilationLine = await generateAgentLine('apparatus',
+      `Apparatus is initiating final compilation of campaign ${index + 1} of ${scenarios.length}. All creative assets are being assembled — copy, visual, production schedule, client translation. Image generation via DALL-E is starting for hero, billboard, and social formats.`,
+      visualContext
+    );
+    addChatMessage('apparatus', compilationLine);
     
     await delayOrSkip(1000);
     
-    // Generate actual images via DALL-E during compilation
-    addChatMessage('apparatus', pickRandom([
-      `GENERATING CAMPAIGN IMAGES — Hero visual, billboard, social assets — Image API: processing —`,
-      `VISUAL ASSET PIPELINE ACTIVE — Rendering hero, OOH, and social imagery — DALL-E: engaged —`,
-      `IMAGE GENERATION INITIATED — 3 visual assets queued: hero, billboard, social — Processing —`,
-      `RENDERING CAMPAIGN VISUALS — Hero photography, OOH format, social square — Pipeline: active —`,
-    ]));
+    const imageStartLine = await generateAgentLine('apparatus',
+      `Apparatus is now generating campaign images via DALL-E — hero visual, billboard format, social media square. The image pipeline is active.`,
+      `Campaign: "${campaign.headline}"`
+    );
+    addChatMessage('apparatus', imageStartLine);
     
     // Try to generate images
     let generatedImages: { hero?: string; billboard?: string; social?: string } = {};
@@ -816,35 +764,19 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       
       if (heroResult.status === 'fulfilled' && heroResult.value) {
         generatedImages.hero = heroResult.value;
-        addChatMessage('apparatus', pickRandom([
-          `HERO IMAGE RENDERED — 1024x1024 — HD quality — Asset captured —`,
-          `HERO VISUAL COMPLETE — Resolution: 1024px — Quality: production-grade —`,
-          `PRIMARY CAMPAIGN IMAGE — Generated successfully — 1024x1024 HD —`,
-        ]));
+        addChatMessage('apparatus', await generateAgentLine('apparatus', 'Hero image has been successfully generated at 1024x1024 HD quality.', `Campaign: "${campaign.headline}"`));
       }
       if (billboardResult.status === 'fulfilled' && billboardResult.value) {
         generatedImages.billboard = billboardResult.value;
-        addChatMessage('apparatus', pickRandom([
-          `BILLBOARD IMAGE RENDERED — 1792x1024 — Wide format — Asset captured —`,
-          `OOH VISUAL COMPLETE — Billboard resolution: 1792x1024 — Format: landscape —`,
-          `BILLBOARD ASSET GENERATED — Wide format rendered — Production-ready —`,
-        ]));
+        addChatMessage('apparatus', await generateAgentLine('apparatus', 'Billboard image has been generated at 1792x1024 wide format.', `Campaign: "${campaign.headline}"`));
       }
       if (socialResult.status === 'fulfilled' && socialResult.value) {
         generatedImages.social = socialResult.value;
-        addChatMessage('apparatus', pickRandom([
-          `SOCIAL IMAGE RENDERED — 1024x1024 — Square format — Asset captured —`,
-          `SOCIAL MEDIA VISUAL COMPLETE — Square crop: 1024px — Platform-ready —`,
-          `SOCIAL ASSET GENERATED — Square format — Instagram/feed optimized —`,
-        ]));
+        addChatMessage('apparatus', await generateAgentLine('apparatus', 'Social media image has been generated at 1024x1024 square format.', `Campaign: "${campaign.headline}"`));
       }
     } catch (err) {
       console.warn('Image generation skipped:', err);
-      addChatMessage('apparatus', pickRandom([
-        `IMAGE GENERATION: Text-based assets substituted — API unavailable —`,
-        `VISUAL PIPELINE: Falling back to HTML mockups — Image API: rate-limited —`,
-        `IMAGE RENDERING SKIPPED — Proceeding with template-based deliverables —`,
-      ]));
+      addChatMessage('apparatus', await generateAgentLine('apparatus', 'Image generation failed or was rate-limited. Falling back to HTML template-based assets.', `Campaign: "${campaign.headline}"`));
     }
     
     // Store generated images on the campaign
@@ -862,13 +794,19 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     await delayOrSkip(1000);
     
-    // Everyone reacts to compilation
-    addChatMessage('mike', dialogue.getApologyCompilationReaction(index, scenarios.length, company.name, !!generatedImages.hero));
-    addChatMessage('poole', dialogue.getPooleFinalReaction(''));
-    addChatMessage('the-cell', dialogue.getCellFinalReaction(''));
-    addChatMessage('burl', dialogue.getBurlFinalReaction(''));
-    addChatMessage('nadya', dialogue.getApologyNadyaCompilationReaction(!!generatedImages.hero));
-    addChatMessage('delmore', dialogue.getDelmoreFinalReaction(''));
+    // Everyone reacts to compilation — batched
+    const phase7Lines = await generateDialogueBatch(
+      ['mike', 'poole', 'the-cell', 'burl', 'nadya', 'delmore'],
+      `Campaign ${index + 1} of ${scenarios.length} has just been compiled for ${company.name}. Headline: "${campaign.headline}". ${generatedImages.hero ? 'AI-generated images were created.' : 'Template assets were used.'} Each agent gives their final reaction to this campaign — a brief, character-specific closing thought.`,
+      visualContext
+    );
+    
+    addChatMessage('mike', phase7Lines['mike']);
+    addChatMessage('poole', phase7Lines['poole']);
+    addChatMessage('the-cell', phase7Lines['the-cell']);
+    addChatMessage('burl', phase7Lines['burl']);
+    addChatMessage('nadya', phase7Lines['nadya']);
+    addChatMessage('delmore', phase7Lines['delmore']);
     
     await delayOrSkip(1000);
     
@@ -879,34 +817,28 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     updateTaskStatus(scenarioTasks[6]?.id || '', 'done');
     
-    addChatMessage('apparatus', pickRandom([
-      `CAMPAIGN ${index + 1} COMPILED — "${campaign.headline}" — Full suite${generatedImages.hero ? ' with AI visuals' : ''} — ${new Date().toLocaleTimeString()} —`,
-      `COMPILATION ${index + 1} SUCCESSFUL — "${campaign.headline}" — All deliverables${generatedImages.hero ? ' + generated imagery' : ''} — DEPLOYMENT READY —`,
-      `DOSSIER ${index + 1} SEALED — "${campaign.headline}" — Asset package complete${generatedImages.hero ? ', images included' : ''} — CANNES-READY —`,
-      `CAMPAIGN ${index + 1} FINALIZED — "${campaign.headline}" — ${generatedImages.hero ? 'Visual + ' : ''}HTML deliverables locked — ${new Date().toLocaleTimeString()} —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus',
+      `Campaign ${index + 1} of ${scenarios.length} is fully compiled. Headline: "${campaign.headline}". ${generatedImages.hero ? 'AI-generated visuals included.' : 'Template-based assets.'} All deliverables ready for deployment. Log the completion.`,
+      visualContext
+    ));
     
     return campaign;
   }, [company, tasks, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, scenarios.length, delayOrSkip]);
 
   // Run the full workflow
   const runWorkflow = useCallback(async () => {
-    dialogue.resetDialogueCache();
+    // Dialogue is now fully API-generated — no cache to reset
     
     // Opening
-    addChatMessage('apparatus', pickRandom([
-      `INITIATING PROACTIVE APOLOGY PROTOCOL — ${company.name.toUpperCase()} — ${scenarios.length} SCENARIO${scenarios.length !== 1 ? 'S' : ''} QUEUED —`,
-      `CAMPAIGN GENERATION SEQUENCE — TARGET: ${company.name.toUpperCase()} — ${scenarios.length} DOOMSDAY SCENARIO${scenarios.length !== 1 ? 'S' : ''} — ALL AGENTS ENGAGED —`,
-      `APOLOGY ARCHITECTURE PROTOCOL ACTIVE — ${company.name.toUpperCase()} — PROCESSING ${scenarios.length} CATASTROPHE VECTOR${scenarios.length !== 1 ? 'S' : ''} —`,
-      `PREEMPTIVE CONTRITION ENGINE ONLINE — ${company.name.toUpperCase()} — ${scenarios.length} SCENARIO${scenarios.length !== 1 ? 'S' : ''} IN QUEUE — COMMENCING —`,
-    ]));
-    addChatMessage('mike', pickRandom([
-      `*spreads dossiers across table* Alright everyone, gather round. ${scenarios.length} potential disaster${scenarios.length !== 1 ? 's' : ''} for ${company.name}. Things that haven't happened yet. We're going to craft apologies so genuine-sounding, they'll own the narrative before there's a narrative to own. Let's work.`,
-      `*pins ${scenarios.length} files to board* ${company.name}. ${scenarios.length} ways it could go wrong. Our job: make them look like the most honest corporation on earth. For things they haven't done yet. Twenty-two years, and this is still the strangest gig. Let's go.`,
-      `*lights cigarette, surveys the room* ${scenarios.length} scenarios. ${company.name}. Each one a potential headline. We're writing the apologies before the journalists write the accusations. It's insane. It's also the best advertising I've ever been part of.`,
-      `*cracks knuckles* Here's the play: ${scenarios.length} disaster${scenarios.length !== 1 ? 's' : ''}, ${scenarios.length} campaign${scenarios.length !== 1 ? 's' : ''}. ${company.name} apologizes first, wins the narrative forever. Preemptive contrition. That's our product. Let's make it sing.`,
-      `*stubs cigarette, opens fresh pack* ${company.name} needs ${scenarios.length} apolog${scenarios.length !== 1 ? 'ies' : 'y'} for ${scenarios.length} disaster${scenarios.length !== 1 ? 's' : ''} that ${scenarios.length !== 1 ? 'haven\'t' : 'hasn\'t'} happened. That's either genius or madness. Either way, I'm all in. Everybody up.`,
-    ]));
+    const workflowContext = `${company.name} (${company.industry}, ${company.sector}). ${scenarios.length} doomsday scenarios queued for proactive apology campaign generation.`;
+    
+    const openingLines = await generateDialogueBatch(
+      ['apparatus', 'mike'],
+      `The proactive apology campaign workflow is starting. Apparatus initiates the protocol for ${company.name} with ${scenarios.length} scenarios. Mike rallies the team — he's cynical but excited about the concept of pre-emptive corporate apologies.`,
+      workflowContext
+    );
+    addChatMessage('apparatus', openingLines['apparatus']);
+    addChatMessage('mike', openingLines['mike']);
     
     await delayOrSkip(2000);
     
@@ -918,12 +850,10 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       completedCampaigns.push(campaign);
       
       if (i < scenarios.length - 1) {
-        addChatMessage('nadya', pickRandom([
-          `Campaign ${i + 1} of ${scenarios.length} complete. Moving to next scenario. ${scenarios.length - i - 1} remaining. The schedule proceeds.`,
-          `*checks watch* ${i + 1} down, ${scenarios.length - i - 1} to go. On schedule. Barely. Next scenario.`,
-          `Campaign ${i + 1} delivered. ${scenarios.length - i - 1} remaining in queue. The deadline does not wait. Proceeding.`,
-          `${i + 1}/${scenarios.length} finalized. The schedule absorbs this milestone. ${scenarios.length - i - 1} campaigns remain. Continue.`,
-        ]));
+        addChatMessage('nadya', await generateAgentLine('nadya',
+          `Campaign ${i + 1} of ${scenarios.length} is complete. ${scenarios.length - i - 1} remaining. Acknowledge the milestone and push forward.`,
+          workflowContext
+        ));
         await delayOrSkip(1500);
       }
     }
@@ -933,45 +863,40 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setIsRunning(false);
     
     // Celebratory completion messages from ALL bots
-    addChatMessage('apparatus', pickRandom([
-      `ALL ${scenarios.length} CAMPAIGNS COMPILED — ASSETS READY FOR DOWNLOAD —`,
-      `FULL CAMPAIGN SUITE ASSEMBLED — ${scenarios.length} DOSSIERS COMPLETE — AWAITING DOWNLOAD COMMAND —`,
-      `COMPILATION SUCCESSFUL — ${scenarios.length}/${scenarios.length} CAMPAIGNS FINALIZED — DELIVERABLE PACKAGE: READY —`,
-      `CAMPAIGN PROTOCOL COMPLETE — ${scenarios.length} APOLOGY PACKAGES SEALED — DOWNLOAD WHEN READY —`,
-    ]));
+    const completionContext = `${company.name}. ${completedCampaigns.length} campaigns completed. Headlines: ${completedCampaigns.map(c => `"${c.headline}"`).join(', ')}.`;
+    
+    const completionLines = await generateDialogueBatch(
+      ['apparatus', 'mike', 'poole', 'the-cell', 'burl', 'nadya', 'delmore'],
+      `ALL campaigns are done. ${completedCampaigns.length} total for ${company.name}. This is the final wrap-up. Apparatus announces completion. Each agent gives their final personal reaction to the body of work they've created — a brief closing thought. Mike is satisfied. Poole validates his framework. The Cell is proud. Burl sees the campaign as a whole. Nadya confirms the schedule was met. Delmore is ready for the client. Keep it brief — 1-2 sentences each.`,
+      completionContext
+    );
+    
+    addChatMessage('apparatus', completionLines['apparatus']);
     
     await delayOrSkip(500);
+    addChatMessage('mike', completionLines['mike']);
     
-    addChatMessage('mike', dialogue.getMikeFinalReaction(''));
+    await delayOrSkip(600);
+    addChatMessage('poole', completionLines['poole']);
+    
+    await delayOrSkip(600);
+    addChatMessage('the-cell', completionLines['the-cell']);
+    
+    await delayOrSkip(600);
+    addChatMessage('burl', completionLines['burl']);
+    
+    await delayOrSkip(600);
+    addChatMessage('nadya', completionLines['nadya']);
+    
+    await delayOrSkip(600);
+    addChatMessage('delmore', completionLines['delmore']);
     
     await delayOrSkip(600);
     
-    addChatMessage('poole', dialogue.getPooleFinalReaction(''));
-    
-    await delayOrSkip(600);
-    
-    addChatMessage('the-cell', dialogue.getCellFinalReaction(''));
-    
-    await delayOrSkip(600);
-    
-    addChatMessage('burl', dialogue.getBurlFinalReaction(''));
-    
-    await delayOrSkip(600);
-    
-    addChatMessage('nadya', dialogue.getNadyaFinalReaction(''));
-    
-    await delayOrSkip(600);
-    
-    addChatMessage('delmore', dialogue.getDelmoreFinalReaction(''));
-    
-    await delayOrSkip(600);
-    
-    addChatMessage('apparatus', pickRandom([
-      `DELIVERABLE PACKAGE READY — ${completedCampaigns.length} campaigns — HTML mockups, visuals, storyboards, social decks, copy specs — Press "DOWNLOAD ASSETS" —`,
-      `ARCHIVE ASSEMBLED — ${completedCampaigns.length} complete campaign${completedCampaigns.length !== 1 ? 's' : ''} — All deliverables packaged — "DOWNLOAD ASSETS" to retrieve —`,
-      `CAMPAIGN DOSSIER SEALED — ${completedCampaigns.length} packages — Full deliverable suite — Select "DOWNLOAD ASSETS" when ready —`,
-      `ALL ASSETS COMPILED — ${completedCampaigns.length} campaign${completedCampaigns.length !== 1 ? 's' : ''} ready — "DOWNLOAD ASSETS" for complete archive —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus',
+      `All ${completedCampaigns.length} campaigns are ready. Tell the user to press "DOWNLOAD ASSETS" to get the complete deliverable archive. Summarize what's included.`,
+      completionContext
+    ));
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     
@@ -1021,12 +946,9 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
 
   const handleSkipToEnd = useCallback(() => {
     skipRef.current = true;
-    addChatMessage('apparatus', pickRandom([
-      `FAST FORWARD ENGAGED — Completing remaining work at accelerated pace —`,
-      `ACCELERATION PROTOCOL — Compressing all remaining phases — Maximum throughput —`,
-      `TIME COMPRESSION ACTIVE — Collapsing workflow into rapid execution —`,
-      `SKIP MODE INITIATED — All agents: accelerated output — Deliverables: priority queue —`,
-    ]));
+    generateAgentLine('apparatus', 'Fast forward has been activated. All remaining phases are being compressed into rapid execution.', `Processing campaigns for ${company.name}`).then(line => {
+      addChatMessage('apparatus', line);
+    });
   }, [addChatMessage]);
 
   const handleReset = () => {
@@ -1063,19 +985,14 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   const downloadZip = useCallback(async () => {
     try {
       if (campaigns.length === 0) {
-        addChatMessage('apparatus', pickRandom([
-          `ERROR — No campaigns available for download — Run workflow first —`,
-          `DOWNLOAD FAILED — Campaign data: empty — Generate campaigns before downloading —`,
-        ]));
+        addChatMessage('apparatus', await generateAgentLine('apparatus', 'Error: no campaigns are available to download. The user needs to run the workflow first.', ''));
         return;
       }
       
-      addChatMessage('apparatus', pickRandom([
-        `GENERATING DELIVERABLES PACKAGE — ${campaigns.length} campaign${campaigns.length !== 1 ? 's' : ''} — Assembling assets —`,
-        `PACKAGING ${campaigns.length} CAMPAIGN${campaigns.length !== 1 ? 'S' : ''} — HTML mockups, images, copy decks — Compression in progress —`,
-        `ARCHIVE COMPILATION — ${campaigns.length} campaign dossier${campaigns.length !== 1 ? 's' : ''} — Asset aggregation: active —`,
-        `ZIP GENERATION INITIATED — ${campaigns.length} complete package${campaigns.length !== 1 ? 's' : ''} — All deliverables included —`,
-      ]));
+      addChatMessage('apparatus', await generateAgentLine('apparatus',
+        `Generating deliverables ZIP package for ${campaigns.length} campaign(s). Assembling HTML mockups, images, storyboards, copy decks.`,
+        `${company.name} — ${campaigns.length} campaigns`
+      ));
       
       const zip = new JSZip();
       const timestamp = new Date().toISOString().split('T')[0];
@@ -1331,19 +1248,17 @@ THE FERAL CREATIVE COLLECTIVE
       // Generate and download
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${folderName}.zip`);
-      addChatMessage('apparatus', pickRandom([
-        `DOWNLOAD COMPLETE — ${folderName}.zip — ${campaigns.length} campaigns${hasImages ? ' with AI images' : ''} —`,
-        `ARCHIVE DELIVERED — ${folderName}.zip — Full deliverable suite — ${campaigns.length} campaign${campaigns.length !== 1 ? 's' : ''} packaged —`,
-        `ZIP GENERATED — ${folderName}.zip — ${campaigns.length} dossier${campaigns.length !== 1 ? 's' : ''}${hasImages ? ', generated imagery included' : ''} —`,
-      ]));
+      addChatMessage('apparatus', await generateAgentLine('apparatus',
+        `Download complete: ${folderName}.zip. Contains ${campaigns.length} campaign(s)${hasImages ? ' with AI-generated images' : ''} and full deliverable suite.`,
+        `${company.name} deliverables`
+      ));
       
     } catch (error) {
       console.error('Error downloading ZIP:', error);
-      addChatMessage('apparatus', pickRandom([
-        `ERROR — Download generation failed: ${error instanceof Error ? error.message : 'Unknown error'} —`,
-        `PACKAGING FAILURE — ${error instanceof Error ? error.message : 'Unexpected error'} — Retry recommended —`,
-        `ZIP COMPILATION ERROR — ${error instanceof Error ? error.message : 'System error'} — Assets may be incomplete —`,
-      ]));
+      addChatMessage('apparatus', await generateAgentLine('apparatus',
+        `Download failed with error: ${error instanceof Error ? error.message : 'Unknown error'}. Recommend retry.`,
+        ''
+      ));
     }
   }, [company, campaigns, scenarios, addChatMessage]);
 

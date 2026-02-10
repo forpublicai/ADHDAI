@@ -24,11 +24,8 @@ import {
 import { CHARACTERS } from '../../constants';
 import { CharacterId } from '../../types';
 import { parseBrief, getImagePromptContext } from '../../utils/briefParser';
-import * as dialogue from '../../utils/dialogueGenerator';
+import { generateDialogueBatch, generateAgentLine } from '../../services/dialogueService';
 import './CanvasWorkspace.css';
-
-// Randomized dialogue helper
-const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
 // Get icon component for character
 const getCharacterIcon = (icon: string, size: number = 14) => {
@@ -556,12 +553,9 @@ KEY ELEMENTS:
         true // Type it out
       );
       
-      addChatMessage('apparatus', pickRandom([
-        `MERGER LOGGED — ${agent1.name.split(' ')[0]} × ${agent2.name.split(' ')[0]} synthesis captured —`,
-        `CONCEPT FUSION DOCUMENTED — ${agent1.name.split(' ')[0]} + ${agent2.name.split(' ')[0]} collaboration archived —`,
-        `CROSS-POLLINATION INDEXED — New concept from ${agent1.name.split(' ')[0]} × ${agent2.name.split(' ')[0]} — Filed —`,
-        `SYNTHESIS EVENT — ${agent1.name.split(' ')[0]} and ${agent2.name.split(' ')[0]} outputs merged — New direction captured —`,
-      ]));
+      generateAgentLine('apparatus', `${agent1.name} and ${agent2.name} have merged their ideas into a new concept. Log the synthesis.`, `Collaboration between ${agent1.name} and ${agent2.name}`).then(line => {
+        addChatMessage('apparatus', line);
+      });
     }, 4500);
     
   }, [addChatMessage, createWorkItem, currentPhase, getCharacterInfo]);
@@ -1005,30 +999,33 @@ KEY ELEMENTS:
       return timeout;
     };
 
-    // Reset dialogue cache for fresh variations
-    dialogue.resetDialogueCache();
+    const briefContext = `Brief: "${currentBrief}". Product/subject being advertised.`;
     
     // ===== OPENING: Multiple agents notice the brief =====
-    schedule(() => {
+    schedule(async () => {
       setCurrentPhase(1);
       setPhaseLabel('COLLABORATIVE INTAKE');
       updateTaskStatus('task-1', 'in-progress');
       
-      // Multiple agents start looking at brief
       moveAgentTo('mike', { x: 480, y: 140 }, 'thinking', 'Reading brief...');
       moveAgentTo('poole', { x: 520, y: 180 }, 'thinking', 'Observing...');
       
-      addChatMessage('mike', dialogue.getMikeOpening(currentBrief));
+      const openingLines = await generateDialogueBatch(
+        ['mike', 'poole', 'the-cell'],
+        `The team is seeing the brief "${currentBrief}" for the first time. Mike opens the dossier and gives his skeptical first take. Poole begins to see strategic framework possibilities. The Cell enters — Vera, Gjon, and Thursday each react differently.`,
+        briefContext
+      );
+      addChatMessage('mike', openingLines['mike']);
+      
+      setTimeout(() => {
+        addChatMessage('poole', openingLines['poole']);
+        moveAgentTo('the-cell', { x: 560, y: 140 }, 'reviewing', 'Reviewing brief...');
+      }, 3000);
+      
+      setTimeout(() => {
+        addChatMessage('the-cell', openingLines['the-cell']);
+      }, 5000);
     }, 0);
-
-    schedule(() => {
-      addChatMessage('poole', dialogue.getPooleFirstReaction(currentBrief));
-      moveAgentTo('the-cell', { x: 560, y: 140 }, 'reviewing', 'Reviewing brief...');
-    }, 3000);
-
-    schedule(() => {
-      addChatMessage('the-cell', dialogue.getCellEntrance(currentBrief));
-    }, 5000);
 
     // Mike's initial analysis - others watching
     schedule(async () => {
@@ -1036,20 +1033,20 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". As Mike Slab, identify the REAL human tension beneath this brief. What uncomfortable truth does this address? Be brutally honest in 2 sentences.`
       );
       createWorkItem('mike', 'sticky', insight, { x: 400, y: 100 }, 1, true);
-      addChatMessage('mike', dialogue.getMikeInsightComment(currentBrief));
+      addChatMessage('mike', await generateAgentLine('mike', `Mike just posted his insight about the brief "${currentBrief}". He makes a brief comment about finding what the client won't say.`, briefContext));
       updateTaskStatus('task-1', 'done');
     }, 7000);
 
     // Poole reacts, moves to Mike's work
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('poole', { x: 420, y: 130 }, 'reviewing', 'Examining Mike\'s insight...');
-      addChatMessage('poole', dialogue.getPooleWatchingMike(currentBrief));
+      addChatMessage('poole', await generateAgentLine('poole', `Poole is reading Mike's insight about "${currentBrief}". He sees strategic structure in Mike's raw intuition.`, briefContext));
     }, 11000);
 
     // Burl wanders over early
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('burl', { x: 450, y: 200 }, 'thinking', 'Thinking about visuals...');
-      addChatMessage('burl', dialogue.getBurlEarlyThoughts(currentBrief));
+      addChatMessage('burl', await generateAgentLine('burl', `Burl wanders over to look at the brief "${currentBrief}" early. He's already seeing images forming.`, briefContext));
     }, 14000);
 
     // Mike adds human tension, others comment
@@ -1061,41 +1058,45 @@ KEY ELEMENTS:
       createWorkItem('mike', 'concept', `HUMAN TENSION:\n${tension}`, { x: 480, y: 180 }, 1, true);
     }, 17000);
 
-    schedule(() => {
-      addChatMessage('the-cell', dialogue.getCellReactToTension(currentBrief));
+    schedule(async () => {
+      addChatMessage('the-cell', await generateAgentLine('the-cell', `The Cell sees Mike's human tension analysis for "${currentBrief}". Vera, Gjon, and Thursday each react in their own way — they're starting to see the copy angle.`, briefContext));
       updateTaskStatus('task-2', 'done');
     }, 20000);
 
     delay = 22000;
 
     // ===== STRATEGY: Poole builds framework while others kibitz =====
-    schedule(() => {
+    schedule(async () => {
       setCurrentPhase(2);
       setPhaseLabel('STRATEGIC FRAMEWORK');
       updateTaskStatus('task-3', 'in-progress');
       moveAgentTo('poole', { x: 820, y: 140 }, 'typing', 'Building framework...');
-      addChatMessage('poole', dialogue.getPooleFrameworkIntro(currentBrief));
-    }, 0);
-
-    // Mike moves to watch Poole, makes comment
-    schedule(() => {
-      moveAgentTo('mike', { x: 780, y: 200 }, 'reviewing', 'Watching Poole...');
-      addChatMessage('mike', dialogue.getMikeWatchingPoole(currentBrief));
-    }, 3000);
+      
+      const strategyLines = await generateDialogueBatch(
+        ['poole', 'mike', 'the-cell', 'burl'],
+        `Poole is building his strategic framework for the brief "${currentBrief}". He approaches the whiteboard with diagrams and jargon. Mike watches skeptically. The Cell gets impatient waiting for the framework to finish. Burl starts seeing how the strategy could translate to visuals.`,
+        briefContext
+      );
+      addChatMessage('poole', strategyLines['poole']);
+      
+      setTimeout(() => {
+        moveAgentTo('mike', { x: 780, y: 200 }, 'reviewing', 'Watching Poole...');
+        addChatMessage('mike', strategyLines['mike']);
+      }, 3000);
 
     schedule(async () => {
       const barrier = await generateCreativeContent(
         `Brief: "${currentBrief}". What BARRIER prevents consumers from engaging? What mental block must be overcome? One sentence starting with "They believe..."`
       );
       createWorkItem('poole', 'framework', `BARRIER:\n${barrier}`, { x: 740, y: 100 }, 2, true);
-      addChatMessage('poole', dialogue.getPooleBarrierComment(currentBrief));
+      addChatMessage('poole', await generateAgentLine('poole', `Poole has identified the consumer barrier for "${currentBrief}". He comments on the diagram he just created.`, briefContext));
       updateTaskStatus('task-3', 'done');
     }, 6000);
 
     // The Cell gets impatient, moves over
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('the-cell', { x: 860, y: 180 }, 'reviewing', 'Getting impatient...');
-      addChatMessage('the-cell', dialogue.getCellImpatience(currentBrief));
+      addChatMessage('the-cell', strategyLines['the-cell']);
       updateTaskStatus('task-4', 'in-progress');
     }, 9000);
 
@@ -1104,33 +1105,34 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Create a REFRAME - how do we flip the script on this product? One sentence starting with "But what if..."`
       );
       createWorkItem('poole', 'strategy', `REFRAME:\n${reframe}`, { x: 820, y: 170 }, 2, true);
-      addChatMessage('poole', dialogue.getPooleReframe(currentBrief));
+      addChatMessage('poole', await generateAgentLine('poole', `Poole has completed his strategic reframe for "${currentBrief}". He steps back from the whiteboard triumphantly.`, briefContext));
     }, 12000);
 
     // Burl comments on strategy
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('burl', { x: 880, y: 140 }, 'thinking', 'Visualizing reframe...');
-      addChatMessage('burl', dialogue.getBurlOnStrategy(currentBrief));
+      addChatMessage('burl', strategyLines['burl']);
       updateTaskStatus('task-4', 'done');
       updateTaskStatus('task-5', 'done');
     }, 15000);
+    }, 0);
 
     delay += 17000;
 
     // ===== COPY: Cell writes while others hover and critique =====
-    schedule(() => {
+    schedule(async () => {
       setCurrentPhase(3);
       setPhaseLabel('COPY DEVELOPMENT');
       updateTaskStatus('task-6', 'in-progress');
       moveAgentTo('the-cell', { x: 1180, y: 140 }, 'typing', 'Vera drafting...');
-      addChatMessage('the-cell', dialogue.getCellStartWriting(currentBrief));
+      addChatMessage('the-cell', await generateAgentLine('the-cell', `The Cell begins writing copy options for "${currentBrief}". Vera starts conventional, Gjon pushes back, Thursday is already writing silently.`, briefContext));
     }, 0);
 
-    // Poole follows to "supervise"
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('poole', { x: 1140, y: 200 }, 'reviewing', 'Supervising copy...');
-      addChatMessage('poole', dialogue.getPooleSupervisesCopy(currentBrief));
-      addChatMessage('the-cell', dialogue.getCellToPoole(currentBrief));
+      const copyLines = await generateDialogueBatch(['poole', 'the-cell'], `Poole hovers over the Cell's work trying to supervise. The Cell tells him to back off.`, briefContext);
+      addChatMessage('poole', copyLines['poole']);
+      addChatMessage('the-cell', copyLines['the-cell']);
     }, 3000);
 
     schedule(async () => {
@@ -1138,15 +1140,14 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Write OPTION A - compelling but conventional headline. Swiss-style minimalism. Under 10 words. Just the headline.`
       );
       createWorkItem('the-cell', 'headline', `OPTION A (Vera):\n\n"${optionA}"`, { x: 1080, y: 90 }, 3, true);
-      addChatMessage('the-cell', dialogue.getCellOptionADone(currentBrief));
+      addChatMessage('the-cell', await generateAgentLine('the-cell', `Option A is done — Vera's safe version. She presents it. Gjon is unimpressed.`, briefContext));
       updateTaskStatus('task-6', 'done');
       updateTaskStatus('task-7', 'in-progress');
     }, 6000);
 
-    // Burl moves in to see copy
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('burl', { x: 1100, y: 150 }, 'reviewing', 'Reading Option A...');
-      addChatMessage('burl', dialogue.getBurlReadsOptionA(currentBrief));
+      addChatMessage('burl', await generateAgentLine('burl', `Burl reads Option A for "${currentBrief}". It's technically correct but visually uninspiring.`, briefContext));
       moveAgentTo('the-cell', { x: 1220, y: 180 }, 'typing', 'Gjon writing...');
     }, 9000);
 
@@ -1155,14 +1156,13 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Write OPTION B - provocative headline that challenges assumptions. Under 12 words. Just the headline.`
       );
       createWorkItem('the-cell', 'headline', `OPTION B (Gjon):\n\n"${optionB}"`, { x: 1200, y: 150 }, 3, true);
-      addChatMessage('the-cell', dialogue.getCellOptionBDone(currentBrief));
+      addChatMessage('the-cell', await generateAgentLine('the-cell', `Gjon presents Option B — confrontational, challenging assumptions about "${currentBrief}". Vera thinks it's too much. Gjon disagrees.`, briefContext));
       updateTaskStatus('task-7', 'done');
     }, 12000);
 
-    // Mike wanders over to see the fight
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('mike', { x: 1160, y: 220 }, 'reviewing', 'Watching Cell argue...');
-      addChatMessage('mike', dialogue.getMikeWatchingCell(currentBrief));
+      addChatMessage('mike', await generateAgentLine('mike', `Mike wanders over to watch the Cell argue about headline options for "${currentBrief}". He's amused — this is where the magic happens.`, briefContext));
       updateTaskStatus('task-8', 'in-progress');
     }, 15000);
 
@@ -1171,39 +1171,41 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Write OPTION C - deeply strange, uncomfortable headline that reveals unexpected truth. Deranged but logical. Under 15 words.`
       );
       createWorkItem('the-cell', 'headline', `OPTION C (Thursday):\n\n"${optionC}"`, { x: 1140, y: 220 }, 3, true);
-      addChatMessage('the-cell', dialogue.getCellThursdayDone(currentBrief));
+      addChatMessage('the-cell', await generateAgentLine('the-cell', `Thursday presents Option C — strange, unexpected, and devastating. The others react. This is the one that always wins.`, briefContext));
       updateTaskStatus('task-8', 'done');
     }, 18000);
 
-    // Everyone reacts to Thursday's option
-    schedule(() => {
-      addChatMessage('mike', dialogue.getEveryoneReactsToThursday(currentBrief));
+    schedule(async () => {
+      const reactionLines = await generateDialogueBatch(['mike', 'the-cell'], 
+        `Everyone reacts to Thursday's Option C headline for "${currentBrief}". Mike is impressed by the gut punch. Then the Cell votes — Thursday wins 2-1, as always.`,
+        briefContext
+      );
+      addChatMessage('mike', reactionLines['mike']);
       updateTaskStatus('task-9', 'in-progress');
+      
+      setTimeout(() => {
+        createWorkItem('the-cell', 'approval', '✓ VOTE: C wins 2-1\nThursday always wins.', { x: 1280, y: 260 }, 3, false);
+        addChatMessage('the-cell', reactionLines['the-cell']);
+        updateTaskStatus('task-9', 'done');
+      }, 3000);
     }, 21000);
-
-    schedule(() => {
-      createWorkItem('the-cell', 'approval', '✓ VOTE: C wins 2-1\nThursday always wins.', { x: 1280, y: 260 }, 3, false);
-      addChatMessage('the-cell', dialogue.getCellVote(currentBrief));
-      updateTaskStatus('task-9', 'done');
-    }, 24000);
 
     delay += 26000;
 
     // ===== VISUAL: Burl works while others interrupt =====
-    schedule(() => {
+    schedule(async () => {
       setCurrentPhase(4);
       setPhaseLabel('ART DIRECTION');
       updateTaskStatus('task-10', 'in-progress');
       moveAgentTo('burl', { x: 480, y: 440 }, 'designing', 'Defining visual language...');
-      addChatMessage('burl', dialogue.getBurlStartsDesign(currentBrief));
+      addChatMessage('burl', await generateAgentLine('burl', `Burl starts designing the visual language for "${currentBrief}". He needs space to think in pictures.`, briefContext));
     }, 0);
 
-    // Nadya appears early, checking timeline
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('nadya', { x: 520, y: 480 }, 'clicking', 'Checking timeline...');
-      addChatMessage('nadya', dialogue.getNadyaChecksIn(currentBrief));
-      addChatMessage('burl', dialogue.getBurlToNadya(currentBrief));
-      addChatMessage('nadya', dialogue.getNadyaResponse(currentBrief));
+      const nadyaBurlLines = await generateDialogueBatch(['nadya', 'burl'], `Nadya appears demanding a visual timeline. Burl resists — art doesn't punch a clock. Nadya fires back with her trademark deadpan.`, briefContext);
+      addChatMessage('nadya', nadyaBurlLines['nadya']);
+      addChatMessage('burl', nadyaBurlLines['burl']);
     }, 3000);
 
     schedule(async () => {
@@ -1211,15 +1213,15 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Describe VISUAL LANGUAGE in 3 bullet points: colors (hex codes), typography, mood. Swiss-style minimalism.`
       );
       createWorkItem('burl', 'visual', visual, { x: 400, y: 380 }, 4, true);
-      addChatMessage('burl', dialogue.getBurlColorComment(currentBrief));
+      addChatMessage('burl', await generateAgentLine('burl', `Burl has defined the color palette for "${currentBrief}". He comments on his choice.`, briefContext));
       updateTaskStatus('task-10', 'done');
     }, 6000);
 
-    // Poole comes to validate
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('poole', { x: 440, y: 420 }, 'reviewing', 'Examining colors...');
-      addChatMessage('poole', dialogue.getPooleOnColors(currentBrief));
-      addChatMessage('burl', dialogue.getBurlToPoole(currentBrief));
+      const colorLines = await generateDialogueBatch(['poole', 'burl'], `Poole examines Burl's color choices and sees his framework reflected in the palette. Burl shrugs off the theoretical analysis.`, briefContext);
+      addChatMessage('poole', colorLines['poole']);
+      addChatMessage('burl', colorLines['burl']);
       updateTaskStatus('task-11', 'in-progress');
     }, 9000);
 
@@ -1232,10 +1234,9 @@ KEY ELEMENTS:
       updateTaskStatus('task-12', 'in-progress');
     }, 12000);
 
-    // The Cell visits to see visual direction
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('the-cell', { x: 480, y: 500 }, 'reviewing', 'Reviewing visual direction...');
-      addChatMessage('the-cell', dialogue.getCellOnVisuals(currentBrief));
+      addChatMessage('the-cell', await generateAgentLine('the-cell', `The Cell visits Burl's workspace to evaluate the visual direction for "${currentBrief}". They assess whether the visuals support the copy.`, briefContext));
     }, 15000);
 
     schedule(async () => {
@@ -1243,97 +1244,99 @@ KEY ELEMENTS:
         `Brief: "${currentBrief}". Describe the KEY VISUAL for the hero ad. What single image captures the essence? Be specific and unexpected. 2 sentences.`
       );
       createWorkItem('burl', 'visual', `KEY VISUAL:\n${artDirection}`, { x: 420, y: 520 }, 4, true);
-      addChatMessage('burl', dialogue.getBurlKeyVisual(currentBrief));
+      addChatMessage('burl', await generateAgentLine('burl', `Burl has finished the key visual concept for "${currentBrief}". He steps back, satisfied. It's not pretty — it's true.`, briefContext));
       updateTaskStatus('task-12', 'done');
     }, 18000);
 
     delay += 20000;
 
     // ===== PRODUCTION: Nadya takes control, others protest =====
-    schedule(() => {
+    schedule(async () => {
       setCurrentPhase(5);
       setPhaseLabel('PRODUCTION');
       updateTaskStatus('task-13', 'in-progress');
       moveAgentTo('nadya', { x: 820, y: 440 }, 'clicking', 'Locking schedule...');
-      addChatMessage('nadya', dialogue.getNadyaScheduleAnnouncement(currentBrief));
+      const prodLines = await generateDialogueBatch(['nadya', 'mike'], `Nadya announces the production schedule for "${currentBrief}" — aggressive deadlines. Mike protests. Nadya counters.`, briefContext);
+      addChatMessage('nadya', prodLines['nadya']);
+      
+      setTimeout(() => {
+        moveAgentTo('mike', { x: 780, y: 480 }, 'reviewing', 'Checking dates...');
+        addChatMessage('mike', prodLines['mike']);
+      }, 3000);
+      
+      setTimeout(async () => {
+        const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString();
+        createWorkItem('nadya', 'sticky', `SHOOT: ${tomorrow}\nDELIVERY: +48hrs\nNO DELAYS.`, { x: 740, y: 380 }, 5, false);
+        createWorkItem('nadya', 'approval', '⏱ LOCKED', { x: 840, y: 440 }, 5, false);
+        addChatMessage('nadya', await generateAgentLine('nadya', `The schedule is locked. Nadya makes a final declaration.`, briefContext));
+        updateTaskStatus('task-13', 'done');
+      }, 6000);
     }, 0);
-
-    // Mike protests
-    schedule(() => {
-      moveAgentTo('mike', { x: 780, y: 480 }, 'reviewing', 'Checking dates...');
-      addChatMessage('mike', dialogue.getMikeOnTimeline(currentBrief));
-      addChatMessage('nadya', dialogue.getNadyaToMike(currentBrief));
-    }, 3000);
-
-    schedule(() => {
-      const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString();
-      createWorkItem('nadya', 'sticky', `SHOOT: ${tomorrow}\nDELIVERY: +48hrs\nNO DELAYS.`, { x: 740, y: 380 }, 5, false);
-      createWorkItem('nadya', 'approval', '⏱ LOCKED', { x: 840, y: 440 }, 5, false);
-      addChatMessage('nadya', dialogue.getNadyaScheduleLocked(currentBrief));
-      updateTaskStatus('task-13', 'done');
-    }, 6000);
 
     delay += 8000;
 
     // ===== CLIENT PREP: Delmore while others mock the process =====
-    schedule(() => {
+    schedule(async () => {
       setCurrentPhase(6);
       setPhaseLabel('CLIENT TRANSLATION');
       updateTaskStatus('task-14', 'in-progress');
       moveAgentTo('delmore', { x: 1180, y: 440 }, 'typing', 'Preparing client deck...');
-      addChatMessage('delmore', dialogue.getDelmoreStarts(currentBrief));
-    }, 0);
-
-    // Mike and Cell watch with amusement
-    schedule(() => {
-      moveAgentTo('mike', { x: 1140, y: 480 }, 'reviewing', 'Watching translation...');
-      addChatMessage('mike', dialogue.getMikeWatchingDelmore(currentBrief));
-      moveAgentTo('the-cell', { x: 1200, y: 500 }, 'reviewing', 'Observing...');
-      addChatMessage('the-cell', dialogue.getCellWatchingDelmore(currentBrief));
-    }, 3000);
+      const clientLines = await generateDialogueBatch(['delmore', 'mike', 'the-cell', 'poole'], `Delmore translates the campaign for "${currentBrief}" into client-friendly language. Mike watches with amusement. The Cell is fascinated/disturbed by how their words get softened. Poole admires the translation work.`, briefContext);
+      addChatMessage('delmore', clientLines['delmore']);
+      
+      setTimeout(() => {
+        moveAgentTo('mike', { x: 1140, y: 480 }, 'reviewing', 'Watching translation...');
+        addChatMessage('mike', clientLines['mike']);
+        moveAgentTo('the-cell', { x: 1200, y: 500 }, 'reviewing', 'Observing...');
+        addChatMessage('the-cell', clientLines['the-cell']);
+      }, 3000);
 
     schedule(async () => {
       const clientSpeak = await generateCreativeContent(
         `Translate this campaign for "${currentBrief}" into CLIENT-SPEAK. Use buzzwords: "authentic", "disruptive", "culturally relevant". 3 impressive-sounding bullet points.`
       );
       createWorkItem('delmore', 'draft', `CLIENT DECK:\n${clientSpeak}`, { x: 1100, y: 380 }, 6, true);
-      addChatMessage('delmore', dialogue.getDelmoreFinishes(currentBrief));
+      addChatMessage('delmore', await generateAgentLine('delmore', `Delmore finishes the client translation for "${currentBrief}". He's satisfied — the work survives the softening.`, briefContext));
       updateTaskStatus('task-14', 'done');
     }, 6000);
 
-    // Poole admires the translation
-    schedule(() => {
+    schedule(async () => {
       moveAgentTo('poole', { x: 1160, y: 420 }, 'reviewing', 'Admiring translation...');
-      addChatMessage('poole', dialogue.getPooleOnTranslation(currentBrief));
-      addChatMessage('delmore', dialogue.getDelmoreToPoole(currentBrief));
+      addChatMessage('poole', clientLines['poole']);
+      addChatMessage('delmore', await generateAgentLine('delmore', `Delmore responds warmly to Poole's compliment about the translation. Mentions the Apparatus is ready for compilation.`, briefContext));
     }, 9000);
+    }, 0);
 
     delay += 11000;
 
     // ===== FINAL ASSEMBLY: Everyone gathers for the output =====
-    schedule(() => {
+    schedule(async () => {
       setCurrentPhase(7);
       setPhaseLabel('FINAL ASSEMBLY');
       updateTaskStatus('task-15', 'in-progress');
       moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling...');
-      addChatMessage('apparatus', dialogue.getApparatusInitiate(currentBrief));
-    }, 0);
+      
+      const finalLines = await generateDialogueBatch(
+        ['apparatus', 'mike', 'nadya', 'delmore'],
+        `Final assembly is starting for "${currentBrief}". Apparatus initiates compilation. Everyone gathers around to watch. Mike watches with anticipation. Nadya times the compilation. Delmore prepares to explain the output to the client.`,
+        briefContext
+      );
+      addChatMessage('apparatus', finalLines['apparatus']);
+      
+      setTimeout(() => {
+        moveAgentTo('mike', { x: 760, y: 680 }, 'reviewing', 'Watching compilation...');
+        moveAgentTo('poole', { x: 880, y: 680 }, 'reviewing', 'Verifying framework...');
+        moveAgentTo('burl', { x: 760, y: 740 }, 'reviewing', 'Checking visuals...');
+        moveAgentTo('the-cell', { x: 880, y: 740 }, 'reviewing', 'Confirming copy...');
+        addChatMessage('mike', finalLines['mike']);
+      }, 3000);
 
-    // Everyone gathers around the Apparatus
-    schedule(() => {
-      moveAgentTo('mike', { x: 760, y: 680 }, 'reviewing', 'Watching compilation...');
-      moveAgentTo('poole', { x: 880, y: 680 }, 'reviewing', 'Verifying framework...');
-      moveAgentTo('burl', { x: 760, y: 740 }, 'reviewing', 'Checking visuals...');
-      moveAgentTo('the-cell', { x: 880, y: 740 }, 'reviewing', 'Confirming copy...');
-      addChatMessage('mike', dialogue.getMikeFinalWatch(currentBrief));
-    }, 3000);
-
-    schedule(() => {
-      moveAgentTo('nadya', { x: 920, y: 700 }, 'clicking', 'Timing...');
-      moveAgentTo('delmore', { x: 720, y: 700 }, 'reviewing', 'Preparing...');
-      addChatMessage('nadya', dialogue.getNadyaTimingFinal(currentBrief));
-      addChatMessage('delmore', dialogue.getDelmoreReadyToExplain(currentBrief));
-    }, 5000);
+      setTimeout(() => {
+        moveAgentTo('nadya', { x: 920, y: 700 }, 'clicking', 'Timing...');
+        moveAgentTo('delmore', { x: 720, y: 700 }, 'reviewing', 'Preparing...');
+        addChatMessage('nadya', finalLines['nadya']);
+        addChatMessage('delmore', finalLines['delmore']);
+      }, 5000);
 
     schedule(async () => {
       const finalHeadline = await generateCreativeContent(
@@ -1349,30 +1352,38 @@ KEY ELEMENTS:
       const code = generateFinalAdCode(finalHeadline, currentBrief);
       setFinalAdCode(code);
       
-      addChatMessage('apparatus', dialogue.getApparatusComplete(currentBrief));
+      addChatMessage('apparatus', await generateAgentLine('apparatus', `Compilation is complete for "${currentBrief}". The ad exists now. Announce it.`, briefContext));
     }, 8000);
 
     // Final reactions from everyone
-    schedule(() => {
+    schedule(async () => {
       createWorkItem('apparatus', 'approval', `✓ CODE READY\n${currentBrief.split(' ')[0] || 'CAMPAIGN'}.html`, { x: FINAL_OUTPUT_ZONE.x + 40, y: FINAL_OUTPUT_ZONE.y + 40 }, 7, false);
-      addChatMessage('mike', dialogue.getMikeFinalReaction(currentBrief));
-      addChatMessage('burl', dialogue.getBurlFinalReaction(currentBrief));
-      addChatMessage('the-cell', dialogue.getCellFinalReaction(currentBrief));
+      
+      const closingLines = await generateDialogueBatch(
+        ['mike', 'burl', 'the-cell', 'poole', 'nadya', 'delmore', 'apparatus'],
+        `The campaign for "${currentBrief}" is done. Everyone gives a brief final personal reaction — 1-2 sentences. Mike is satisfied. Burl sees the completed visual. The Cell is proud of the copy. Poole validates the framework. Nadya confirms the schedule was met. Delmore is ready for the client. Apparatus closes the file.`,
+        briefContext
+      );
+      
+      addChatMessage('mike', closingLines['mike']);
+      addChatMessage('burl', closingLines['burl']);
+      addChatMessage('the-cell', closingLines['the-cell']);
       updateTaskStatus('task-15', 'done');
       updateTaskStatus('task-16', 'done');
+      
+      setTimeout(() => {
+        addChatMessage('poole', closingLines['poole']);
+        addChatMessage('nadya', closingLines['nadya']);
+        addChatMessage('delmore', closingLines['delmore']);
+      }, 3000);
+      
+      setTimeout(() => {
+        setPhaseLabel('✓ CAMPAIGN COMPLETE');
+        addChatMessage('apparatus', closingLines['apparatus']);
+        setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
+      }, 6000);
     }, 11000);
-
-    schedule(() => {
-      addChatMessage('poole', dialogue.getPooleFinalReaction(currentBrief));
-      addChatMessage('nadya', dialogue.getNadyaFinalReaction(currentBrief));
-      addChatMessage('delmore', dialogue.getDelmoreFinalReaction(currentBrief));
-    }, 14000);
-
-    schedule(() => {
-      setPhaseLabel('✓ CAMPAIGN COMPLETE');
-      addChatMessage('apparatus', dialogue.getApparatusClosure(currentBrief));
-      setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
-    }, 17000);
+    }, 0);
 
   }, [generateCreativeContent, moveAgentTo, addChatMessage, createWorkItem, updateTaskStatus, generateFinalAdCode]);
 
@@ -1438,11 +1449,7 @@ KEY ELEMENTS:
 
   const copyCode = () => {
     navigator.clipboard.writeText(finalAdCode);
-    addChatMessage('apparatus', pickRandom([
-      `CODE COPIED TO CLIPBOARD —`,
-      `HTML CAPTURED — Clipboard populated —`,
-      `COPY COMPLETE — Campaign code: transferred —`,
-    ]));
+    generateAgentLine('apparatus', 'Code has been copied to clipboard. Acknowledge briefly.', '').then(line => addChatMessage('apparatus', line));
   };
 
   // Generate and download ZIP with all deliverables INCLUDING actual images
@@ -1462,12 +1469,7 @@ KEY ELEMENTS:
     
     const openai = getOpenAI();
     
-    addChatMessage('apparatus', pickRandom([
-      `COMPILING DELIVERABLES PACKAGE — Visual asset generation in progress —`,
-      `PACKAGING CAMPAIGN ASSETS — Image pipeline: active — HTML assembly: queued —`,
-      `DELIVERABLE COMPILATION INITIATED — Generating visuals and assembling specifications —`,
-      `ARCHIVE CONSTRUCTION — Campaign assets aggregating — Image generation: engaged —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus', `Compiling deliverables package for "${product}" — generating visual assets.`, briefContext));
     
     const zip = new JSZip();
     
@@ -1512,12 +1514,7 @@ KEY ELEMENTS:
     zip.file('campaign_dossier.html', finalAdCode);
     
     // 2. Generate ACTUAL images for print
-    addChatMessage('burl', pickRandom([
-      `*adjusts glasses* Generating hero campaign image for ${product}...`,
-      `*squints at brief* Rendering the key visual for ${product}. This is the shot that defines the campaign.`,
-      `*frames imaginary shot* Creating the hero image for ${product}. The one picture that says everything.`,
-      `*leans forward* Generating the primary visual for ${product}. Every campaign needs one image that stops you.`,
-    ]));
+    addChatMessage('burl', await generateAgentLine('burl', `Generating the hero campaign image for ${product}. React to seeing the primary visual being created.`, briefContext));
     
     const heroImage = await generateImage(
       `A single powerful image for a ${imageContext} campaign in the ${category} industry. Subject: Someone experiencing a quiet moment of realization while interacting with ${product}. Show the actual ${product} in use. Composition: Rule of thirds, significant negative space on one side for text placement. Mood: ${visualDirection}`,
@@ -1526,12 +1523,7 @@ KEY ELEMENTS:
     
     if (heroImage) {
       printFolder?.file('hero_campaign_image.png', heroImage.blob);
-      addChatMessage('burl', pickRandom([
-        `Hero image captured for ${product}. Moving to print layouts...`,
-        `*nods* Got it. The ${product} hero shot is done. Now the print work.`,
-        `Primary visual for ${product}: locked. On to the layouts.`,
-        `That's the one. ${product} hero image rendered. Print specs next.`,
-      ]));
+      addChatMessage('burl', await generateAgentLine('burl', `Hero image for ${product} is done. React and note moving to print layouts.`, briefContext));
     }
     
     // Generate print ad mockup
@@ -1594,11 +1586,7 @@ Generated by ADHDAI — The Feral Creative Collective
     printFolder?.file('poster_a1_spec.txt', posterSpec);
     
     // 3. Video storyboard with ACTUAL frame images
-    addChatMessage('apparatus', pickRandom([
-      `GENERATING STORYBOARD FRAMES — ${product.toUpperCase()} — Key moments rendering —`,
-      `VIDEO FRAME PIPELINE — ${product.toUpperCase()} — Capturing 3 cinematic stills —`,
-      `STORYBOARD ASSET GENERATION — ${product.toUpperCase()} — Frames: processing —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus', `Generating video storyboard frames for ${product}. Three key cinematic moments being rendered.`, briefContext));
     
     // Generate key storyboard frames - specific to the product/category
     const frame2Image = await generateImage(
@@ -1619,12 +1607,7 @@ Generated by ADHDAI — The Feral Creative Collective
     );
     if (frame5Image) videoFolder?.file('frame_05_context.png', frame5Image.blob);
     
-    addChatMessage('burl', pickRandom([
-      `Storyboard frames for ${product} rendered. Three key moments captured.`,
-      `*steps back* Three frames for ${product}. Each one tells its part of the story.`,
-      `Video frames done. The ${product} storyboard has its anchor shots.`,
-      `*nods* The three frames for ${product} — fade in, the moment, the context. That's the film.`,
-    ]));
+    addChatMessage('burl', await generateAgentLine('burl', `Storyboard frames for ${product} are done. Three key moments captured. React.`, briefContext));
     
     const storyboard = `VIDEO STORYBOARD — :30 SPOT
 ============================
@@ -1704,11 +1687,7 @@ Generated by ADHDAI — The Feral Creative Collective
     videoFolder?.file('video_specs.json', JSON.stringify(videoSpecs, null, 2));
     
     // 4. Social media with ACTUAL images
-    addChatMessage('apparatus', pickRandom([
-      `GENERATING SOCIAL ASSETS — ${product.toUpperCase()} — Feed and story formats —`,
-      `SOCIAL MEDIA PIPELINE — ${product.toUpperCase()} — Platform-native visuals rendering —`,
-      `SOCIAL ASSET GENERATION — ${product.toUpperCase()} — Instagram feed + story formats —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus', `Generating social media assets for ${product} — feed and story formats.`, briefContext));
     
     // Instagram feed image - product specific
     const instaFeedImage = await generateImage(
@@ -1724,12 +1703,7 @@ Generated by ADHDAI — The Feral Creative Collective
     );
     if (instaStoryImage) socialFolder?.file('instagram_story_1080x1920.png', instaStoryImage.blob);
     
-    addChatMessage('the-cell', pickRandom([
-      `[VERA]: Social assets for ${product} generated. [THURSDAY]: *nods approvingly at the square format*`,
-      `[GJON]: The ${product} social visuals are done. Feed and story. [VERA]: They look native. Good. [THURSDAY]: *approving silence*`,
-      `[VERA]: ${product} social media imagery — captured. [GJON]: The square format works. [THURSDAY]: *small nod*`,
-      `[GJON]: Social for ${product} — rendered. [VERA]: Platform-appropriate. [THURSDAY]: *permits satisfaction*`,
-    ]));
+    addChatMessage('the-cell', await generateAgentLine('the-cell', `Social media assets for ${product} are done. The Cell reacts to the feed and story imagery.`, briefContext));
     
     const socialCopy = `SOCIAL MEDIA COPY DECK
 ======================
@@ -1799,11 +1773,7 @@ ASSETS INCLUDED:
     socialFolder?.file('social_specs.json', JSON.stringify(socialSpecs, null, 2));
     
     // 5. OOH with ACTUAL images
-    addChatMessage('apparatus', pickRandom([
-      `GENERATING OOH ASSETS — ${product.toUpperCase()} — Billboard and transit formats —`,
-      `OUT-OF-HOME PIPELINE — ${product.toUpperCase()} — Billboard + bus shelter rendering —`,
-      `OOH ASSET GENERATION — ${product.toUpperCase()} — Large format visuals: processing —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus', `Generating out-of-home assets for ${product} — billboard and transit formats.`, briefContext));
     
     // Billboard image - product specific
     const billboardImage = await generateImage(
@@ -1819,12 +1789,7 @@ ASSETS INCLUDED:
     );
     if (busShelterImage) oohFolder?.file('bus_shelter_visual.png', busShelterImage.blob);
     
-    addChatMessage('nadya', pickRandom([
-      `OOH assets for ${product} complete. We are 47 seconds behind schedule. Acceptable.`,
-      `*checks watch* Out-of-home for ${product}: rendered. Timeline deviation: minimal. Proceed.`,
-      `Billboard and transit for ${product} — done. The schedule notes a minor delay. The schedule forgives. This once.`,
-      `OOH deliverables for ${product} finalized. *lights cigarette* The deadline survives. As do we.`,
-    ]));
+    addChatMessage('nadya', await generateAgentLine('nadya', `OOH assets for ${product} are complete. React with your trademark deadline awareness.`, briefContext));
     
     // 6. OOH specifications
     const oohSpec = `OUT OF HOME SPECIFICATIONS
@@ -1996,21 +1961,13 @@ THE FERAL CREATIVE COLLECTIVE
 `;
     zip.file('README.txt', readme);
     
-    addChatMessage('apparatus', pickRandom([
-      `ASSET GENERATION COMPLETE — Packaging ${imageCount} images into archive —`,
-      `ALL VISUALS RENDERED — ${imageCount} images — ZIP compression: initiating —`,
-      `IMAGE PIPELINE FINISHED — ${imageCount} assets captured — Assembling deliverable package —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus', `Asset generation complete — ${imageCount} images being packaged into archive.`, briefContext));
     
     // Generate and download
     const content = await zip.generateAsync({ type: 'blob' });
     saveAs(content, `${campaignName}.zip`);
     
-    addChatMessage('apparatus', pickRandom([
-      `PACKAGE DELIVERED — ${campaignName}.zip — ${imageCount} images, layouts, storyboards, social assets, OOH visuals, documentation —`,
-      `DOWNLOAD COMPLETE — ${campaignName}.zip — ${imageCount} AI-generated visuals + full campaign specifications —`,
-      `ARCHIVE READY — ${campaignName}.zip — Complete deliverable suite: ${imageCount} images across all campaign formats —`,
-    ]));
+    addChatMessage('apparatus', await generateAgentLine('apparatus', `Download complete: ${campaignName}.zip with ${imageCount} images and full campaign documentation.`, briefContext));
   }, [finalAdCode, workItems, chatMessages, addChatMessage]);
 
   const taskCounts = {
