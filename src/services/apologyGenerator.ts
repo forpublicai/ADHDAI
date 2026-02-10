@@ -21,6 +21,25 @@ function getOpenAIClient(): OpenAI | null {
   });
 }
 
+// Model cascade — try gpt-5.2, fall back to gpt-4o, then gpt-4o-mini
+const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
+
+async function callWithModelCascade(
+  openai: OpenAI,
+  params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>
+): Promise<string | null> {
+  for (const model of MODELS) {
+    try {
+      const response = await openai.chat.completions.create({ model, ...params });
+      const content = response.choices[0]?.message?.content?.trim();
+      if (content) return content;
+    } catch (err) {
+      console.warn(`[ApologyGenerator] ${model} failed:`, err instanceof Error ? err.message : err);
+    }
+  }
+  return null;
+}
+
 // Generate unique ID
 function generateId(): string {
   return `campaign-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -255,8 +274,7 @@ Return JSON:
   "typography": "Specific font pairing with rationale. Not just 'serif and sans-serif' — WHY these faces? What do they communicate about ${company.name}'s relationship to this apology?"
 }`;
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+  const rawCreativeResponse = await callWithModelCascade(openai, {
     messages: [
       {
         role: 'system',
@@ -272,10 +290,8 @@ Return JSON:
     max_tokens: 3000
   });
 
-  const response = completion.choices[0]?.message?.content?.trim() || '';
-  
   try {
-    return JSON.parse(response) as CreativeDirection;
+    return JSON.parse(rawCreativeResponse || '{}') as CreativeDirection;
   } catch {
     return getDefaultCreativeDirection(scenario, company);
   }
@@ -328,8 +344,7 @@ Return JSON:
   "productTieIn": "The strategic jiu-jitsu: how does apologizing for this disaster actually STRENGTHEN ${company.name}'s brand and business? The cynical genius that makes this work commercially, not just creatively."
 }`;
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+  const rawAngleResponse = await callWithModelCascade(openai, {
     messages: [
       {
         role: 'system',
@@ -343,7 +358,7 @@ Return JSON:
   });
 
   try {
-    return JSON.parse(completion.choices[0]?.message?.content || '{}') as MarketingAngle;
+    return JSON.parse(rawAngleResponse || '{}') as MarketingAngle;
   } catch {
     return {
       bigIdea: `${company.name} owns their future mistakes before anyone else can`,
@@ -435,8 +450,7 @@ Return JSON:
   ]
 }`;
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+  const rawPrintResponse = await callWithModelCascade(openai, {
     messages: [
       {
         role: 'system',
@@ -451,7 +465,7 @@ Return JSON:
 
   const defaults = getDefaultPrintAssets(company, creative);
   try {
-    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    const parsed = JSON.parse(rawPrintResponse || '{}');
     // Safely extract with fallbacks for every field
     const safeAsset = (raw: Record<string, unknown> | undefined, fallback: ApologyAsset): ApologyAsset => {
       if (!raw || typeof raw !== 'object') return fallback;
@@ -509,8 +523,7 @@ Return JSON array:
   { "platform": "Instagram", "type": "Reel", "copy": "Reel concept", "visual": "...", "hashtags": [] }
 ]`;
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+  const rawSocialResponse = await callWithModelCascade(openai, {
     messages: [
       {
         role: 'system',
@@ -525,7 +538,7 @@ Return JSON array:
 
   const defaults = getDefaultSocialPosts(company, creative);
   try {
-    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    const parsed = JSON.parse(rawSocialResponse || '{}');
     const rawPosts = Array.isArray(parsed) ? parsed : (parsed.posts || parsed.socialPosts || []);
     if (!Array.isArray(rawPosts) || rawPosts.length === 0) return defaults;
     
@@ -578,8 +591,7 @@ Return JSON:
   "notes": "Director's notes - tone, reference films, casting notes, music direction"
 }`;
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-5.2',
+  const rawVideoResponse = await callWithModelCascade(openai, {
     messages: [
       {
         role: 'system',
@@ -594,7 +606,7 @@ Return JSON:
 
   const defaults = getDefaultVideoScript(company, creative);
   try {
-    const parsed = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    const parsed = JSON.parse(rawVideoResponse || '{}');
     return {
       title: (parsed.title as string) || defaults.title,
       duration: (parsed.duration as string) || defaults.duration,

@@ -8,16 +8,18 @@ import {
 } from '../types';
 import { Fortune500Company } from '../data/fortune500';
 
-// Create OpenAI client only when API key is available
 function getOpenAIClient(): OpenAI | null {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    return null;
+  if (!apiKey) return null;
+  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
+}
+
+const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
+async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string | null> {
+  for (const model of MODELS) {
+    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { console.warn(`[DoomsdayAnalyzer] ${model} failed:`, e instanceof Error ? e.message : e); }
   }
-  return new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true
-  });
+  return null;
 }
 
 // Generate unique ID
@@ -77,8 +79,7 @@ Return JSON object with "scenarios" array:
   ]
 }`;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5.2',
+    const rawResponse = await callWithModelCascade(openai, {
       messages: [
         {
           role: 'system',
@@ -94,12 +95,12 @@ Return JSON object with "scenarios" array:
       max_tokens: 6000
     });
 
-    const response = completion.choices[0]?.message?.content?.trim() || '';
+    if (!rawResponse) return generateFallbackScenarios(company);
     
     // Parse and validate response
     let scenariosData;
     try {
-      const parsed = JSON.parse(response);
+      const parsed = JSON.parse(rawResponse);
       scenariosData = parsed.scenarios || parsed;
       if (!Array.isArray(scenariosData)) {
         scenariosData = [scenariosData];
@@ -159,8 +160,7 @@ async function generateAnalysisSummary(
       .map(s => `- ${s.title} (${s.timeHorizon}, ${s.severity})`)
       .join('\n');
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5.2',
+    const summaryResponse = await callWithModelCascade(openai, {
       messages: [
         {
           role: 'system',
@@ -175,7 +175,7 @@ async function generateAnalysisSummary(
       max_tokens: 200
     });
 
-    return completion.choices[0]?.message?.content?.trim() || 
+    return summaryResponse || 
       `${company.name} has been identified as having significant catastrophe potential across ${scenarios.length} scenarios.`;
   } catch {
     return `${company.name} faces ${scenarios.length} potential doomsday scenarios requiring preemptive apology preparation.`;

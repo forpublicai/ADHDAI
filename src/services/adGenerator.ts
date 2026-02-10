@@ -3,13 +3,24 @@ import OpenAI from 'openai';
 // Create OpenAI client only when API key is available
 function getOpenAIClient(): OpenAI | null {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    return null;
+  if (!apiKey) return null;
+  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
+}
+
+// Model cascade — try gpt-5.2, fall back to gpt-4o, then gpt-4o-mini
+const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
+async function callWithModelCascade(
+  openai: OpenAI,
+  params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>
+): Promise<string | null> {
+  for (const model of MODELS) {
+    try {
+      const r = await openai.chat.completions.create({ model, ...params });
+      const c = r.choices[0]?.message?.content?.trim();
+      if (c) return c;
+    } catch (e) { console.warn(`[AdGenerator] ${model} failed:`, e instanceof Error ? e.message : e); }
   }
-  return new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true // Required for browser usage with Vite
-  });
+  return null;
 }
 
 export interface AdGenerationOptions {
@@ -183,8 +194,7 @@ CSS REQUIREMENTS:
 
 Generate ONLY the HTML code with embedded CSS. No markdown formatting, no explanations.`;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5.2',
+    const generatedHtml = await callWithModelCascade(openai, {
       messages: [
         {
           role: 'system',
@@ -198,8 +208,10 @@ Generate ONLY the HTML code with embedded CSS. No markdown formatting, no explan
       temperature: 0.78,
       max_tokens: 4000
     });
-
-    const generatedHtml = completion.choices[0]?.message?.content?.trim() || '';
+    
+    if (!generatedHtml) {
+      throw new Error('Empty response from API');
+    }
     
     // Clean up markdown code blocks if present
     let cleanedHtml = generatedHtml

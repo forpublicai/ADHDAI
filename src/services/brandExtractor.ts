@@ -1,15 +1,17 @@
 import OpenAI from 'openai';
 
-// Create OpenAI client only when API key is available
 function getOpenAIClient(): OpenAI | null {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    return null;
+  if (!apiKey) return null;
+  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
+}
+
+const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
+async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string | null> {
+  for (const model of MODELS) {
+    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { console.warn(`[BrandExtractor] ${model} failed:`, e instanceof Error ? e.message : e); }
   }
-  return new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true
-  });
+  return null;
 }
 
 export interface BrandInfo {
@@ -71,8 +73,7 @@ Return ONLY valid JSON:
 
 For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make sophisticated inferences based on industry, positioning, and competitive landscape.`;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5.2',
+    const rawResponse = await callWithModelCascade(openai, {
       messages: [
         {
           role: 'system',
@@ -88,8 +89,9 @@ For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make soph
       max_tokens: 500
     });
 
-    const response = completion.choices[0]?.message?.content?.trim() || '';
-    const cleaned = response
+    if (!rawResponse) throw new Error('No response from API');
+    
+    const cleaned = rawResponse
       .replace(/^```json\n?/i, '')
       .replace(/^```\n?/i, '')
       .replace(/```\n?$/i, '')
