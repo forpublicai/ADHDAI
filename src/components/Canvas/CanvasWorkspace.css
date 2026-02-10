@@ -131,17 +131,17 @@
 }
 
 .item-count {
-  color: #666;
+  color: #aaa;
   font-size: 10px;
 }
 
 .task-summary {
-  color: #888;
+  color: #bbb;
   font-size: 10px;
 }
 
 .zoom-level {
-  color: #555;
+  color: #999;
   font-size: 10px;
   padding: 4px 8px;
   background: #222;
@@ -194,7 +194,7 @@
   bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  color: #333;
+  color: #777;
   font-size: 10px;
   pointer-events: none;
 }
@@ -314,7 +314,7 @@
 
 .kanban-task.done {
   background: rgba(0, 255, 0, 0.03);
-  color: #666;
+  color: #888;
   opacity: 0.6;
 }
 
@@ -335,7 +335,7 @@
 }
 
 .kanban-task.done .task-title {
-  color: #666;
+  color: #888;
 }
 
 .task-working {
@@ -426,7 +426,7 @@
 }
 
 .output-waiting {
-  color: #444;
+  color: #999;
   font-size: 10px;
 }
 
@@ -446,7 +446,7 @@
 
 .output-filename {
   font-size: 10px;
-  color: #888;
+  color: #bbb;
   padding: 4px 10px;
   background: #222;
   border-radius: 4px;
@@ -668,7 +668,7 @@
 .chat-title {
   font-size: 11px;
   font-weight: 700;
-  color: #888;
+  color: #ccc;
   letter-spacing: 2px;
 }
 
@@ -726,7 +726,7 @@
 
 .chat-content {
   font-size: 12px;
-  color: #bbb;
+  color: #ddd;
   line-height: 1.5;
   padding-left: 22px;
 }
@@ -822,7 +822,7 @@
   height: 28px;
   background: transparent;
   border: 1px solid #444;
-  color: #666;
+  color: #aaa;
   font-size: 14px;
   cursor: pointer;
   display: flex;
@@ -845,7 +845,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   line-height: 1.5;
-  color: #999;
+  color: #ccc;
   white-space: pre;
   margin: 0;
   background: #111;
@@ -859,7 +859,7 @@
   background: #222;
   border-top: 1px solid #333;
   font-size: 10px;
-  color: #555;
+  color: #999;
   text-align: center;
 }
 
@@ -967,7 +967,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #888;
+  color: #bbb;
   margin-bottom: 16px;
 }
 
@@ -993,13 +993,13 @@
 
 .panel-count {
   font-size: 14px;
-  color: #666;
+  color: #aaa;
   font-weight: 400;
 }
 
 .panel-subtitle {
   font-size: 14px;
-  color: #666;
+  color: #aaa;
   margin: 0 0 24px 0;
 }
 
@@ -1031,7 +1031,7 @@
 .campaign-panel .download-btn.secondary {
   background: transparent;
   border: 1px solid #333;
-  color: #666;
+  color: #aaa;
   padding: 10px 20px;
   font-size: 12px;
 }
@@ -1047,7 +1047,7 @@
   height: 44px;
   background: transparent;
   border: 1px solid #333;
-  color: #666;
+  color: #aaa;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1096,7 +1096,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #666;
+  color: #aaa;
 }
 
 .number-value {
@@ -1127,7 +1127,7 @@
 
 .scenario-title {
   font-size: 13px;
-  color: #666;
+  color: #777;
   line-height: 1.5;
 }
 
@@ -1149,7 +1149,7 @@
 
 .creative-subheadline {
   font-size: 14px;
-  color: #666;
+  color: #777;
   margin: 0;
   line-height: 1.5;
 }
@@ -1310,7 +1310,7 @@
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: #666;
+  color: #777;
 }
 
 .footer-info svg {
