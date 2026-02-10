@@ -1030,7 +1030,7 @@ export function getApologyBurlVisualDirection(companyName: string, visualConcept
   return pickRandom(variations);
 }
 
-export function getApologyCompilationReaction(index: number, total: number, companyName: string, hasImages: boolean): string {
+export function getApologyCompilationReaction(index: number, total: number, companyName: string, _hasImages: boolean): string {
   const mikeVariations = [
     `*watches Apparatus work, lights final cigarette* Here it comes. Everything we argued about, compressed into one output.`,
     `*crosses arms, observing* This is the part that never gets old. Watching all the pieces come together into something that actually means something.`,

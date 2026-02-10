@@ -106,7 +106,7 @@ Return JSON object with "scenarios" array:
         scenariosData = [scenariosData];
       }
     } catch {
-      console.error('Failed to parse scenarios JSON:', response);
+      console.error('Failed to parse scenarios JSON:', rawResponse);
       return generateFallbackScenarios(company);
     }
 
