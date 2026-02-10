@@ -271,7 +271,7 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     
     try {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-5.2',
         messages: [
           {
             role: 'system',
@@ -462,7 +462,7 @@ Output ONLY the creative content. No explanations. No preamble. Just the work. M
       
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o',
+          model: 'gpt-5.2',
           messages: [
             {
               role: 'system',
@@ -505,7 +505,7 @@ KEY ELEMENTS:
       
       try {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o',
+          model: 'gpt-5.2',
           messages: [
             {
               role: 'system',

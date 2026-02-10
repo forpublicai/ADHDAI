@@ -256,7 +256,7 @@ Return JSON:
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',
@@ -329,7 +329,7 @@ Return JSON:
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',
@@ -436,7 +436,7 @@ Return JSON:
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',
@@ -510,7 +510,7 @@ Return JSON array:
 ]`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',
@@ -579,7 +579,7 @@ Return JSON:
 }`;
 
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',

@@ -72,7 +72,7 @@ Return ONLY valid JSON:
 For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make sophisticated inferences based on industry, positioning, and competitive landscape.`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.2',
       messages: [
         {
           role: 'system',

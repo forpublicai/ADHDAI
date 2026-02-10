@@ -20,7 +20,7 @@ function getOpenAI(): OpenAI | null {
 }
 
 // Models to try in order — if gpt-4o fails, fall back to gpt-4o-mini
-const MODELS = ['gpt-4o', 'gpt-4o-mini'] as const;
+const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
 
 // Agent personality definitions — fed into every prompt
 const AGENT_VOICES: Record<string, string> = {

@@ -467,7 +467,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
 
     try {
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-5.2',
         messages: [
           {
             role: 'system',

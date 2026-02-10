@@ -78,7 +78,7 @@ Return JSON object with "scenarios" array:
 }`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.2',
       messages: [
         {
           role: 'system',
@@ -160,7 +160,7 @@ async function generateAnalysisSummary(
       .join('\n');
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.2',
       messages: [
         {
           role: 'system',
