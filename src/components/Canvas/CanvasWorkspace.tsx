@@ -1461,6 +1461,7 @@ KEY ELEMENTS:
     const product = parsedBrief.product || 'campaign';
     const category = parsedBrief.category;
     const imageContext = getImagePromptContext(currentBrief);
+    const briefContext = `Brief: "${currentBrief}". Product/subject being advertised.`;
     
     const timestamp = new Date().toISOString().split('T')[0];
     const campaignName = `${product.toLowerCase().replace(/\s+/g, '_')}_campaign_${timestamp}`;
