@@ -29,7 +29,7 @@ import { Fortune500Company } from '../../data/fortune500';
 import { generateApologyCampaign, generateCampaignImage } from '../../services/apologyGenerator';
 import { formatApologyCampaignsAsHTML, formatSingleCampaignAsHTML } from '../../services/apologyDeliverables';
 import { generatePrintAdHtml, generateBillboardHtml, generateBillboardSvg, generatePrintAdSvg, generateBannerSvg, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
-import { generateDialogueBatch, generateAgentLine } from '../../services/dialogueService';
+import { generateDialogueBatch, generateAgentLine, sendUserMessageToAgent, clearConversationHistory } from '../../services/dialogueService';
 import './CanvasWorkspace.css';
 
 // Get icon component for character
@@ -160,6 +160,11 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 });
+  
+  // User-to-bot messaging state
+  const [selectedAgent, setSelectedAgent] = useState<CharacterId | null>(null);
+  const [userInput, setUserInput] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   
   const workflowRef = useRef<NodeJS.Timeout[]>([]);
   const typingRef = useRef<NodeJS.Timeout[]>([]);
@@ -325,6 +330,36 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     };
     setChatMessages(prev => [...prev.slice(-30), msg]);
   }, []);
+
+  // Handle user sending a direct message to an agent
+  const handleSendUserMessage = useCallback(async () => {
+    if (!selectedAgent || !userInput.trim() || isSendingMessage) return;
+    
+    const message = userInput.trim();
+    setUserInput('');
+    setIsSendingMessage(true);
+    
+    // Add user message to chat
+    setChatMessages(prev => [...prev.slice(-30), {
+      id: `chat-${chatIdRef.current++}`,
+      from: selectedAgent,
+      content: `[YOU → ${CHARACTERS.find(c => c.id === selectedAgent)?.name || selectedAgent}]: ${message}`,
+      timestamp: Date.now(),
+    }]);
+    
+    try {
+      const currentScenario = scenarios[currentScenarioIndex];
+      const workContext = `Company: ${company.name} (${company.industry}). Generating proactive apology campaigns. Current scenario: "${currentScenario?.title || 'N/A'}" — ${currentScenario?.severity || 'N/A'} severity. Phase: ${currentPhase}. ${campaigns.length} campaigns completed so far. Recent messages: ${chatMessages.slice(-5).map(m => `${CHARACTERS.find(c => c.id === m.from)?.name}: ${m.content.slice(0, 50)}`).join('; ')}`;
+      
+      const response = await sendUserMessageToAgent(selectedAgent, message, workContext);
+      addChatMessage(selectedAgent, response);
+    } catch (error) {
+      console.error('Error sending message to agent:', error);
+      addChatMessage(selectedAgent, '*looks up briefly* Give me a moment.');
+    }
+    
+    setIsSendingMessage(false);
+  }, [selectedAgent, userInput, isSendingMessage, company, scenarios, currentScenarioIndex, currentPhase, campaigns.length, chatMessages, addChatMessage]);
 
   // ============================================
   // MERGE ON OVERLAP — when items overlap, generate a new combined idea
@@ -945,6 +980,7 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   }, [onComplete, campaigns]);
 
   const handleStart = useCallback(() => {
+    clearConversationHistory();
     setIsRunning(true);
     setWorkItems([]);
     setChatMessages([]);
@@ -1599,16 +1635,62 @@ THE FERAL CREATIVE COLLECTIVE
           <div className="chat-messages" ref={chatMessagesRef}>
             {chatMessages.map(msg => {
               const char = getCharacterInfo(msg.from);
+              const isUserMsg = msg.content.startsWith('[YOU →');
               return (
-                <div key={msg.id} className="chat-message" style={{ borderLeftColor: char.color }}>
+                <div key={msg.id} className={`chat-message ${isUserMsg ? 'user-message' : ''}`} style={{ borderLeftColor: isUserMsg ? '#4a9' : char.color }}>
                   <div className="chat-sender">
-                    <span className="chat-icon" style={{ color: char.color }}>{getCharacterIcon(char.icon, 14)}</span>
-                    <span className="chat-name" style={{ color: char.color }}>{char.name}</span>
+                    <span className="chat-icon" style={{ color: isUserMsg ? '#4a9' : char.color }}>{isUserMsg ? '👤' : getCharacterIcon(char.icon, 14)}</span>
+                    <span className="chat-name" style={{ color: isUserMsg ? '#4a9' : char.color }}>{isUserMsg ? 'You' : char.name}</span>
                   </div>
-                  <div className="chat-content">{msg.content}</div>
+                  <div className="chat-content">{isUserMsg ? msg.content.replace(/^\[YOU → [^\]]+\]: /, '') : msg.content}</div>
                 </div>
               );
             })}
+          </div>
+          
+          {/* User-to-Bot Direct Messaging */}
+          <div className="chat-input-area">
+            <div className="chat-agent-selector">
+              {CHARACTERS.map(char => (
+                <button
+                  key={char.id}
+                  className={`agent-select-btn ${selectedAgent === char.id ? 'selected' : ''}`}
+                  style={{ color: char.color }}
+                  onClick={() => setSelectedAgent(selectedAgent === char.id ? null : char.id)}
+                  title={`Message ${char.name}`}
+                >
+                  {getCharacterIcon(char.icon, 12)}
+                </button>
+              ))}
+            </div>
+            {selectedAgent && (
+              <>
+                <div className="chat-selected-label">
+                  <span>Talking to</span>
+                  <span className="chat-selected-name" style={{ color: getCharacterInfo(selectedAgent).color }}>
+                    {getCharacterInfo(selectedAgent).name}
+                  </span>
+                </div>
+                <div className="chat-input-row">
+                  <input
+                    className="chat-input"
+                    type="text"
+                    placeholder={`Message ${getCharacterInfo(selectedAgent).name}...`}
+                    value={userInput}
+                    onChange={e => setUserInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSendUserMessage(); }}
+                    disabled={isSendingMessage}
+                  />
+                  <button
+                    className="chat-send-btn"
+                    onClick={handleSendUserMessage}
+                    disabled={!userInput.trim() || isSendingMessage}
+                  >
+                    {isSendingMessage ? '...' : 'Send'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
