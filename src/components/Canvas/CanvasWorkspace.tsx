@@ -223,7 +223,7 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     const openai = getOpenAI();
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.2',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
@@ -406,7 +406,7 @@ Output ONLY the creative content. No explanations. No preamble. Just the work. M
     // Generate the merged idea
     const generateMergedIdea = async (): Promise<string> => {
       const response = await openai.chat.completions.create({
-        model: 'gpt-5.2',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -438,7 +438,7 @@ KEY ELEMENTS:
     // Generate the dialogue
     const generateDialogue = async (): Promise<{agent1: string, agent2: string, agent1_reply: string, resolution: string}> => {
       const response = await openai.chat.completions.create({
-        model: 'gpt-5.2',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',

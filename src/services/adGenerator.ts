@@ -9,8 +9,8 @@ function getOpenAIClient(): OpenAI {
   return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 }
 
-// Model cascade — try gpt-5.2, then gpt-4o, then gpt-4o-mini
-const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
+// Model cascade — try gpt-4o first, then gpt-4o-mini as backup
+const MODELS = ['gpt-4o', 'gpt-4o-mini'] as const;
 async function callWithModelCascade(
   openai: OpenAI,
   params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>
