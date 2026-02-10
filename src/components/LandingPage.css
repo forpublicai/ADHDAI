@@ -81,7 +81,7 @@
   font-size: 18px;
   font-weight: 400;
   margin: 0 0 32px 0;
-  color: #666666;
+  color: #777777;
   letter-spacing: 0.01em;
   text-transform: none;
   font-style: normal;
@@ -89,7 +89,7 @@
 
 .landing-description {
   font-size: 20px;
-  color: #000000;
+  color: #444444;
   margin-top: 0;
   line-height: 1.6;
   font-weight: 300;
@@ -156,7 +156,7 @@
 .landing-section p {
   margin-bottom: 24px;
   font-size: 18px;
-  color: #000000;
+  color: #444444;
   line-height: 1.7;
   font-weight: 300;
   max-width: 680px;
@@ -178,7 +178,7 @@
   padding-left: 24px;
   position: relative;
   font-size: 18px;
-  color: #000000;
+  color: #444444;
   line-height: 1.7;
   font-weight: 300;
 }
@@ -187,7 +187,7 @@
   content: '—';
   position: absolute;
   left: 0;
-  color: #000000;
+  color: #999999;
   font-weight: 400;
   font-size: 18px;
 }
@@ -212,7 +212,7 @@
 
 .landing-section em {
   font-style: italic;
-  color: #666666;
+  color: #777777;
   background: transparent;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: unset;
@@ -232,7 +232,7 @@
 
 .landing-footer p {
   font-size: 14px;
-  color: #666666;
+  color: #888888;
   font-weight: 300;
   margin: 0;
 }

@@ -3,7 +3,7 @@
 .agency-page {
   min-height: 100vh;
   background: #fafafa;
-  color: #0a0a0a;
+  color: #3a3a3a;
   display: flex;
   flex-direction: column;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -25,7 +25,7 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: #888;
   text-decoration: none;
   transition: color 0.15s ease;
 }
@@ -122,7 +122,7 @@
 .step-label {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: #888;
 }
 
 .phase-step.active .step-label {
@@ -168,7 +168,7 @@
 
 .phase-header p {
   font-size: 16px;
-  color: #666;
+  color: #777;
   line-height: 1.6;
   max-width: 480px;
 }
@@ -263,7 +263,7 @@
 
 .phase-info li {
   font-size: 14px;
-  color: #666;
+  color: #777;
   line-height: 1.7;
   padding: 12px 0;
   border-bottom: 1px solid #f0f0f0;
@@ -355,7 +355,7 @@
 
 .complete-header p {
   font-size: 15px;
-  color: #666;
+  color: #777;
 }
 
 .campaigns-summary {
@@ -407,7 +407,7 @@
 
 .campaign-summary-card .card-content .statement {
   font-size: 13px;
-  color: #666;
+  color: #777;
   line-height: 1.6;
 }
 
@@ -440,7 +440,7 @@
 }
 
 .action-btn.secondary {
-  color: #666;
+  color: #777;
   background: transparent;
   border: 1px solid #e0e0e0;
 }
