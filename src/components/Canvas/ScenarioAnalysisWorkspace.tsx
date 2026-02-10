@@ -28,6 +28,9 @@ import { getHorizonLabel } from '../../services/doomsdayAnalyzer';
 import './CanvasWorkspace.css';
 import './ScenarioAnalysisWorkspace.css';
 
+// Randomized dialogue helper
+const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
 // Get icon component for character
 const getCharacterIcon = (icon: string, size: number = 16) => {
   const iconProps = { size, weight: 'bold' as const };
@@ -466,11 +469,11 @@ Be creative, specific, and think like an investigative journalist uncovering wha
 
     try {
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: 'You are a sardonic risk analyst who identifies highly specific corporate catastrophe scenarios. You write like an investigative journalist, with specific details. Output ONLY valid JSON.'
+            content: 'You are a sardonic risk analyst who identifies highly specific corporate catastrophe scenarios. You write like an investigative journalist crossed with a Michael Lewis book — specific details, real precedents, dark wit. Every scenario must be specific to THIS company, not interchangeable with any other. Output ONLY valid JSON.'
           },
           {
             role: 'user',
@@ -548,8 +551,20 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     const allScenarios: DoomsdayScenario[] = [];
     
     // Opening
-    addChatMessage('apparatus', `INITIATING DOOMSDAY SCENARIO ANALYSIS FOR ${company.name.toUpperCase()}—`);
-    addChatMessage('mike', `*opens dossier* ${company.name}. ${company.industry}. Let's see what catastrophes are lurking in their future.`);
+    addChatMessage('apparatus', pickRandom([
+      `INITIATING DOOMSDAY SCENARIO ANALYSIS FOR ${company.name.toUpperCase()} — ALL RISK VECTORS ONLINE —`,
+      `SCENARIO ANALYSIS PROTOCOL ENGAGED — TARGET: ${company.name.toUpperCase()} — SCANNING RISK LANDSCAPE —`,
+      `DOOMSDAY MATRIX ACTIVATED — SUBJECT: ${company.name.toUpperCase()} — THREAT DETECTION COMMENCING —`,
+      `RISK ANALYSIS SEQUENCE INITIATED — ${company.name.toUpperCase()} — ALL AGENTS REPORTING FOR ANALYSIS DUTY —`,
+    ]));
+    addChatMessage('mike', pickRandom([
+      `*opens dossier* ${company.name}. ${company.industry}. Let's see what catastrophes are lurking in their future.`,
+      `*spreads files across table* ${company.name}. ${company.sector}. Twenty-two years doing this — I can smell the risk from here.`,
+      `*lights cigarette, reads file* ${company.name}. ${company.industry}. The brief says "risk analysis." The brief means "find what they're hiding."`,
+      `*pins company profile to board* ${company.name}. Big company. Big risks. Let's find the ones nobody wants to talk about.`,
+      `*cracks knuckles, opens file* ${company.name}. ${company.sector} sector. Everyone thinks they're safe until someone does what we're about to do.`,
+      `*adjusts reading glasses* ${company.name}. I've seen companies like this before. The question isn't IF something goes wrong. It's WHEN, and HOW BAD.`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -559,7 +574,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     moveAgentTo('mike', { x: 480, y: 140 }, 'analyzing', 'Reviewing company profile...');
     updateTaskStatus('task-1', 'in-progress');
-    addChatMessage('mike', `${company.name}. ${company.sector} sector. Known risk areas: ${company.riskProfile.slice(0, 3).join(', ')}. This should be... interesting.`);
+    addChatMessage('mike', pickRandom([
+      `${company.name}. ${company.sector} sector. Known risk areas: ${company.riskProfile.slice(0, 3).join(', ')}. This should be... interesting.`,
+      `*taps file* ${company.name} operates in ${company.industry}. Risk profile includes: ${company.riskProfile.slice(0, 3).join(', ')}. That's a lot of surface area for disaster.`,
+      `${company.sector}. The risk vectors here — ${company.riskProfile.slice(0, 3).join(', ')} — each one of these could be a headline. Let's figure out which ones will be.`,
+      `Company profile: ${company.name}. Industry: ${company.industry}. Key exposures: ${company.riskProfile.slice(0, 3).join(', ')}. *circles three items* These are the ones that keep their board up at night.`,
+      `*reads aloud* "${company.name}. ${company.sector}." Known weaknesses: ${company.riskProfile.slice(0, 3).join(', ')}. I already see four ways this goes wrong. At minimum.`,
+      `${company.name}. ${company.industry}. Risk areas: ${company.riskProfile.slice(0, 3).join(', ')}. Every one of these is a ticking clock. The question is which alarm goes off first.`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -575,7 +597,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     // Phase 1b: Risk Categories
     moveAgentTo('poole', { x: 820, y: 140 }, 'thinking', 'Mapping risk categories...');
     updateTaskStatus('task-2', 'in-progress');
-    addChatMessage('poole', `The Doomsday Matrix™ identifies key vectors: ${company.riskProfile.slice(0, 4).join(', ')}. Each one a potential apocalypse.`);
+    addChatMessage('poole', pickRandom([
+      `The Doomsday Matrix™ identifies key vectors: ${company.riskProfile.slice(0, 4).join(', ')}. Each one a potential apocalypse.`,
+      `*approaches whiteboard* The risk topology is forming. Key vectors: ${company.riskProfile.slice(0, 4).join(', ')}. Each represents what I call a "catastrophe pathway." Let me map them.`,
+      `Fascinating. Applying the Poole Risk Framework, I see ${company.riskProfile.length} primary threat categories: ${company.riskProfile.slice(0, 4).join(', ')}. The intersections between them are where the real danger lies.`,
+      `*pulls out colored markers* The risk architecture is complex. ${company.riskProfile.slice(0, 4).join(', ')} — these aren't independent vectors. They interact. They amplify. That's what makes this analysis interesting.`,
+      `My preliminary mapping identifies ${company.riskProfile.length} risk domains: ${company.riskProfile.slice(0, 4).join(', ')}. Per the Poole System, each domain has secondary and tertiary failure modes. We'll need to examine all of them.`,
+      `*adjusts glasses, studies data* ${company.riskProfile.slice(0, 4).join(', ')} — these are the surface-level risks. But the Doomsday Matrix reveals deeper structural vulnerabilities. I'll need the full analysis to confirm.`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -595,7 +624,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     // 1-year scenarios
     moveAgentTo('the-cell', { x: 1180, y: 140 }, 'researching', 'Researching 1-year threats...');
     updateTaskStatus('task-3', 'in-progress');
-    addChatMessage('the-cell', `[VERA]: What could go wrong in the next 12 months? [GJON]: Everything. [THURSDAY]: *researching intensifies*`);
+    addChatMessage('the-cell', pickRandom([
+      `[VERA]: What could go wrong in the next 12 months? [GJON]: Everything. [THURSDAY]: *researching intensifies*`,
+      `[GJON]: One year. Imminent threats. The kind that are already forming in the supply chain right now. [VERA]: Let's be systematic. [THURSDAY]: *pulling data, silent*`,
+      `[VERA]: Near-term analysis first. What's the 12-month outlook? [GJON]: Bleak. As always. [THURSDAY]: *already three index cards deep*`,
+      `[GJON]: The one-year horizon is where the real dangers live. Things that are already happening. [VERA]: Focus. [THURSDAY]: *nods, opens research files*`,
+      `[VERA]: Twelve-month threat assessment. Go. [GJON]: This is the part where we find what they're already ignoring. [THURSDAY]: *begins mapping connections*`,
+      `[GJON]: One year out. The threats that are already in the pipeline. [VERA]: Let's document them before they document themselves. [THURSDAY]: *writing rapidly*`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -617,7 +653,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     // 5-year scenarios
     moveAgentTo('burl', { x: 480, y: 360 }, 'analyzing', 'Analyzing 5-year scenarios...');
     updateTaskStatus('task-4', 'in-progress');
-    addChatMessage('burl', `Looking five years out... the patterns emerge. The cracks become canyons.`);
+    addChatMessage('burl', pickRandom([
+      `Looking five years out... the patterns emerge. The cracks become canyons.`,
+      `*squints at timeline* Five years. That's when the slow problems become fast problems. I've seen this before.`,
+      `*stares into middle distance* Five-year horizon. The risks that look manageable today become monsters by then. I can see the pictures forming.`,
+      `*sketches timeline on napkin* Five years out, the small cracks become structural failures. ${company.name}'s got some cracks worth examining.`,
+      `Half a decade. Long enough for a trend to become a crisis. Let me look at what's building under the surface.`,
+      `*pulls out reference photos* Five years. Things that seem distant feel that way until they don't. Let's map what's coming.`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -645,7 +688,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     // 10-year scenarios
     moveAgentTo('nadya', { x: 820, y: 360 }, 'analyzing', 'Projecting 10-year risks...');
     updateTaskStatus('task-5', 'in-progress');
-    addChatMessage('nadya', `⏱ Ten years. Enough time for small problems to become existential threats.`);
+    addChatMessage('nadya', pickRandom([
+      `Ten years. Enough time for small problems to become existential threats. I have seen it before.`,
+      `*lights cigarette* A decade. In Soviet planning, decade was minimum unit of meaningful prediction. The schedule extends.`,
+      `*checks calendar* Ten-year projection window. Long enough for regulations to change, markets to shift, and chickens to come home to roost.`,
+      `Ten years. Valentina Tereshkova's orbit happened in less time than this. What disasters can develop in a decade? Many. I will document them.`,
+      `*taps clipboard* Decade-scale analysis. The problems that feel theoretical today become budgetary reality by then. I know timelines.`,
+      `A ten-year window. Enough time for every risk that management is currently ignoring to mature into a full-grown catastrophe. Proceed.`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -667,7 +717,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     // 50-year scenarios
     moveAgentTo('delmore', { x: 1180, y: 360 }, 'thinking', 'Extrapolating 50-year futures...');
     updateTaskStatus('task-6', 'in-progress');
-    addChatMessage('delmore', `*stares into the abyss* Fifty years. What legacy will ${company.name} leave? Let's find out.`);
+    addChatMessage('delmore', pickRandom([
+      `*stares into the abyss* Fifty years. What legacy will ${company.name} leave? Let's find out.`,
+      `*adjusts collar* Half a century. That's generational. What will ${company.name} mean to our grandchildren? I'm afraid to find out. But it's my job.`,
+      `*distributes hard candies for strength* Fifty years out. This is where we stop being analysts and start being historians of the future. ${company.name}'s long shadow.`,
+      `*opens fresh notebook* Fifty years. Most companies don't survive fifty years. The question is: what does ${company.name} leave behind when it's gone? Or worse — what does it leave behind while it's still here?`,
+      `*settles in with coffee* The fifty-year view. This is where we ask not "what goes wrong" but "what permanent mark does ${company.name} leave on the world?" Sometimes the answer is... heavy.`,
+      `*warm but serious* Now friends, the fifty-year horizon is different. We're not predicting — we're imagining. What story will historians tell about ${company.name}? Let's write that story first.`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -708,8 +765,20 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     updateTaskStatus('task-7', 'done');
     setPhaseLabel('✓ ANALYSIS COMPLETE');
     
-    addChatMessage('apparatus', `DOOMSDAY REPORT READY—${allScenarios.length} SCENARIOS IDENTIFIED—${new Date().toLocaleTimeString()}`);
-    addChatMessage('mike', `The future is bleak. Or at least, it will be if ${company.name} doesn't get ahead of these. Your move.`);
+    addChatMessage('apparatus', pickRandom([
+      `DOOMSDAY REPORT READY — ${allScenarios.length} SCENARIOS IDENTIFIED — ${new Date().toLocaleTimeString()} —`,
+      `ANALYSIS COMPILATION SUCCESSFUL — ${allScenarios.length} CATASTROPHE VECTORS MAPPED — REPORT FINALIZED —`,
+      `RISK MATRIX COMPLETE — ${allScenarios.length} SCENARIOS CATALOGUED ACROSS ALL TIME HORIZONS — READY FOR REVIEW —`,
+      `DOOMSDAY INDEX COMPILED — ${allScenarios.length} POTENTIAL DISASTERS DOCUMENTED — STANDING BY —`,
+    ]));
+    addChatMessage('mike', pickRandom([
+      `The future is bleak. Or at least, it will be if ${company.name} doesn't get ahead of these. Your move.`,
+      `*stubs cigarette* ${allScenarios.length} ways it could go wrong. And those are just the ones we found. The ones we didn't find are worse. Choose wisely.`,
+      `That's the picture. ${allScenarios.length} scenarios, none of them pretty. ${company.name}'s got some decisions to make. So do we.`,
+      `*closes dossier* ${allScenarios.length} potential disasters. Some imminent, some generational. All real. Now we decide which ones to apologize for.`,
+      `Twenty-two years and I still get a chill reading these. ${allScenarios.length} scenarios for ${company.name}. Pick the ones that keep you up at night.`,
+      `The analysis is done. ${allScenarios.length} ways ${company.name} could make history — and not the kind they put in annual reports. Time to choose our battles.`,
+    ]));
     addChatMessage('apparatus', `ANALYSIS COMPLETE — Click "CONTINUE TO SCENARIOS" when ready to proceed.`);
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
