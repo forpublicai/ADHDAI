@@ -42,10 +42,12 @@ const getCharacterIcon = (icon: string, size: number = 14) => {
   return icons[icon] || <Gear {...iconProps} />;
 };
 
-// Initialize OpenAI
-const getOpenAI = () => {
+// Initialize OpenAI — requires API key in .env
+const getOpenAI = (): OpenAI => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    throw new Error('VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
+  }
   return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 };
 
@@ -216,66 +218,16 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     }
   }, [chatMessages]);
 
-  // Generate creative content using API with smart fallbacks
+  // Generate creative content using API
   const generateCreativeContent = useCallback(async (prompt: string, _maxTokens: number = 150): Promise<string> => {
     const openai = getOpenAI();
-    
-    // Smart fallback content based on prompt type
-    const generateFallback = () => {
-      const briefWords = (briefRef.current || '').toLowerCase().split(' ').filter(w => w.length > 3);
-      const product = briefWords[0] || 'product';
-      
-      if (prompt.includes('human tension') || prompt.includes('REAL human tension')) {
-        return `People buy ${product} to feel in control. What they actually want is permission to stop trying so hard.`;
-      }
-      if (prompt.includes('psychological conflict')) {
-        return `They secretly want someone else to make the decision for them.`;
-      }
-      if (prompt.includes('BARRIER')) {
-        return `They believe they should already know how to do this perfectly.`;
-      }
-      if (prompt.includes('REFRAME')) {
-        return `But what if the whole point was never getting it perfect?`;
-      }
-      if (prompt.includes('Option A') || prompt.includes('conventional headline')) {
-        return `${product.charAt(0).toUpperCase() + product.slice(1)}. For when good enough isn't.`;
-      }
-      if (prompt.includes('Option B') || prompt.includes('provocative headline')) {
-        return `You've been doing it wrong. That's okay.`;
-      }
-      if (prompt.includes('Option C') || prompt.includes('deeply strange')) {
-        return `Your ${product} remembers what you forgot you wanted.`;
-      }
-      if (prompt.includes('VISUAL LANGUAGE')) {
-        return `• Color: #F5F5F0 (aged paper) + #1a1a1a (near-black)\n• Mood: Sunday morning, coffee gone cold\n• Feel: Museum catalog meets confession`;
-      }
-      if (prompt.includes('TYPOGRAPHY')) {
-        return `Helvetica Neue Light, 48/54pt\nGenerous letter-spacing\n120px margins minimum`;
-      }
-      if (prompt.includes('KEY VISUAL')) {
-        return `A single hand, slightly out of focus, reaching for something just out of frame. Natural light. No styling.`;
-      }
-      if (prompt.includes('CLIENT-FRIENDLY')) {
-        return `• "Culturally resonant storytelling"\n• "Authentic consumer connection"\n• "Disruptively minimal execution"`;
-      }
-      if (prompt.includes('FINAL approved headline')) {
-        return `You already knew. You just needed someone to say it.`;
-      }
-      return `[Creative insight for ${product}]`;
-    };
-    
-    if (!openai) {
-      // Use intelligent fallbacks when API is not available
-      return generateFallback();
-    }
-    
-    try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-5.2',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an Executive Creative Director at an agency on par with Wieden+Kennedy, Droga5, and Pentagram. Your work wins Cannes Grand Prix. Every word earns its place. Your style:
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-5.2',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an Executive Creative Director at an agency on par with Wieden+Kennedy, Droga5, and Pentagram. Your work wins Cannes Grand Prix. Every word earns its place. Your style:
 - DECEPTIVELY SIMPLE: Headlines that seem obvious but reveal devastating truth
 - UNCOMFORTABLY HONEST: Say what everyone thinks but won't say — with craft
 - VISUALLY SPARSE: Pentagram restraint — type, space, meaning
@@ -283,17 +235,17 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 - SPECIFIC: Never generic. Every line is about THIS product, THIS brief, THIS human tension.
 
 Output ONLY the creative content. No explanations. No preamble. Just the work. Make it different every time — never repeat yourself.`
-          },
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: _maxTokens,
-        temperature: 0.9,
-      });
-      return response.choices[0]?.message?.content || generateFallback();
-    } catch (error) {
-      console.error('API error:', error);
-      return generateFallback();
+        },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: _maxTokens,
+      temperature: 0.9,
+    });
+    const content = response.choices[0]?.message?.content?.trim();
+    if (!content) {
+      throw new Error('Empty response from API');
     }
+    return content;
   }, []);
 
   // Canvas panning
@@ -453,21 +405,13 @@ Output ONLY the creative content. No explanations. No preamble. Just the work. M
     
     // Generate the merged idea
     const generateMergedIdea = async (): Promise<string> => {
-      if (!openai) {
-        // Fallback: combine key phrases
-        const words1 = item1.content.split(' ').slice(0, 5).join(' ');
-        const words2 = item2.content.split(' ').slice(0, 5).join(' ');
-        return `MERGED CONCEPT:\n${words1}... meets ${words2}...\n\nA synthesis of strategic tension and creative execution.`;
-      }
-      
-      try {
-        const response = await openai.chat.completions.create({
-          model: 'gpt-5.2',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a senior creative director synthesizing two ideas into one powerful new concept for an ad campaign. Brief: "${currentBrief}". 
-              
+      const response = await openai.chat.completions.create({
+        model: 'gpt-5.2',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a senior creative director synthesizing two ideas into one powerful new concept for an ad campaign. Brief: "${currentBrief}". 
+            
 Idea 1 from ${agent1.name}: "${item1.content}"
 Idea 2 from ${agent2.name}: "${item2.content}"
 
@@ -480,48 +424,34 @@ KEY ELEMENTS:
 • [element from idea 1]
 • [element from idea 2]  
 • [new element from synthesis]`
-            },
-            { role: 'user', content: 'Create the merged concept.' }
-          ],
-          max_tokens: 200,
-          temperature: 0.8,
-        });
-        return response.choices[0]?.message?.content || 'MERGED CONCEPT:\nA synthesis of both approaches.';
-      } catch {
-        return `MERGED CONCEPT:\nCombining ${agent1.name.split(' ')[0]}'s insight with ${agent2.name.split(' ')[0]}'s direction.`;
-      }
+          },
+          { role: 'user', content: 'Create the merged concept.' }
+        ],
+        max_tokens: 200,
+        temperature: 0.8,
+      });
+      const content = response.choices[0]?.message?.content?.trim();
+      if (!content) throw new Error('Empty response from API');
+      return content;
     };
     
     // Generate the dialogue
     const generateDialogue = async (): Promise<{agent1: string, agent2: string, agent1_reply: string, resolution: string}> => {
-      const defaultDialogue = {
-        agent1: `*studies ${agent2.name.split(' ')[0]}'s work* There's something here. What if we pushed the ${item2.content.slice(0, 20)}... angle harder?`,
-        agent2: `Interesting. But my approach needs the tension from yours. The "${item1.content.slice(0, 20)}..." is the key.`,
-        agent1_reply: `So we're saying... both. But elevated. I can see it.`,
-        resolution: `*nods* Let's build it. The new version is stronger than either alone.`
-      };
+      const response = await openai.chat.completions.create({
+        model: 'gpt-5.2',
+        messages: [
+          {
+            role: 'system',
+            content: `You are writing dialogue between two ad agency creatives who are EXCITED about merging their ideas. ${agent1.name} (${agent1.role}) created: "${item1.content}". ${agent2.name} (${agent2.role}) created: "${item2.content}". They see potential in combining them. Be witty, creative, and build to an "aha!" moment. Output as JSON: {"agent1": "first line observing the other's work", "agent2": "response seeing the connection", "agent1_reply": "building on the synthesis", "resolution": "the breakthrough moment"}`
+          },
+          { role: 'user', content: 'Generate their excited collaboration dialogue.' }
+        ],
+        max_tokens: 300,
+        temperature: 0.9,
+      });
       
-      if (!openai) return defaultDialogue;
-      
-      try {
-        const response = await openai.chat.completions.create({
-          model: 'gpt-5.2',
-          messages: [
-            {
-              role: 'system',
-              content: `You are writing dialogue between two ad agency creatives who are EXCITED about merging their ideas. ${agent1.name} (${agent1.role}) created: "${item1.content}". ${agent2.name} (${agent2.role}) created: "${item2.content}". They see potential in combining them. Be witty, creative, and build to an "aha!" moment. Output as JSON: {"agent1": "first line observing the other's work", "agent2": "response seeing the connection", "agent1_reply": "building on the synthesis", "resolution": "the breakthrough moment"}`
-            },
-            { role: 'user', content: 'Generate their excited collaboration dialogue.' }
-          ],
-          max_tokens: 300,
-          temperature: 0.9,
-        });
-        
-        const text = response.choices[0]?.message?.content || '';
-        return JSON.parse(text);
-      } catch {
-        return defaultDialogue;
-      }
+      const text = response.choices[0]?.message?.content || '';
+      return JSON.parse(text);
     };
     
     // Execute both in parallel
@@ -1468,8 +1398,6 @@ KEY ELEMENTS:
     const headline = workItems.find(w => w.type === 'headline')?.content?.split('\n').pop()?.replace(/['"]/g, '') || 'The truth was always there';
     const visualDirection = workItems.find(w => w.type === 'visual')?.content || 'Documentary photography, muted tones';
     
-    const openai = getOpenAI();
-    
     addChatMessage('apparatus', await generateAgentLine('apparatus', `Compiling deliverables package for "${product}" — generating visual assets.`, briefContext));
     
     const zip = new JSZip();
@@ -1481,11 +1409,19 @@ KEY ELEMENTS:
     const oohFolder = zip.folder('04_OOH');
     const docsFolder = zip.folder('05_DOCUMENTATION');
     
-    // Helper to generate and fetch image using base64 to avoid CORS issues
+    // Helper to generate and fetch image using DALL-E with image API key
+    const getImageClient = () => {
+      const imageApiKey = import.meta.env.VITE_OPENAI_IMAGE_API_KEY;
+      if (!imageApiKey) {
+        throw new Error('VITE_OPENAI_IMAGE_API_KEY is not set. Add it to your .env file.');
+      }
+      return new OpenAI({ apiKey: imageApiKey, dangerouslyAllowBrowser: true });
+    };
+    
     const generateImage = async (prompt: string, filename: string): Promise<{blob: Blob} | null> => {
-      if (!openai) return null;
       try {
-        const response = await openai.images.generate({
+        const imageClient = getImageClient();
+        const response = await imageClient.images.generate({
           model: 'dall-e-3',
           prompt: `Create a minimalist, Swiss-style advertising visual. ${prompt}. Style: Documentary photography aesthetic, muted earth tones, high contrast, no text or logos visible, cinematic composition, editorial quality. The image should feel contemplative and authentic, not commercial.`,
           n: 1,

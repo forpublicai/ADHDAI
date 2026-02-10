@@ -1,17 +1,20 @@
 import OpenAI from 'openai';
 
-function getOpenAIClient(): OpenAI | null {
+function getOpenAIClient(): OpenAI {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    throw new Error('[BrandExtractor] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
+  }
   return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 }
 
 const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
-async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string | null> {
+async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string> {
+  const errors: string[] = [];
   for (const model of MODELS) {
-    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { console.warn(`[BrandExtractor] ${model} failed:`, e instanceof Error ? e.message : e); }
+    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { const msg = e instanceof Error ? e.message : String(e); console.warn(`[BrandExtractor] ${model} failed:`, msg); errors.push(`${model}: ${msg}`); }
   }
-  return null;
+  throw new Error(`[BrandExtractor] All models failed:\n${errors.join('\n')}`);
 }
 
 export interface BrandInfo {
@@ -36,12 +39,8 @@ export interface BrandInfo {
  */
 export async function extractBrandInfo(brief: string): Promise<BrandInfo> {
   const openai = getOpenAIClient();
-  
-  if (!openai) {
-    return getFallbackBrandInfo(brief);
-  }
 
-  try {
+  {
     const prompt = `You are a senior brand strategist at Landor or Pentagram. Analyze this brief and extract comprehensive brand intelligence:
 
 Brief: "${brief}"
@@ -89,8 +88,6 @@ For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make soph
       max_tokens: 500
     });
 
-    if (!rawResponse) throw new Error('No response from API');
-    
     const cleaned = rawResponse
       .replace(/^```json\n?/i, '')
       .replace(/^```\n?/i, '')
@@ -113,9 +110,6 @@ For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make soph
     }
 
     return parsed as BrandInfo;
-  } catch (error) {
-    console.error('Error extracting brand info:', error);
-    return getFallbackBrandInfo(brief);
   }
 }
 
@@ -142,32 +136,6 @@ function normalizeColor(color: string): string {
 
   const lower = color.toLowerCase().trim();
   return colorMap[lower] || color;
-}
-
-/**
- * Fallback brand info when API is unavailable
- */
-function getFallbackBrandInfo(brief: string): BrandInfo {
-  // Try to extract client name from brief
-  const clientMatch = brief.match(/(?:for|client|brand|company):\s*([A-Z][A-Za-z\s]+)/i) ||
-                      brief.match(/([A-Z][A-Za-z\s]{2,20})\s+(?:needs|wants|requires)/i);
-  const clientName = clientMatch ? clientMatch[1].trim() : 'Client';
-
-  return {
-    clientName,
-    brandColors: {
-      primary: '#1a1a1a', // Default to agency ink color
-      secondary: undefined,
-      accent: undefined
-    },
-    brandFonts: {
-      heading: undefined,
-      body: undefined
-    },
-    brandTone: 'serious',
-    brandStyle: 'minimalist',
-    brandGuidelines: undefined
-  };
 }
 
 /**

@@ -8,18 +8,21 @@ import {
 } from '../types';
 import { Fortune500Company } from '../data/fortune500';
 
-function getOpenAIClient(): OpenAI | null {
+function getOpenAIClient(): OpenAI {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    throw new Error('[DoomsdayAnalyzer] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
+  }
   return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 }
 
 const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
-async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string | null> {
+async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string> {
+  const errors: string[] = [];
   for (const model of MODELS) {
-    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { console.warn(`[DoomsdayAnalyzer] ${model} failed:`, e instanceof Error ? e.message : e); }
+    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { const msg = e instanceof Error ? e.message : String(e); console.warn(`[DoomsdayAnalyzer] ${model} failed:`, msg); errors.push(`${model}: ${msg}`); }
   }
-  return null;
+  throw new Error(`[DoomsdayAnalyzer] All models failed:\n${errors.join('\n')}`);
 }
 
 // Generate unique ID
@@ -34,13 +37,8 @@ export async function analyzeDoomsdayScenarios(
   company: Fortune500Company
 ): Promise<ScenarioAnalysis> {
   const openai = getOpenAIClient();
-  
-  if (!openai) {
-    console.warn('OpenAI API key not found. Using fallback scenarios.');
-    return generateFallbackScenarios(company);
-  }
 
-  try {
+  {
     const prompt = `You are a world-class investigative journalist crossed with a corporate risk strategist. Your analysis has the depth of a New Yorker long-read and the precision of a McKinsey report. Analyze ${company.name} (${company.industry}, ${company.sector}) and identify potential catastrophe scenarios with the rigor and dark wit of a Michael Lewis book.
 
 COMPANY INTELLIGENCE:
@@ -95,8 +93,6 @@ Return JSON object with "scenarios" array:
       max_tokens: 6000
     });
 
-    if (!rawResponse) return generateFallbackScenarios(company);
-    
     // Parse and validate response
     let scenariosData;
     try {
@@ -106,8 +102,7 @@ Return JSON object with "scenarios" array:
         scenariosData = [scenariosData];
       }
     } catch {
-      console.error('Failed to parse scenarios JSON:', rawResponse);
-      return generateFallbackScenarios(company);
+      throw new Error(`[DoomsdayAnalyzer] Failed to parse scenarios JSON from API response`);
     }
 
     // Convert to typed scenarios
@@ -135,9 +130,6 @@ Return JSON object with "scenarios" array:
       scenarios,
       summary
     };
-  } catch (error) {
-    console.error('Error analyzing doomsday scenarios:', error);
-    return generateFallbackScenarios(company);
   }
 }
 
@@ -149,136 +141,26 @@ async function generateAnalysisSummary(
   scenarios: DoomsdayScenario[]
 ): Promise<string> {
   const openai = getOpenAIClient();
-  
-  if (!openai) {
-    return `${company.name} faces ${scenarios.length} potential doomsday scenarios across multiple time horizons. The most severe risks relate to ${scenarios.filter(s => s.severity === 'catastrophic').map(s => s.category).join(', ') || 'various operational areas'}.`;
-  }
 
-  try {
-    const scenarioSummaries = scenarios
-      .slice(0, 5)
-      .map(s => `- ${s.title} (${s.timeHorizon}, ${s.severity})`)
-      .join('\n');
+  const scenarioSummaries = scenarios
+    .slice(0, 5)
+    .map(s => `- ${s.title} (${s.timeHorizon}, ${s.severity})`)
+    .join('\n');
 
-    const summaryResponse = await callWithModelCascade(openai, {
-      messages: [
-        {
-          role: 'system',
-          content: 'You write sardonic corporate risk assessment summaries. Be dry, slightly dark, and professional-sounding while being subtly critical.'
-        },
-        {
-          role: 'user',
-          content: `Write a 2-3 sentence summary of ${company.name}'s doomsday risk profile based on these scenarios:\n${scenarioSummaries}`
-        }
-      ],
-      temperature: 0.8,
-      max_tokens: 200
-    });
-
-    return summaryResponse || 
-      `${company.name} has been identified as having significant catastrophe potential across ${scenarios.length} scenarios.`;
-  } catch {
-    return `${company.name} faces ${scenarios.length} potential doomsday scenarios requiring preemptive apology preparation.`;
-  }
-}
-
-/**
- * Fallback scenarios when API is unavailable
- */
-function generateFallbackScenarios(company: Fortune500Company): ScenarioAnalysis {
-  const scenarios: DoomsdayScenario[] = [];
-  
-  // Generate fallback scenarios based on risk profile
-  const riskScenarios: Record<string, Partial<DoomsdayScenario>[]> = {
-    'environmental': [
-      { title: 'Catastrophic Pollution Event', category: 'environmental', severity: 'catastrophic', description: `${company.name} discovered to be source of widespread environmental contamination affecting local ecosystems and communities.` },
-      { title: 'Climate Contribution Exposed', category: 'environmental', severity: 'severe', description: `Internal documents reveal ${company.name} knowingly accelerated climate change while publicly claiming environmental stewardship.` },
+  return await callWithModelCascade(openai, {
+    messages: [
+      {
+        role: 'system',
+        content: 'You write sardonic corporate risk assessment summaries. Be dry, slightly dark, and professional-sounding while being subtly critical.'
+      },
+      {
+        role: 'user',
+        content: `Write a 2-3 sentence summary of ${company.name}'s doomsday risk profile based on these scenarios:\n${scenarioSummaries}`
+      }
     ],
-    'labor': [
-      { title: 'Mass Workplace Safety Failures', category: 'social', severity: 'severe', description: `Systematic safety violations at ${company.name} facilities lead to preventable injuries and deaths.` },
-      { title: 'Labor Exploitation Scandal', category: 'social', severity: 'severe', description: `Investigation reveals ${company.name}'s supply chain built on exploitative labor practices.` },
-    ],
-    'data-privacy': [
-      { title: 'Massive Data Breach', category: 'technological', severity: 'catastrophic', description: `${company.name} suffers historic data breach exposing millions of customers' sensitive information.` },
-      { title: 'Surveillance Overreach', category: 'reputational', severity: 'severe', description: `${company.name} found collecting and selling user data far beyond disclosed purposes.` },
-    ],
-    'safety': [
-      { title: 'Product Safety Crisis', category: 'operational', severity: 'catastrophic', description: `${company.name} products linked to widespread injuries despite known safety defects.` },
-    ],
-    'climate': [
-      { title: 'Climate Tipping Point Contribution', category: 'environmental', severity: 'catastrophic', description: `${company.name}'s operations identified as key contributor to irreversible climate threshold breach.` },
-    ],
-    'regulatory': [
-      { title: 'Regulatory Capture Scandal', category: 'regulatory', severity: 'severe', description: `${company.name} exposed for systematically corrupting oversight agencies meant to protect public interest.` },
-    ],
-    'financial': [
-      { title: 'Systemic Financial Collapse', category: 'financial', severity: 'catastrophic', description: `${company.name}'s risky practices trigger cascading economic damage affecting millions.` },
-    ],
-    'health': [
-      { title: 'Public Health Crisis', category: 'social', severity: 'catastrophic', description: `${company.name} products directly linked to widespread chronic health conditions.` },
-    ],
-    'antitrust': [
-      { title: 'Monopoly Abuse Exposed', category: 'regulatory', severity: 'severe', description: `${company.name}'s anticompetitive practices shown to harm consumers and crush innovation.` },
-    ],
-    'geopolitical': [
-      { title: 'Geopolitical Complicity', category: 'geopolitical', severity: 'severe', description: `${company.name} found enabling authoritarian regimes or conflict through business operations.` },
-    ],
-  };
-
-  // Map time horizons
-  const timeHorizons: TimeHorizon[] = ['1-year', '5-year', '10-year', '50-year'];
-
-  // Generate scenarios from company's risk profile
-  let scenarioIndex = 0;
-  company.riskProfile.forEach((risk, _riskIndex) => {
-    const riskTemplates = riskScenarios[risk] || [];
-    riskTemplates.forEach((template) => {
-      const horizon = timeHorizons[scenarioIndex % timeHorizons.length];
-      scenarios.push({
-        id: generateId(),
-        companyName: company.name,
-        timeHorizon: horizon,
-        title: template.title || 'Unknown Risk',
-        description: template.description || `A significant ${risk}-related incident at ${company.name}.`,
-        category: template.category || 'operational',
-        severity: template.severity || 'moderate',
-        likelihood: 40 + Math.random() * 40,
-        potentialDamage: `Widespread ${risk}-related damage affecting stakeholders`,
-        affectedParties: ['Employees', 'Customers', 'Communities', 'Environment', 'Shareholders'],
-        precedents: [],
-        selected: false
-      });
-      scenarioIndex++;
-    });
+    temperature: 0.8,
+    max_tokens: 200
   });
-
-  // Ensure we have at least one scenario per time horizon
-  timeHorizons.forEach((horizon) => {
-    const hasHorizon = scenarios.some(s => s.timeHorizon === horizon);
-    if (!hasHorizon) {
-      scenarios.push({
-        id: generateId(),
-        companyName: company.name,
-        timeHorizon: horizon,
-        title: `${company.name} ${horizon.replace('-', ' ')} Risk Event`,
-        description: `A significant corporate incident affecting ${company.name} stakeholders within the ${horizon.replace('-', ' ')} time frame.`,
-        category: 'operational',
-        severity: horizon === '50-year' ? 'catastrophic' : 'severe',
-        likelihood: horizon === '1-year' ? 60 : horizon === '50-year' ? 30 : 45,
-        potentialDamage: 'Multiple stakeholder groups affected',
-        affectedParties: ['Employees', 'Customers', 'Communities'],
-        precedents: [],
-        selected: false
-      });
-    }
-  });
-
-  return {
-    company: company.name,
-    analyzedAt: Date.now(),
-    scenarios,
-    summary: `${company.name} faces ${scenarios.length} potential doomsday scenarios across multiple time horizons. Key risk areas include ${company.riskProfile.slice(0, 3).join(', ')}.`
-  };
 }
 
 /**

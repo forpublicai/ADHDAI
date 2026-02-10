@@ -9,11 +9,11 @@ import {
 } from '../types';
 import { Fortune500Company } from '../data/fortune500';
 
-// Create OpenAI client only when API key is available
-function getOpenAIClient(): OpenAI | null {
+// Create OpenAI client — requires API key in .env
+function getOpenAIClient(): OpenAI {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   if (!apiKey) {
-    return null;
+    throw new Error('[ApologyGenerator] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
   }
   return new OpenAI({
     apiKey: apiKey,
@@ -21,23 +21,38 @@ function getOpenAIClient(): OpenAI | null {
   });
 }
 
-// Model cascade — try gpt-5.2, fall back to gpt-4o, then gpt-4o-mini
+// Create OpenAI client for image generation — uses VITE_OPENAI_IMAGE_API_KEY
+function getOpenAIImageClient(): OpenAI {
+  const apiKey = import.meta.env.VITE_OPENAI_IMAGE_API_KEY;
+  if (!apiKey) {
+    throw new Error('[ApologyGenerator] VITE_OPENAI_IMAGE_API_KEY is not set. Add it to your .env file.');
+  }
+  return new OpenAI({
+    apiKey: apiKey,
+    dangerouslyAllowBrowser: true
+  });
+}
+
+// Model cascade — try gpt-5.2, then gpt-4o, then gpt-4o-mini
 const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
 
 async function callWithModelCascade(
   openai: OpenAI,
   params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>
-): Promise<string | null> {
+): Promise<string> {
+  const errors: string[] = [];
   for (const model of MODELS) {
     try {
       const response = await openai.chat.completions.create({ model, ...params });
       const content = response.choices[0]?.message?.content?.trim();
       if (content) return content;
     } catch (err) {
-      console.warn(`[ApologyGenerator] ${model} failed:`, err instanceof Error ? err.message : err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[ApologyGenerator] ${model} failed:`, msg);
+      errors.push(`${model}: ${msg}`);
     }
   }
-  return null;
+  throw new Error(`[ApologyGenerator] All models failed:\n${errors.join('\n')}`);
 }
 
 // Generate unique ID
@@ -108,102 +123,41 @@ export async function generateApologyCampaign(
   company: Fortune500Company
 ): Promise<ApologyCampaign> {
   const campaignId = generateId();
-  
-  // Always have defaults ready so nothing is ever undefined
-  const defaults = getDefaultCreativeDirection(scenario, company);
-  const defaultPrint = getDefaultPrintAssets(company, defaults);
-  const defaultSocial = getDefaultSocialPosts(company, defaults);
-  const defaultVideo = getDefaultVideoScript(company, defaults);
-  
   const openai = getOpenAIClient();
+
+  // Generate core creative concept first
+  const creativeDirection = await generateCreativeDirection(openai, scenario, company);
   
-  if (!openai) {
-    console.warn('OpenAI API key not found. Using fallback campaign.');
-    return generateFallbackCampaign(campaignId, scenario, company);
-  }
+  // Generate the insane marketing angle
+  const marketingAngle = await generateMarketingAngle(openai, scenario, company, creativeDirection);
+  
+  // Generate deliverables with the creative direction
+  const deliverables = await generateDeliverables(openai, scenario, company, creativeDirection, marketingAngle);
 
-  try {
-    // Generate core creative concept first
-    const rawCreative = await generateCreativeDirection(openai, scenario, company);
-    
-    // SAFELY extract fields — never trust the API response shape
-    const creativeDirection: CreativeDirection = {
-      headline: rawCreative.headline || defaults.headline,
-      tagline: rawCreative.tagline || defaults.tagline,
-      manifesto: rawCreative.manifesto || defaults.manifesto,
-      slogans: Array.isArray(rawCreative.slogans) && rawCreative.slogans.length > 0 
-        ? rawCreative.slogans : defaults.slogans,
-      tone: rawCreative.tone || defaults.tone,
-      visualConcept: rawCreative.visualConcept || defaults.visualConcept,
-      colors: Array.isArray(rawCreative.colors) && rawCreative.colors.length > 0 
-        ? rawCreative.colors : defaults.colors,
-      typography: rawCreative.typography || defaults.typography,
-    };
-    
-    // Generate the insane marketing angle
-    const rawAngle = await generateMarketingAngle(openai, scenario, company, creativeDirection);
-    const marketingAngle: MarketingAngle = {
-      bigIdea: rawAngle.bigIdea || `${company.name} owns their future mistakes before anyone else can`,
-      insaneAngle: rawAngle.insaneAngle || `Launch an "Apology Subscription Service" for ${company.name}`,
-      activationConcept: rawAngle.activationConcept || 'Pop-up "Pre-Forgiveness Centers"',
-      productTieIn: rawAngle.productTieIn || 'Limited edition "Pre-Apologized" product line',
-    };
-    
-    // Generate deliverables with the creative direction
-    let deliverables: ApologyDeliverables;
-    try {
-      deliverables = await generateDeliverables(openai, scenario, company, creativeDirection, marketingAngle);
-    } catch {
-      // If deliverables fail, use defaults
-      deliverables = {
-        fullPageAd: defaultPrint.fullPage,
-        poster: defaultPrint.poster,
-        billboard: defaultPrint.billboard,
-        busShelter: defaultPrint.busShelter,
-        bannerAds: defaultPrint.banners,
-        socialPosts: defaultSocial,
-        videoScript: defaultVideo,
-      };
-    }
-    
-    // Ensure deliverables are complete — fill any gaps
-    if (!deliverables.fullPageAd) deliverables.fullPageAd = defaultPrint.fullPage;
-    if (!deliverables.poster) deliverables.poster = defaultPrint.poster;
-    if (!deliverables.billboard) deliverables.billboard = defaultPrint.billboard;
-    if (!deliverables.busShelter) deliverables.busShelter = defaultPrint.busShelter;
-    if (!deliverables.socialPosts || deliverables.socialPosts.length === 0) deliverables.socialPosts = defaultSocial;
-    if (!deliverables.videoScript) deliverables.videoScript = defaultVideo;
-    if (!deliverables.bannerAds || deliverables.bannerAds.length === 0) deliverables.bannerAds = defaultPrint.banners;
+  // Build key messages
+  const keyMessages: string[] = [
+    marketingAngle.bigIdea,
+    marketingAngle.insaneAngle,
+    ...(creativeDirection.slogans || []).slice(0, 2)
+  ].filter(Boolean);
 
-    // Build safe key messages
-    const keyMessages: string[] = [
-      marketingAngle.bigIdea,
-      marketingAngle.insaneAngle,
-      ...(creativeDirection.slogans || []).slice(0, 2)
-    ].filter(Boolean);
-
-    return {
-      id: campaignId,
-      scenarioId: scenario.id,
-      companyName: company.name,
-      scenarioTitle: scenario.title,
-      status: 'complete',
-      headline: creativeDirection.headline,
-      subheadline: creativeDirection.tagline,
-      apologyStatement: creativeDirection.manifesto,
-      keyMessages: keyMessages.length > 0 ? keyMessages : defaults.slogans,
-      tone: creativeDirection.tone,
-      visualConcept: creativeDirection.visualConcept,
-      colorPalette: creativeDirection.colors,
-      typography: creativeDirection.typography,
-      deliverables,
-      generatedAt: Date.now()
-    };
-  } catch (error) {
-    console.error('Error generating apology campaign:', error);
-    // Even on error, return a USABLE campaign with fallback content
-    return generateFallbackCampaign(campaignId, scenario, company);
-  }
+  return {
+    id: campaignId,
+    scenarioId: scenario.id,
+    companyName: company.name,
+    scenarioTitle: scenario.title,
+    status: 'complete',
+    headline: creativeDirection.headline,
+    subheadline: creativeDirection.tagline,
+    apologyStatement: creativeDirection.manifesto,
+    keyMessages,
+    tone: creativeDirection.tone,
+    visualConcept: creativeDirection.visualConcept,
+    colorPalette: creativeDirection.colors,
+    typography: creativeDirection.typography,
+    deliverables,
+    generatedAt: Date.now()
+  };
 }
 
 interface CreativeDirection {
@@ -290,11 +244,7 @@ Return JSON:
     max_tokens: 3000
   });
 
-  try {
-    return JSON.parse(rawCreativeResponse || '{}') as CreativeDirection;
-  } catch {
-    return getDefaultCreativeDirection(scenario, company);
-  }
+  return JSON.parse(rawCreativeResponse) as CreativeDirection;
 }
 
 interface MarketingAngle {
@@ -357,16 +307,7 @@ Return JSON:
     max_tokens: 800
   });
 
-  try {
-    return JSON.parse(rawAngleResponse || '{}') as MarketingAngle;
-  } catch {
-    return {
-      bigIdea: `${company.name} owns their future mistakes before anyone else can`,
-      insaneAngle: `Launch an "Apology Subscription Service" where stakeholders get early access to what ${company.name} is sorry for next`,
-      activationConcept: 'Pop-up "Pre-Forgiveness Centers" where people can accept apologies in advance',
-      productTieIn: 'Limited edition "Pre-Apologized" product line with the campaign tagline'
-    };
-  }
+  return JSON.parse(rawAngleResponse) as MarketingAngle;
 }
 
 /**
@@ -463,32 +404,23 @@ Return JSON:
     max_tokens: 2000
   });
 
-  const defaults = getDefaultPrintAssets(company, creative);
-  try {
-    const parsed = JSON.parse(rawPrintResponse || '{}');
-    // Safely extract with fallbacks for every field
-    const safeAsset = (raw: Record<string, unknown> | undefined, fallback: ApologyAsset): ApologyAsset => {
-      if (!raw || typeof raw !== 'object') return fallback;
-      return {
-        format: (raw.format as string) || fallback.format,
-        dimensions: (raw.dimensions as string) || fallback.dimensions,
-        headline: (raw.headline as string) || fallback.headline,
-        body: (raw.body as string) || fallback.body,
-        visual: (raw.visual as string) || fallback.visual,
-      };
-    };
-    return {
-      fullPage: safeAsset(parsed.fullPage, defaults.fullPage),
-      poster: safeAsset(parsed.poster, defaults.poster),
-      billboard: safeAsset(parsed.billboard, defaults.billboard),
-      busShelter: safeAsset(parsed.busShelter, defaults.busShelter),
-      banners: Array.isArray(parsed.banners) 
-        ? parsed.banners.map((b: Record<string, unknown>, i: number) => safeAsset(b, defaults.banners[i] || defaults.banners[0]))
-        : defaults.banners,
-    };
-  } catch {
-    return defaults;
-  }
+  const parsed = JSON.parse(rawPrintResponse);
+  const extractAsset = (raw: Record<string, unknown>): ApologyAsset => ({
+    format: (raw.format as string) || '',
+    dimensions: (raw.dimensions as string) || '',
+    headline: (raw.headline as string) || '',
+    body: (raw.body as string) || '',
+    visual: (raw.visual as string) || '',
+  });
+  return {
+    fullPage: extractAsset(parsed.fullPage || {}),
+    poster: extractAsset(parsed.poster || {}),
+    billboard: extractAsset(parsed.billboard || {}),
+    busShelter: extractAsset(parsed.busShelter || {}),
+    banners: Array.isArray(parsed.banners) 
+      ? parsed.banners.map((b: Record<string, unknown>) => extractAsset(b))
+      : [],
+  };
 }
 
 async function generateSocialPosts(
@@ -536,22 +468,16 @@ Return JSON array:
     max_tokens: 2000
   });
 
-  const defaults = getDefaultSocialPosts(company, creative);
-  try {
-    const parsed = JSON.parse(rawSocialResponse || '{}');
-    const rawPosts = Array.isArray(parsed) ? parsed : (parsed.posts || parsed.socialPosts || []);
-    if (!Array.isArray(rawPosts) || rawPosts.length === 0) return defaults;
-    
-    return rawPosts.map((p: Record<string, unknown>, i: number) => ({
-      platform: (p.platform as string) || defaults[i % defaults.length]?.platform || 'Twitter/X',
-      type: (p.type as string) || 'Post',
-      copy: (p.copy as string) || defaults[i % defaults.length]?.copy || creative.tagline,
-      visual: (p.visual as string) || 'Campaign visual',
-      hashtags: Array.isArray(p.hashtags) ? p.hashtags as string[] : [],
-    }));
-  } catch {
-    return defaults;
-  }
+  const parsed = JSON.parse(rawSocialResponse);
+  const rawPosts = Array.isArray(parsed) ? parsed : (parsed.posts || parsed.socialPosts || []);
+  
+  return rawPosts.map((p: Record<string, unknown>) => ({
+    platform: (p.platform as string) || 'Twitter/X',
+    type: (p.type as string) || 'Post',
+    copy: (p.copy as string) || creative.tagline,
+    visual: (p.visual as string) || 'Campaign visual',
+    hashtags: Array.isArray(p.hashtags) ? p.hashtags as string[] : [],
+  }));
 }
 
 async function generateVideoScript(
@@ -604,237 +530,34 @@ Return JSON:
     max_tokens: 2000
   });
 
-  const defaults = getDefaultVideoScript(company, creative);
-  try {
-    const parsed = JSON.parse(rawVideoResponse || '{}');
-    return {
-      title: (parsed.title as string) || defaults.title,
-      duration: (parsed.duration as string) || defaults.duration,
-      format: (parsed.format as string) || defaults.format,
-      script: Array.isArray(parsed.script) && parsed.script.length > 0
-        ? parsed.script.map((s: Record<string, unknown>) => ({
-            shot: (s.shot as string) || '1',
-            duration: (s.duration as string) || '5s',
-            visual: (s.visual as string) || 'Wide shot',
-            audio: (s.audio as string) || '(ambient)',
-            onScreenText: (s.onScreenText as string) || undefined,
-          }))
-        : defaults.script,
-      notes: (parsed.notes as string) || defaults.notes,
-    };
-  } catch {
-    return defaults;
-  }
-}
-
-// ============================================
-// SECTOR-SPECIFIC BRAND COLORS
-// ============================================
-function getSectorColors(sector: string): string[] {
-  const palettes: Record<string, string[]> = {
-    'Technology':       ['#0f0f0f', '#1a1a2e', '#4361ee', '#f72585', '#f8f9fa'],
-    'Financial':        ['#0c1821', '#1b3a4b', '#c9a227', '#d4380d', '#f5f0e8'],
-    'Healthcare':       ['#0d1b2a', '#1b4965', '#0d9488', '#e63946', '#f1faee'],
-    'Energy':           ['#1a1a1a', '#2d3436', '#00b894', '#fdcb6e', '#f5f5f5'],
-    'Consumer Goods':   ['#2d1b4e', '#1a1a2e', '#e17055', '#00cec9', '#ffeaa7'],
-    'Automotive':       ['#0f0f0f', '#2c3e50', '#e74c3c', '#3498db', '#ecf0f1'],
-    'Industrials':      ['#1a1a1a', '#34495e', '#e67e22', '#2ecc71', '#ecf0f1'],
-    'Telecommunications': ['#0a0a23', '#1a1a40', '#e040fb', '#00e5ff', '#f5f5f5'],
-    'Materials':        ['#212121', '#37474f', '#ff6f00', '#4caf50', '#efebe9'],
-    'Media':            ['#0f0f0f', '#1a1a2e', '#ff0050', '#00f5d4', '#f8f8f8'],
-    'Consumer Services': ['#1a0a2e', '#16213e', '#f77f00', '#06d6a0', '#edf2f4'],
-    'Transportation':   ['#0d1b2a', '#1b3a4b', '#0077b6', '#ef476f', '#edf2f4'],
-    'Real Estate':      ['#1a1a2e', '#2d3436', '#6c5ce7', '#fd79a8', '#f5f5f5'],
-  };
-  return palettes[sector] || ['#0f0f0f', '#1a1a2e', '#e94560', '#4361ee', '#f5f5f5'];
-}
-
-// ============================================
-// DEFAULT FALLBACK GENERATORS
-// ============================================
-function getDefaultCreativeDirection(scenario: DoomsdayScenario, company: Fortune500Company): CreativeDirection {
-  // Use the ACTUAL scenario title to generate specific, punchy copy
-  const scenarioShort = scenario.title.length > 60 
-    ? scenario.title.slice(0, 57) + '...' 
-    : scenario.title;
-  
-  const colors = getSectorColors(company.sector);
-
+  const parsed = JSON.parse(rawVideoResponse);
   return {
-    headline: `We See "${scenarioShort}" Coming. This Is Us, Saying Sorry First.`,
-    tagline: `${company.name}. Accountable before the headline breaks.`,
-    manifesto: `At ${company.name}, we've spent years building trust in ${company.industry.toLowerCase()}. Today, we're risking that trust to tell you the truth: we see "${scenario.title}" as a real possibility. Not a distant fear — a credible threat that our own actions could bring about. We could wait. We could let the PR machine spin up after the fact. Instead, we're choosing to stand here, before the damage is done, and say: we know. We're sorry. And here's what we're doing about it. Because you didn't ask for a corporation that apologizes after the crisis. You asked for one that prevents it.`,
-    slogans: [
-      `${company.name}: Sorry in advance. Serious right now.`,
-      `The crisis hasn't happened. The apology has.`,
-      `Pre-emptive accountability from ${company.name}`,
-      `"${scenarioShort}" — We'd rather you hear it from us.`,
-    ],
-    tone: `The voice of a ${company.industry.toLowerCase()} executive who just pulled the fire alarm on their own company. Not performative — genuinely unsettled. ${company.name}'s polished brand voice cracking open with uncomfortable honesty. Think: the 3am email the CEO actually sends, not the one legal approved.`,
-    visualConcept: `${company.name}'s brand identity turned confessional. Their ${company.sector.toLowerCase()} aesthetic — normally used to project confidence — is now deployed for radical transparency. Desaturated ${company.industry.toLowerCase()} imagery. Documentary-style photography. Bold typography that feels like evidence, not advertising. Every visual choice says: "This is real."`,
-    colors,
-    typography: `Heavy condensed sans-serif for headlines (impact, urgency). Light extended for body copy (measured, sincere). The contrast between bold headlines and quiet body text mirrors the contrast between corporate confidence and corporate confession.`,
-  };
-}
-
-function getDefaultPrintAssets(company: Fortune500Company, creative: CreativeDirection): PrintAssets {
-  return {
-    fullPage: {
-      format: 'Magazine Full Page',
-      dimensions: '8.5x11"',
-      headline: creative.headline,
-      body: creative.manifesto,
-      visual: `Aerial photograph of ${company.name}'s operations — a ${company.industry.toLowerCase()} facility at golden hour, shot like a documentary still. The scale is meant to convey both power and fragility. No people visible. The emptiness is the point.`
-    },
-    poster: {
-      format: 'A1 Poster',
-      dimensions: '594x841mm',
-      headline: creative.slogans[0] || creative.headline,
-      body: creative.tagline,
-      visual: `Close-up of a ${company.industry.toLowerCase()} object/product — shot like evidence photography. Clinical lighting, white background, the aesthetic of an internal audit made public.`
-    },
-    billboard: {
-      format: 'Billboard',
-      dimensions: '14x48ft',
-      headline: creative.headline,
-      body: creative.tagline,
-      visual: `Split composition: left side is ${company.name}'s signature brand imagery (clean, confident, corporate), right side is the same image desaturated and cracked. The visual metaphor of honesty breaking through the brand facade.`
-    },
-    busShelter: {
-      format: 'Bus Shelter',
-      dimensions: '1800x1200mm',
-      headline: creative.slogans[1] || creative.headline,
-      body: `${company.name} — ${creative.tagline}`,
-      visual: `Eye-level portrait composition. A single ${company.industry.toLowerCase()} symbol isolated against brand colors, with a thin red line cutting through the center. Below: a QR code labeled "Read our pre-apology."`
-    },
-    banners: [
-      { 
-        format: 'Digital Leaderboard 728x90', 
-        headline: creative.headline, 
-        body: `Read our pre-apology → ${company.name.toLowerCase().replace(/\s+/g, '')}.com/accountability`, 
-        visual: `Brand colors with subtle distortion effect — the ${company.name} identity, glitching with honesty` 
-      },
-      { 
-        format: 'Digital Medium Rectangle 300x250', 
-        headline: creative.slogans[0] || creative.headline, 
-        body: creative.tagline, 
-        visual: `${company.name} logo on brand background, with manifesto text scrolling behind — the confession as texture` 
-      },
-      {
-        format: 'Digital Skyscraper 160x600',
-        headline: creative.slogans[1] || 'We owe you the truth.',
-        body: `${company.name} Pre-Apology`,
-        visual: `Vertical brand strip — ${company.name} colors top to bottom, with headline breaking through the gradient`
-      }
-    ]
-  };
-}
-
-function getDefaultSocialPosts(company: Fortune500Company, creative: CreativeDirection): ApologySocialPost[] {
-  return [
-    {
-      platform: 'Twitter/X',
-      type: 'Thread',
-      copy: `We need to talk.\n\nNot about something that happened. About something that hasn't happened yet.\n\nBut we know it could. And if it does, it'll be because of decisions we made.\n\nSo here's our apology. In advance.\n\n"${creative.headline}"\n\nRead the full statement ↓`,
-      visual: `Text-first design. ${company.name} brand colors as background. The headline in bold white. No product imagery — just uncomfortable corporate honesty formatted as a tweet.`,
-      hashtags: ['PreemptiveApology', company.name.replace(/\s+/g, ''), 'CorporateAccountability']
-    },
-    {
-      platform: 'Instagram',
-      type: 'Carousel',
-      copy: `"${creative.headline}"\n\nSwipe to read the full statement.\n\nThis isn't damage control. This is damage prevention.\n\n${creative.tagline}\n\n${company.name} believes you deserve to know what we already know.`,
-      visual: `10-slide carousel: Slide 1 is the headline on brand background. Slides 2-8 break down the manifesto sentence by sentence, each on a different shade of the brand palette. Slide 9 is the tagline. Slide 10 is a call to action with QR code.`,
-      hashtags: ['AccountabilityEra', company.name.replace(/\s+/g, ''), 'PreemptiveApology']
-    },
-    {
-      platform: 'LinkedIn',
-      type: 'CEO Open Letter',
-      copy: `To our stakeholders, our employees, and the communities we serve:\n\nI've led ${company.name} through growth, through challenges, through transformation. But I've never done this before.\n\nToday we're publishing a preemptive apology — an acknowledgment of a future we see coming and a commitment to do better before we have to.\n\n"${creative.headline}"\n\nThis isn't a PR strategy. This is what accountability looks like when you do it early enough to matter.\n\n${creative.tagline}\n\nRead our full statement at the link below.`,
-      visual: `Professional but vulnerable: CEO photographed from behind, looking out floor-to-ceiling windows at the city. Shot in ${company.name}'s actual headquarters aesthetic. The composition says "looking ahead" and "weight of responsibility."`,
-      hashtags: ['Leadership', 'CorporateAccountability', 'TransparencyInBusiness']
-    },
-    {
-      platform: 'TikTok',
-      type: 'Brand Film Teaser',
-      copy: `POV: A Fortune 500 company apologizes for something that hasn't happened yet 💀\n\n"${creative.headline}"\n\nNo this isn't satire. ${company.name} just dropped a pre-apology for a disaster they see coming.\n\nThis is either the most honest thing a corporation has ever done or the most unhinged marketing play in history. Either way I'm watching.`,
-      visual: `Quick-cut montage: ${company.name} logo → news headline about the scenario → the pre-apology statement appearing letter by letter → reaction shots → the tagline card. Gen-Z pacing, corporate content, dissonance is the point.`,
-      hashtags: ['CorporateTikTok', company.name.replace(/\s+/g, ''), 'PreApology', 'ThisIsReal']
-    },
-    {
-      platform: 'Instagram',
-      type: 'Reel',
-      copy: `What if a company apologized BEFORE the disaster?\n\n${company.name} just did.\n\n"${creative.headline}"\n\nLink in bio for the full pre-apology statement.`,
-      visual: `15-second reel: Opens on ${company.name} logo dissolving. Cut to bold text: the headline. Cut to manifesto excerpt scrolling upward like movie credits. End card: tagline + company name. Trending audio underneath (something contemplative, not ironic).`,
-      hashtags: ['PreemptiveApology', company.name.replace(/\s+/g, ''), 'BrandAccountability']
-    }
-  ];
-}
-
-function getDefaultVideoScript(company: Fortune500Company, creative: CreativeDirection): { title: string; duration: string; format: string; script: VideoShot[]; notes: string } {
-  return {
-    title: `"${creative.tagline}" - A ${company.name} Confession`,
-    duration: '60 seconds',
-    format: 'Documentary confession. Employees speaking directly to camera about future failures.',
-    script: [
-      { shot: '1', duration: '8s', visual: 'ECU: Employee eyes. Searching. A moment before speech.', audio: '(Silence, then) "I know what\'s coming."', onScreenText: undefined },
-      { shot: '2', duration: '10s', visual: 'Various employees in their workspaces, looking at camera', audio: '(VO montage) "We all know." "We\'ve known for a while." "It\'s not if. It\'s when."', onScreenText: undefined },
-      { shot: '3', duration: '12s', visual: 'CEO at desk, papers everywhere, genuine exhaustion', audio: `(CEO) "${creative.manifesto.split('.')[0]}."`, onScreenText: undefined },
-      { shot: '4', duration: '15s', visual: 'B-roll: The company\'s actual operations. Unvarnished.', audio: '(VO) "This is us apologizing now. Because later won\'t mean anything."', onScreenText: creative.slogans[0] },
-      { shot: '5', duration: '10s', visual: 'Employee closes laptop. Looks up. Breathes.', audio: '(Music begins - something unexpectedly tender)', onScreenText: undefined },
-      { shot: '6', duration: '5s', visual: `${company.name} logo. Simple. No animation.`, audio: '(Music fades)', onScreenText: creative.tagline }
-    ],
-    notes: 'Shoot on film if budget allows. Natural lighting. Real employees, not actors. The goal is uncomfortable honesty. Reference: Patagonia\'s environmental films, Nike\'s athlete documentaries, but make it corporate confession.'
-  };
-}
-
-/**
- * Fallback campaign when API is unavailable
- */
-function generateFallbackCampaign(
-  campaignId: string,
-  scenario: DoomsdayScenario,
-  company: Fortune500Company
-): ApologyCampaign {
-  const creative = getDefaultCreativeDirection(scenario, company);
-  const printAssets = getDefaultPrintAssets(company, creative);
-  
-  return {
-    id: campaignId,
-    scenarioId: scenario.id,
-    companyName: company.name,
-    scenarioTitle: scenario.title,
-    status: 'complete',
-    headline: creative.headline,
-    subheadline: creative.tagline,
-    apologyStatement: creative.manifesto,
-    keyMessages: creative.slogans,
-    tone: creative.tone,
-    visualConcept: creative.visualConcept,
-    colorPalette: creative.colors,
-    typography: creative.typography,
-    deliverables: {
-      fullPageAd: printAssets.fullPage,
-      poster: printAssets.poster,
-      billboard: printAssets.billboard,
-      busShelter: printAssets.busShelter,
-      bannerAds: printAssets.banners,
-      socialPosts: getDefaultSocialPosts(company, creative),
-      videoScript: getDefaultVideoScript(company, creative),
-    },
-    generatedAt: Date.now()
+    title: (parsed.title as string) || '',
+    duration: (parsed.duration as string) || '60 seconds',
+    format: (parsed.format as string) || '',
+    script: Array.isArray(parsed.script)
+      ? parsed.script.map((s: Record<string, unknown>) => ({
+          shot: (s.shot as string) || '1',
+          duration: (s.duration as string) || '5s',
+          visual: (s.visual as string) || '',
+          audio: (s.audio as string) || '',
+          onScreenText: (s.onScreenText as string) || undefined,
+        }))
+      : [],
+    notes: (parsed.notes as string) || '',
   };
 }
 
 /**
  * Generate campaign image using DALL-E — SCENARIO-SPECIFIC
  * Each prompt is deeply contextualized to the company, scenario, and campaign creative.
+ * Uses VITE_OPENAI_IMAGE_API_KEY for image generation.
  */
 export async function generateCampaignImage(
   campaign: ApologyCampaign,
   imageType: 'hero' | 'social' | 'billboard'
 ): Promise<string | null> {
-  const openai = getOpenAIClient();
-  if (!openai) return null;
+  const openai = getOpenAIImageClient();
 
   const company = campaign.companyName || 'Corporation';
   const scenario = campaign.scenarioTitle || 'corporate crisis';

@@ -56,10 +56,12 @@ const getHorizonIcon = (horizon: TimeHorizon, size: number = 14) => {
   return icons[horizon];
 };
 
-// Initialize OpenAI
-const getOpenAI = () => {
+// Initialize OpenAI — requires API key in .env
+const getOpenAI = (): OpenAI => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    throw new Error('VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
+  }
   return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 };
 
@@ -485,11 +487,6 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
     _agentId: CharacterId
   ): Promise<DoomsdayScenario[]> => {
     const openai = getOpenAI();
-    
-    if (!openai) {
-      // Fallback scenarios
-      return generateFallbackScenarios(horizon);
-    }
 
     const horizonDescriptions: Record<TimeHorizon, string> = {
       '1-year': 'within the next year (imminent, urgent, could happen tomorrow)',
@@ -571,46 +568,9 @@ Be creative, specific, and think like an investigative journalist uncovering wha
       }));
     } catch (error) {
       console.error('Error generating scenarios:', error);
-      return generateFallbackScenarios(horizon);
+      throw error;
     }
   }, [company]);
-
-  // Fallback scenarios
-  const generateFallbackScenarios = useCallback((horizon: TimeHorizon): DoomsdayScenario[] => {
-    const templates: Record<TimeHorizon, Array<{ title: string; description: string; category: RiskCategory; severity: SeverityLevel }>> = {
-      '1-year': [
-        { title: `${company.name} Data Breach Exposes 50 Million Customer Records`, description: `A sophisticated cyberattack compromises ${company.name}'s customer database, exposing personal information, payment details, and private communications.`, category: 'technological', severity: 'catastrophic' },
-        { title: `${company.name} Workers Stage Nationwide Strike Over Safety Conditions`, description: `Employees walk off the job citing unsafe working conditions and inadequate pay, bringing operations to a halt.`, category: 'social', severity: 'severe' },
-      ],
-      '5-year': [
-        { title: `${company.name} Implicated in Major Environmental Contamination`, description: `Investigation reveals years of toxic waste disposal affecting local water supplies and causing health issues in surrounding communities.`, category: 'environmental', severity: 'catastrophic' },
-        { title: `${company.name} Faces Antitrust Action, Forced Breakup Looms`, description: `Federal regulators move to break up ${company.name} citing monopolistic practices that harm consumers and competitors.`, category: 'regulatory', severity: 'severe' },
-      ],
-      '10-year': [
-        { title: `${company.name}'s Business Model Collapses as Industry Disrupted`, description: `Technological advances and changing consumer preferences render ${company.name}'s core business obsolete.`, category: 'technological', severity: 'catastrophic' },
-        { title: `${company.name} Supply Chain Failure Triggers Global Shortage`, description: `Climate disasters and geopolitical instability disrupt supply chains, causing widespread product shortages.`, category: 'operational', severity: 'severe' },
-      ],
-      '50-year': [
-        { title: `${company.name} Legacy: The Corporate Catastrophe That Changed Regulations`, description: `Historians document how ${company.name}'s actions contributed to a major societal or environmental crisis, leading to sweeping reforms.`, category: 'reputational', severity: 'catastrophic' },
-        { title: `${company.name} Archives Reveal Decades of Concealed Harm`, description: `Leaked internal documents from ${company.name} show executives knew about harmful effects of their products for decades.`, category: 'social', severity: 'catastrophic' },
-      ],
-    };
-
-    return templates[horizon].map(t => ({
-      id: generateScenarioId(),
-      companyName: company.name,
-      timeHorizon: horizon,
-      title: t.title,
-      description: t.description,
-      category: t.category,
-      severity: t.severity,
-      likelihood: 30 + Math.random() * 40,
-      potentialDamage: `Significant ${t.category} damage affecting multiple stakeholder groups`,
-      affectedParties: ['Employees', 'Customers', 'Communities', 'Shareholders'],
-      precedents: [],
-      selected: false
-    }));
-  }, [company.name]);
 
   // Run the analysis workflow
   const runWorkflow = useCallback(async () => {
@@ -835,7 +795,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     // NOTE: We no longer auto-advance. User must click the continue button.
     
-  }, [company, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, generateScenariosWithAI, generateFallbackScenarios]);
+  }, [company, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, generateScenariosWithAI]);
 
   // Handler for user to manually continue to scenario selection
   const handleContinueToScenarios = useCallback(() => {

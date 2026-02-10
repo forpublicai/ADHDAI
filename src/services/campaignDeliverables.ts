@@ -3,18 +3,21 @@ import { AdComponents, BrandInfo } from '../types';
 import { generateAdImage, generateStoryboardFrame, generateSocialImage } from './imageGenerator';
 import { parseBrief, ParsedBrief } from '../utils/briefParser';
 
-function getOpenAIClient(): OpenAI | null {
+function getOpenAIClient(): OpenAI {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    throw new Error('[CampaignDeliverables] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
+  }
   return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 }
 
 const MODELS = ['gpt-5.2', 'gpt-4o', 'gpt-4o-mini'] as const;
-async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string | null> {
+async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string> {
+  const errors: string[] = [];
   for (const model of MODELS) {
-    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { console.warn(`[CampaignDeliverables] ${model} failed:`, e instanceof Error ? e.message : e); }
+    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { const msg = e instanceof Error ? e.message : String(e); console.warn(`[CampaignDeliverables] ${model} failed:`, msg); errors.push(`${model}: ${msg}`); }
   }
-  return null;
+  throw new Error(`[CampaignDeliverables] All models failed:\n${errors.join('\n')}`);
 }
 
 export interface CampaignDeliverables {
@@ -105,12 +108,8 @@ export async function generateCampaignDeliverables(
 ): Promise<CampaignDeliverables> {
   const openai = getOpenAIClient();
   const briefInfo = extractBriefInfo(brief);
-  
-  if (!openai) {
-    return generateFallbackDeliverables(brief, adComponents, brandInfo, briefInfo);
-  }
 
-  try {
+  {
     const prompt = `You are the Executive Creative Director at a world-class agency on par with Wieden+Kennedy, Droga5, and Pentagram. You've won Cannes Grand Prix, D&AD Black Pencils, and One Show Best of Show. Your work doesn't just sell — it enters culture.
 
 BRIEF: "${brief}"
@@ -200,7 +199,6 @@ Return JSON with this exact structure:
       max_tokens: 8000
     });
 
-    if (!rawResponse) throw new Error('No response from API');
     const cleaned = rawResponse.replace(/^```json\n?/i, '').replace(/^```\n?/i, '').replace(/```\n?$/i, '').trim();
     
     const deliverables: CampaignDeliverables = JSON.parse(cleaned);
@@ -260,183 +258,7 @@ Return JSON with this exact structure:
     
     deliverables.generatedImages = generatedImages;
     return deliverables;
-  } catch (error) {
-    console.error('Error generating campaign deliverables:', error);
-    return generateFallbackDeliverables(brief, adComponents, brandInfo, briefInfo);
   }
-}
-
-/**
- * Fallback deliverables - generates specific content based on brief
- */
-function generateFallbackDeliverables(
-  brief: string,
-  adComponents: AdComponents,
-  brandInfo?: BrandInfo,
-  briefInfo?: { product: string; brand: string; category: string; problem: string }
-): CampaignDeliverables {
-  const info = briefInfo || extractBriefInfo(brief);
-  const headline = adComponents.headline || `THE ${info.product.toUpperCase()} YOU'VE BEEN AVOIDING`;
-  const body = adComponents.body || `There's a ${info.product} that's been waiting for you. The one that does the job right.`;
-  const tagline = adComponents.tagline || 'Finish the job.';
-  const brandName = brandInfo?.clientName || info.brand;
-  
-  return {
-    video: {
-      title: `"The ${info.product.charAt(0).toUpperCase() + info.product.slice(1)}" — 30-Second Spot`,
-      duration: '30 seconds',
-      format: '16:9 aspect ratio',
-      script: [
-        {
-          shot: '1',
-          duration: '3s',
-          visual: `FADE IN: Close-up of a ${info.product}. Natural light. Texture and detail visible.`,
-          audio: '(Silence)',
-          onScreenText: undefined
-        },
-        {
-          shot: '2',
-          duration: '4s',
-          visual: `MEDIUM SHOT: Hands reaching for the ${info.product}. Moment of hesitation.`,
-          audio: `(V.O.) "You've been putting this off."`,
-          onScreenText: undefined
-        },
-        {
-          shot: '3',
-          duration: '5s',
-          visual: `INSERT: The ${info.product} in use. Documentary style. Real hands, real work.`,
-          audio: `(V.O.) "The right tool makes the decision for you."`,
-          onScreenText: undefined
-        },
-        {
-          shot: '4',
-          duration: '4s',
-          visual: 'CLOSE-UP: The work being completed. Satisfaction in simplicity.',
-          audio: `(V.O.) "Not tomorrow. Now."`,
-          onScreenText: undefined
-        },
-        {
-          shot: '5',
-          duration: '4s',
-          visual: `WIDE: Clean workspace. The ${info.product} at rest. Job done.`,
-          audio: `(V.O.) "${tagline}"`,
-          onScreenText: undefined
-        },
-        {
-          shot: '6',
-          duration: '3s',
-          visual: `END CARD: ${brandName} logo on paper texture.`,
-          audio: '(Silence)',
-          onScreenText: brandName.toUpperCase()
-        },
-        {
-          shot: '7',
-          duration: '4s',
-          visual: 'SUPER: Website and contact on document-style footer.',
-          audio: '(Silence)',
-          onScreenText: tagline
-        }
-      ],
-      notes: `PRODUCTION: Documentary aesthetic. Natural lighting. No music—ambient sound only. Color: desaturated. Talent: non-actors. Location: practical ${info.category} setting.`
-    },
-    campaign: {
-      campaignName: `"${tagline}" Campaign for ${brandName}`,
-      overview: `A multi-channel campaign positioning ${brandName}'s ${info.product} as the tool for people who are ready to stop putting things off. The documentary aesthetic gives weight to the message while human copy provides permission to act.`,
-      executions: [
-        {
-          format: 'Print — Full Page Magazine',
-          headline: headline,
-          body: body,
-          visual: `Full-page document aesthetic. ${info.product} photographed like evidence. Numbered list of "reasons you haven't done this yet" fading into illegibility below.`,
-          placement: 'Lifestyle and shelter magazines'
-        },
-        {
-          format: 'Digital Banner — 728x90',
-          headline: headline.length > 50 ? headline.substring(0, 47) + '...' : headline,
-          body: tagline,
-          visual: `Paper texture background. ${info.product} silhouette. Monospace headline. No animation.`,
-          placement: 'Premium editorial sites'
-        },
-        {
-          format: 'Digital Banner — 300x250',
-          headline: `THE ${info.product.toUpperCase()}`,
-          body: tagline,
-          visual: `Stacked layout. Product image top half. Headline and tagline below on form paper.`,
-          placement: 'Contextual targeting'
-        },
-        {
-          format: 'OOH — Billboard',
-          headline: headline,
-          body: '',
-          visual: `14'x48'. Paper white. Massive typography. ${brandName} logo small, corner. Maximum negative space.`,
-          placement: 'Urban markets, commuter routes'
-        },
-        {
-          format: 'Email — Direct',
-          headline: `Re: That ${info.product} you've been thinking about`,
-          body: `${body}\n\nReply to this email when you're ready.`,
-          visual: 'Plain text. No graphics. Looks like correspondence.',
-          placement: 'Post-inquiry follow-up'
-        }
-      ],
-      mediaPlan: `PHASE 1: OOH and print for awareness. PHASE 2: Digital retargeting. PHASE 3: Email conversion. Budget: 40% digital, 30% print, 20% OOH, 10% production.`
-    },
-    socialMedia: {
-      platform: 'Multi-platform',
-      strategy: `Social strategy for ${brandName}: Authenticity over polish. Posts look like real moments with real ${info.product}s. Human voice, not brand voice. 3-4 posts per week.`,
-      posts: [
-        {
-          platform: 'Instagram',
-          type: 'Single Image',
-          copy: `There's a ${info.product} that's been waiting. The one you've been thinking about. Today might be the day.`,
-          visual: `Overhead shot of ${info.product} on work surface. Natural light. No styling.`,
-          hashtags: [info.category.replace(/\s+/g, ''), info.product.replace(/\s+/g, ''), 'finishthejob', 'adulting']
-        },
-        {
-          platform: 'Instagram',
-          type: 'Carousel',
-          copy: `The decisions you're avoiding. (Swipe to see the list you didn't know you needed.)`,
-          visual: `Slide 1: Cover headline. Slides 2-6: Numbered decisions related to ${info.category}, progressively fading. Final: "Or you could start now."`,
-          hashtags: ['decisions', 'planning', info.category.replace(/\s+/g, '')]
-        },
-        {
-          platform: 'Instagram',
-          type: 'Reel',
-          copy: `POV: You finally got the ${info.product} you needed.`,
-          visual: `15s. First-person. Unboxing, first use, satisfaction. Ambient sound only.`,
-          hashtags: ['satisfying', 'unboxing', info.product.replace(/\s+/g, '')]
-        },
-        {
-          platform: 'Twitter/X',
-          type: 'Text',
-          copy: `The ${info.product} you've been thinking about is still there. It didn't go away. Today might be good.`,
-          visual: 'Text only',
-          hashtags: []
-        },
-        {
-          platform: 'Twitter/X',
-          type: 'Image',
-          copy: `"What do you do?" "I help people ${info.problem}."`,
-          visual: `${info.product} photographed like evidence. Documentary style.`,
-          hashtags: []
-        },
-        {
-          platform: 'LinkedIn',
-          type: 'Article',
-          copy: `The hardest part of any decision isn't the choice—it's giving yourself permission to make it.\n\nMost people know what they need. They just need someone to tell them it's okay.\n\nThat's what ${brandName} does.`,
-          visual: 'Text-focused. Professional.',
-          hashtags: ['leadership', info.category.replace(/\s+/g, '')]
-        },
-        {
-          platform: 'TikTok',
-          type: 'Video',
-          copy: `That ${info.product} you've been avoiding? Let's talk about it.`,
-          visual: `Direct-to-camera. Real person with ${info.product}. Low-fi. 15s. Hook: "Nobody talks about this but..."`,
-          hashtags: ['adulting', info.category.replace(/\s+/g, ''), 'reallife']
-        }
-      ]
-    }
-  };
 }
 
 /**
