@@ -32,6 +32,9 @@ import { generatePrintAdHtml, generateBillboardHtml, generateBillboardSvg, gener
 import * as dialogue from '../../utils/dialogueGenerator';
 import './CanvasWorkspace.css';
 
+// Randomized dialogue helper
+const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
 // Get icon component for character
 const getCharacterIcon = (icon: string, size: number = 16) => {
   const iconProps = { size, weight: 'bold' as const };
@@ -424,7 +427,13 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
             delmore: `*Delmore nods* "The client will love seeing these together."`,
             apparatus: `CROSS-REFERENCE DETECTED — "${contentA}" + "${contentB}" — STRATEGIC ALIGNMENT LOGGED —`,
           };
-          addChatMessage(third, lines[third] || `*${getCharacterInfo(third).name} nods approvingly at the combination*`);
+          const fallbacks = [
+            `*${getCharacterInfo(third).name} nods approvingly at the combination*`,
+            `*${getCharacterInfo(third).name} studies both items* "Together, these are stronger."`,
+            `*${getCharacterInfo(third).name} glances over* "Now THAT's a connection worth exploring."`,
+            `*${getCharacterInfo(third).name} looks up from work* "Those two belong together. I can feel it."`,
+          ];
+          addChatMessage(third, lines[third] || pickRandom(fallbacks));
         }, 1500);
       }
     };
@@ -632,7 +641,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     addChatMessage('burl', dialogue.getBurlKeyVisual(''));
     addChatMessage('nadya', dialogue.getApologyNadyaOnProgress());
     addChatMessage('delmore', dialogue.getApologyDelmoreOnHeadline(campaign.headline || 'the headline'));
-    addChatMessage('apparatus', `CREATIVE OUTPUT LOGGED — Headline: "${campaign.headline}" — Tagline: "${campaign.subheadline}" — INDEXING DELIVERABLES—`);
+    addChatMessage('apparatus', pickRandom([
+      `CREATIVE OUTPUT LOGGED — Headline: "${campaign.headline}" — Tagline: "${campaign.subheadline}" — INDEXING —`,
+      `COPY ASSETS CAPTURED — Primary: "${campaign.headline}" — Secondary: "${campaign.subheadline}" — FILED —`,
+      `HEADLINE REGISTERED — "${campaign.headline}" — Supporting line: "${campaign.subheadline}" — COMPILATION QUEUE UPDATED —`,
+      `CREATIVE DIRECTION ARCHIVED — "${campaign.headline}" | "${campaign.subheadline}" — DELIVERABLE GENERATION PENDING —`,
+    ]));
     
     // Create the Cell's work item with FULL copy output
     createWorkItem('the-cell', 'apology',
@@ -670,7 +684,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     await delayOrSkip(800);
     
     addChatMessage('delmore', dialogue.getDelmoreReadyToExplain(''));
-    addChatMessage('apparatus', `VISUAL SPECIFICATIONS RECORDED — Color palette: ${campaign.colorPalette?.length || 5} colors indexed — Typography: ${campaign.typography || 'pending'} — Format specifications: print, OOH, digital, social —`);
+    addChatMessage('apparatus', pickRandom([
+      `VISUAL SPECS RECORDED — ${campaign.colorPalette?.length || 5} colors indexed — Typography: ${campaign.typography || 'pending'} — All formats queued —`,
+      `ART DIRECTION LOGGED — Palette: ${campaign.colorPalette?.length || 5} swatches — Type system: ${campaign.typography || 'pending'} — Format matrix: complete —`,
+      `VISUAL SYSTEM ARCHIVED — Color: ${campaign.colorPalette?.length || 5} values — Typography: ${campaign.typography || 'awaiting final'} — Deliverable specs: locked —`,
+      `DESIGN PARAMETERS CAPTURED — ${campaign.colorPalette?.length || 5}-color system — ${campaign.typography || 'Typography pending'} — Production specifications: filed —`,
+    ]));
     
     createWorkItem('burl', 'visual',
       `VISUAL DIRECTION — CAMPAIGN ${index + 1}\n\n━━━ ART DIRECTION ━━━\n• Colors: ${campaign.colorPalette?.join(', ') || 'Brand palette, desaturated'}\n• Typography: ${campaign.typography || 'Official but weathered'}\n• Concept: ${campaign.visualConcept || 'Documentary authenticity'}\n\n━━━ NOTES ━━━\n- ${company.name} brand language, subverted\n- Confessional minimalism\n- Images that feel found, not staged\n- The aesthetic of uncomfortable truth\n- "Ugly-beautiful" — Burl's directive`,
@@ -703,7 +722,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     addChatMessage('the-cell', dialogue.getCellImpatience(''));
     addChatMessage('burl', dialogue.getBurlToNadya(''));
     addChatMessage('delmore', dialogue.getDelmoreStarts(''));
-    addChatMessage('apparatus', `PRODUCTION TIMELINE LOGGED — ALL MILESTONES RECORDED — ${scenarioTasks.length} deliverables queued — ACCOUNTABILITY CHAIN ESTABLISHED—`);
+    addChatMessage('apparatus', pickRandom([
+      `PRODUCTION TIMELINE LOGGED — ${scenarioTasks.length} deliverables queued — ACCOUNTABILITY CHAIN ESTABLISHED —`,
+      `SCHEDULE MATRIX COMPILED — ${scenarioTasks.length} milestones — ALL RESPONSIBLE PARTIES NOTIFIED —`,
+      `TIMELINE LOCKED — ${scenarioTasks.length} deliverables scheduled — DEADLINE ENFORCEMENT: ACTIVE —`,
+      `PRODUCTION PROTOCOL FILED — ${scenarioTasks.length} tasks dated and assigned — COMPLIANCE MONITORING: ENGAGED —`,
+    ]));
     
     await delayOrSkip(1000);
     
@@ -739,7 +763,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     addChatMessage('burl', dialogue.getBurlFinalReaction(''));
     addChatMessage('nadya', dialogue.getNadyaScheduleLocked(''));
-    addChatMessage('apparatus', `CLIENT TRANSLATION DOCUMENTED — Terminology mapping indexed — Presentation deck: compiled — Client FAQ: generated —`);
+    addChatMessage('apparatus', pickRandom([
+      `CLIENT TRANSLATION DOCUMENTED — Terminology mapping indexed — Deck compiled — FAQ generated —`,
+      `TRANSLATION LAYER ARCHIVED — Corporate lexicon applied — Presentation materials: ready —`,
+      `CLIENT-FACING ASSETS LOGGED — Language softened per Delmore protocol — Deck: assembled —`,
+      `STAKEHOLDER COMMUNICATION COMPILED — Terminology: translated — Presentation: formatted — Pamphlet: risographed —`,
+    ]));
     
     await delayOrSkip(1000);
     
@@ -759,12 +788,22 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setPhaseLabel('COMPILING CAMPAIGN & GENERATING ASSETS');
     
     moveAgentTo('apparatus', { x: 820, y: 700 }, 'typing', 'Compiling campaign & generating images...');
-    addChatMessage('apparatus', `INITIATING FINAL COMPILATION — CAMPAIGN ${index + 1} OF ${scenarios.length}—All creative assets being assembled. Generating visual assets via DALL-E. Print specifications: magazine full-page, billboard, bus shelter. Video script: 60-second confession format. Social media: platform-native executions. Digital banner suite: all standard formats. INTEGRATION STATUS: IN PROGRESS—`);
+    addChatMessage('apparatus', pickRandom([
+      `INITIATING FINAL COMPILATION — CAMPAIGN ${index + 1} OF ${scenarios.length} — All creative assets assembling — Visual generation via DALL-E — INTEGRATION: IN PROGRESS —`,
+      `COMPILATION SEQUENCE ${index + 1}/${scenarios.length} — Aggregating copy, visual, and production assets — Image generation: queued — ASSEMBLY: ACTIVE —`,
+      `CAMPAIGN ${index + 1} ASSEMBLY PROTOCOL — ${scenarios.length} total — Merging all department outputs — Rendering visual assets — STATUS: COMPILING —`,
+      `DOSSIER CONSTRUCTION ${index + 1}/${scenarios.length} — Strategy + Copy + Visual + Production + Translation = Campaign — Image pipeline: engaged —`,
+    ]));
     
     await delayOrSkip(1000);
     
     // Generate actual images via DALL-E during compilation
-    addChatMessage('apparatus', `GENERATING CAMPAIGN IMAGES — Hero visual, billboard format, social media assets — Processing via image generation API—`);
+    addChatMessage('apparatus', pickRandom([
+      `GENERATING CAMPAIGN IMAGES — Hero visual, billboard, social assets — Image API: processing —`,
+      `VISUAL ASSET PIPELINE ACTIVE — Rendering hero, OOH, and social imagery — DALL-E: engaged —`,
+      `IMAGE GENERATION INITIATED — 3 visual assets queued: hero, billboard, social — Processing —`,
+      `RENDERING CAMPAIGN VISUALS — Hero photography, OOH format, social square — Pipeline: active —`,
+    ]));
     
     // Try to generate images
     let generatedImages: { hero?: string; billboard?: string; social?: string } = {};
@@ -777,19 +816,35 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       
       if (heroResult.status === 'fulfilled' && heroResult.value) {
         generatedImages.hero = heroResult.value;
-        addChatMessage('apparatus', `HERO IMAGE GENERATED — Resolution: 1024x1024 — Quality: HD —`);
+        addChatMessage('apparatus', pickRandom([
+          `HERO IMAGE RENDERED — 1024x1024 — HD quality — Asset captured —`,
+          `HERO VISUAL COMPLETE — Resolution: 1024px — Quality: production-grade —`,
+          `PRIMARY CAMPAIGN IMAGE — Generated successfully — 1024x1024 HD —`,
+        ]));
       }
       if (billboardResult.status === 'fulfilled' && billboardResult.value) {
         generatedImages.billboard = billboardResult.value;
-        addChatMessage('apparatus', `BILLBOARD IMAGE GENERATED — Resolution: 1792x1024 — Format: Wide —`);
+        addChatMessage('apparatus', pickRandom([
+          `BILLBOARD IMAGE RENDERED — 1792x1024 — Wide format — Asset captured —`,
+          `OOH VISUAL COMPLETE — Billboard resolution: 1792x1024 — Format: landscape —`,
+          `BILLBOARD ASSET GENERATED — Wide format rendered — Production-ready —`,
+        ]));
       }
       if (socialResult.status === 'fulfilled' && socialResult.value) {
         generatedImages.social = socialResult.value;
-        addChatMessage('apparatus', `SOCIAL IMAGE GENERATED — Resolution: 1024x1024 — Format: Square —`);
+        addChatMessage('apparatus', pickRandom([
+          `SOCIAL IMAGE RENDERED — 1024x1024 — Square format — Asset captured —`,
+          `SOCIAL MEDIA VISUAL COMPLETE — Square crop: 1024px — Platform-ready —`,
+          `SOCIAL ASSET GENERATED — Square format — Instagram/feed optimized —`,
+        ]));
       }
     } catch (err) {
       console.warn('Image generation skipped:', err);
-      addChatMessage('apparatus', `IMAGE GENERATION: Using text-based assets — API unavailable or rate-limited —`);
+      addChatMessage('apparatus', pickRandom([
+        `IMAGE GENERATION: Text-based assets substituted — API unavailable —`,
+        `VISUAL PIPELINE: Falling back to HTML mockups — Image API: rate-limited —`,
+        `IMAGE RENDERING SKIPPED — Proceeding with template-based deliverables —`,
+      ]));
     }
     
     // Store generated images on the campaign
@@ -824,7 +879,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     updateTaskStatus(scenarioTasks[6]?.id || '', 'done');
     
-    addChatMessage('apparatus', `CAMPAIGN ${index + 1} COMPILATION SUCCESSFUL—"${campaign.headline}" | Full deliverable suite generated${generatedImages.hero ? ' with AI-generated visuals' : ''} | Quality rating: CANNES-READY | Timestamp: ${new Date().toLocaleTimeString()}`);
+    addChatMessage('apparatus', pickRandom([
+      `CAMPAIGN ${index + 1} COMPILED — "${campaign.headline}" — Full suite${generatedImages.hero ? ' with AI visuals' : ''} — ${new Date().toLocaleTimeString()} —`,
+      `COMPILATION ${index + 1} SUCCESSFUL — "${campaign.headline}" — All deliverables${generatedImages.hero ? ' + generated imagery' : ''} — DEPLOYMENT READY —`,
+      `DOSSIER ${index + 1} SEALED — "${campaign.headline}" — Asset package complete${generatedImages.hero ? ', images included' : ''} — CANNES-READY —`,
+      `CAMPAIGN ${index + 1} FINALIZED — "${campaign.headline}" — ${generatedImages.hero ? 'Visual + ' : ''}HTML deliverables locked — ${new Date().toLocaleTimeString()} —`,
+    ]));
     
     return campaign;
   }, [company, tasks, addChatMessage, createWorkItem, moveAgentTo, updateTaskStatus, scenarios.length, delayOrSkip]);
@@ -834,8 +894,19 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     dialogue.resetDialogueCache();
     
     // Opening
-    addChatMessage('apparatus', `INITIATING PROACTIVE APOLOGY CAMPAIGN PROTOCOL FOR ${company.name.toUpperCase()} — ${scenarios.length} DOOMSDAY SCENARIO${scenarios.length !== 1 ? 'S' : ''} QUEUED FOR PROCESSING`);
-    addChatMessage('mike', `*spreads dossiers across table* Alright everyone, gather round. We've got ${scenarios.length} potential disaster${scenarios.length !== 1 ? 's' : ''} to apologize for. Things that haven't happened yet. Things that might never happen. But we're going to craft apologies so good, so genuine-sounding, that ${company.name} will own the narrative before there's even a narrative to own. This is the job. This is what we do. Let's make some preemptive contrition that would make Cannes weep.`);
+    addChatMessage('apparatus', pickRandom([
+      `INITIATING PROACTIVE APOLOGY PROTOCOL — ${company.name.toUpperCase()} — ${scenarios.length} SCENARIO${scenarios.length !== 1 ? 'S' : ''} QUEUED —`,
+      `CAMPAIGN GENERATION SEQUENCE — TARGET: ${company.name.toUpperCase()} — ${scenarios.length} DOOMSDAY SCENARIO${scenarios.length !== 1 ? 'S' : ''} — ALL AGENTS ENGAGED —`,
+      `APOLOGY ARCHITECTURE PROTOCOL ACTIVE — ${company.name.toUpperCase()} — PROCESSING ${scenarios.length} CATASTROPHE VECTOR${scenarios.length !== 1 ? 'S' : ''} —`,
+      `PREEMPTIVE CONTRITION ENGINE ONLINE — ${company.name.toUpperCase()} — ${scenarios.length} SCENARIO${scenarios.length !== 1 ? 'S' : ''} IN QUEUE — COMMENCING —`,
+    ]));
+    addChatMessage('mike', pickRandom([
+      `*spreads dossiers across table* Alright everyone, gather round. ${scenarios.length} potential disaster${scenarios.length !== 1 ? 's' : ''} for ${company.name}. Things that haven't happened yet. We're going to craft apologies so genuine-sounding, they'll own the narrative before there's a narrative to own. Let's work.`,
+      `*pins ${scenarios.length} files to board* ${company.name}. ${scenarios.length} ways it could go wrong. Our job: make them look like the most honest corporation on earth. For things they haven't done yet. Twenty-two years, and this is still the strangest gig. Let's go.`,
+      `*lights cigarette, surveys the room* ${scenarios.length} scenarios. ${company.name}. Each one a potential headline. We're writing the apologies before the journalists write the accusations. It's insane. It's also the best advertising I've ever been part of.`,
+      `*cracks knuckles* Here's the play: ${scenarios.length} disaster${scenarios.length !== 1 ? 's' : ''}, ${scenarios.length} campaign${scenarios.length !== 1 ? 's' : ''}. ${company.name} apologizes first, wins the narrative forever. Preemptive contrition. That's our product. Let's make it sing.`,
+      `*stubs cigarette, opens fresh pack* ${company.name} needs ${scenarios.length} apolog${scenarios.length !== 1 ? 'ies' : 'y'} for ${scenarios.length} disaster${scenarios.length !== 1 ? 's' : ''} that ${scenarios.length !== 1 ? 'haven\'t' : 'hasn\'t'} happened. That's either genius or madness. Either way, I'm all in. Everybody up.`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -847,7 +918,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
       completedCampaigns.push(campaign);
       
       if (i < scenarios.length - 1) {
-        addChatMessage('nadya', `Campaign ${i + 1} of ${scenarios.length} complete. Moving to next scenario. The schedule proceeds on schedule. ${scenarios.length - i - 1} remaining.`);
+        addChatMessage('nadya', pickRandom([
+          `Campaign ${i + 1} of ${scenarios.length} complete. Moving to next scenario. ${scenarios.length - i - 1} remaining. The schedule proceeds.`,
+          `*checks watch* ${i + 1} down, ${scenarios.length - i - 1} to go. On schedule. Barely. Next scenario.`,
+          `Campaign ${i + 1} delivered. ${scenarios.length - i - 1} remaining in queue. The deadline does not wait. Proceeding.`,
+          `${i + 1}/${scenarios.length} finalized. The schedule absorbs this milestone. ${scenarios.length - i - 1} campaigns remain. Continue.`,
+        ]));
         await delayOrSkip(1500);
       }
     }
@@ -857,7 +933,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     setIsRunning(false);
     
     // Celebratory completion messages from ALL bots
-    addChatMessage('apparatus', `ALL ${scenarios.length} APOLOGY CAMPAIGNS COMPILED SUCCESSFULLY — ASSETS READY FOR DOWNLOAD`);
+    addChatMessage('apparatus', pickRandom([
+      `ALL ${scenarios.length} CAMPAIGNS COMPILED — ASSETS READY FOR DOWNLOAD —`,
+      `FULL CAMPAIGN SUITE ASSEMBLED — ${scenarios.length} DOSSIERS COMPLETE — AWAITING DOWNLOAD COMMAND —`,
+      `COMPILATION SUCCESSFUL — ${scenarios.length}/${scenarios.length} CAMPAIGNS FINALIZED — DELIVERABLE PACKAGE: READY —`,
+      `CAMPAIGN PROTOCOL COMPLETE — ${scenarios.length} APOLOGY PACKAGES SEALED — DOWNLOAD WHEN READY —`,
+    ]));
     
     await delayOrSkip(500);
     
@@ -885,7 +966,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
     
     await delayOrSkip(600);
     
-    addChatMessage('apparatus', `DELIVERABLE PACKAGE READY — ${completedCampaigns.length} complete campaigns with HTML ad mockups, AI-generated visuals, video storyboards, social media decks, and copy specifications. Press "DOWNLOAD ASSETS" to receive your Cannes-ready deliverables archive.`);
+    addChatMessage('apparatus', pickRandom([
+      `DELIVERABLE PACKAGE READY — ${completedCampaigns.length} campaigns — HTML mockups, visuals, storyboards, social decks, copy specs — Press "DOWNLOAD ASSETS" —`,
+      `ARCHIVE ASSEMBLED — ${completedCampaigns.length} complete campaign${completedCampaigns.length !== 1 ? 's' : ''} — All deliverables packaged — "DOWNLOAD ASSETS" to retrieve —`,
+      `CAMPAIGN DOSSIER SEALED — ${completedCampaigns.length} packages — Full deliverable suite — Select "DOWNLOAD ASSETS" when ready —`,
+      `ALL ASSETS COMPILED — ${completedCampaigns.length} campaign${completedCampaigns.length !== 1 ? 's' : ''} ready — "DOWNLOAD ASSETS" for complete archive —`,
+    ]));
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     
@@ -935,7 +1021,12 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
 
   const handleSkipToEnd = useCallback(() => {
     skipRef.current = true;
-    addChatMessage('apparatus', 'FAST FORWARD ENGAGED — Completing remaining work at accelerated pace.');
+    addChatMessage('apparatus', pickRandom([
+      `FAST FORWARD ENGAGED — Completing remaining work at accelerated pace —`,
+      `ACCELERATION PROTOCOL — Compressing all remaining phases — Maximum throughput —`,
+      `TIME COMPRESSION ACTIVE — Collapsing workflow into rapid execution —`,
+      `SKIP MODE INITIATED — All agents: accelerated output — Deliverables: priority queue —`,
+    ]));
   }, [addChatMessage]);
 
   const handleReset = () => {
@@ -972,11 +1063,19 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   const downloadZip = useCallback(async () => {
     try {
       if (campaigns.length === 0) {
-        addChatMessage('apparatus', 'ERROR—No campaigns available to download.');
+        addChatMessage('apparatus', pickRandom([
+          `ERROR — No campaigns available for download — Run workflow first —`,
+          `DOWNLOAD FAILED — Campaign data: empty — Generate campaigns before downloading —`,
+        ]));
         return;
       }
       
-      addChatMessage('apparatus', `GENERATING DELIVERABLES PACKAGE — Assembling ${campaigns.length} campaign(s) with HTML ad mockups, images, storyboards, and copy decks—`);
+      addChatMessage('apparatus', pickRandom([
+        `GENERATING DELIVERABLES PACKAGE — ${campaigns.length} campaign${campaigns.length !== 1 ? 's' : ''} — Assembling assets —`,
+        `PACKAGING ${campaigns.length} CAMPAIGN${campaigns.length !== 1 ? 'S' : ''} — HTML mockups, images, copy decks — Compression in progress —`,
+        `ARCHIVE COMPILATION — ${campaigns.length} campaign dossier${campaigns.length !== 1 ? 's' : ''} — Asset aggregation: active —`,
+        `ZIP GENERATION INITIATED — ${campaigns.length} complete package${campaigns.length !== 1 ? 's' : ''} — All deliverables included —`,
+      ]));
       
       const zip = new JSZip();
       const timestamp = new Date().toISOString().split('T')[0];
@@ -1232,11 +1331,19 @@ THE FERAL CREATIVE COLLECTIVE
       // Generate and download
       const content = await zip.generateAsync({ type: 'blob' });
       saveAs(content, `${folderName}.zip`);
-      addChatMessage('apparatus', `DELIVERABLES PACKAGE DOWNLOADED — ${folderName}.zip — ${campaigns.length} campaigns with ${hasImages ? 'AI-generated images + ' : ''}HTML ad mockups + copy decks`);
+      addChatMessage('apparatus', pickRandom([
+        `DOWNLOAD COMPLETE — ${folderName}.zip — ${campaigns.length} campaigns${hasImages ? ' with AI images' : ''} —`,
+        `ARCHIVE DELIVERED — ${folderName}.zip — Full deliverable suite — ${campaigns.length} campaign${campaigns.length !== 1 ? 's' : ''} packaged —`,
+        `ZIP GENERATED — ${folderName}.zip — ${campaigns.length} dossier${campaigns.length !== 1 ? 's' : ''}${hasImages ? ', generated imagery included' : ''} —`,
+      ]));
       
     } catch (error) {
       console.error('Error downloading ZIP:', error);
-      addChatMessage('apparatus', `ERROR—Failed to generate download: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      addChatMessage('apparatus', pickRandom([
+        `ERROR — Download generation failed: ${error instanceof Error ? error.message : 'Unknown error'} —`,
+        `PACKAGING FAILURE — ${error instanceof Error ? error.message : 'Unexpected error'} — Retry recommended —`,
+        `ZIP COMPILATION ERROR — ${error instanceof Error ? error.message : 'System error'} — Assets may be incomplete —`,
+      ]));
     }
   }, [company, campaigns, scenarios, addChatMessage]);
 

@@ -644,7 +644,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         { x: TIMELINE_ZONES['1-year'].x + Math.random() * 50, y: TIMELINE_ZONES['1-year'].y + 20 }, 
         2, true, '1-year', scenario
       );
-      addChatMessage('the-cell', `[THURSDAY]: IDENTIFIED—"${scenario.title}" (${scenario.severity})`);
+      addChatMessage('the-cell', pickRandom([
+        `[THURSDAY]: IDENTIFIED — "${scenario.title}" (${scenario.severity})`,
+        `[GJON]: There it is. "${scenario.title}" — ${scenario.severity}. That's a real one.`,
+        `[VERA]: Logging threat: "${scenario.title}." Severity: ${scenario.severity}. This needs attention.`,
+        `[THURSDAY]: *pins card to board* "${scenario.title}" — ${scenario.severity}. *taps it twice*`,
+        `[GJON]: "${scenario.title}" — rated ${scenario.severity}. This one has teeth.`,
+        `[VERA]: Captured: "${scenario.title}." ${scenario.severity} severity. Adding to the matrix.`,
+      ]));
       await delayOrSkip(1500);
     }
     
@@ -673,7 +680,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         { x: TIMELINE_ZONES['5-year'].x + Math.random() * 50, y: TIMELINE_ZONES['5-year'].y + 20 },
         2, true, '5-year', scenario
       );
-      addChatMessage('burl', `PROJECTED—"${scenario.title}"`);
+      addChatMessage('burl', pickRandom([
+        `*pins reference* "${scenario.title}" — I can already see the visual for this one.`,
+        `PROJECTED — "${scenario.title}." The cracks are visible if you know where to look.`,
+        `*nods slowly* "${scenario.title}." Five years feels far away until it doesn't.`,
+        `There. "${scenario.title}." That's the kind of scenario that starts small and ends big.`,
+        `*sketches thumbnail* "${scenario.title}" — this one has a visual language I recognize. Inevitable.`,
+        `"${scenario.title}" — mapped. The picture is already forming in my head.`,
+      ]));
       await delayOrSkip(1500);
     }
     
@@ -708,7 +722,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         { x: TIMELINE_ZONES['10-year'].x + Math.random() * 50, y: TIMELINE_ZONES['10-year'].y + 20 },
         3, true, '10-year', scenario
       );
-      addChatMessage('nadya', `⏱ SCENARIO: "${scenario.title.slice(0, 50)}..."`);
+      addChatMessage('nadya', pickRandom([
+        `*notes time* "${scenario.title.slice(0, 50)}..." — logged with timestamp. The schedule absorbs this.`,
+        `Scenario documented: "${scenario.title.slice(0, 50)}..." — timeline implications calculated.`,
+        `*checks watch* "${scenario.title.slice(0, 50)}..." — filed. Every disaster has a deadline. This one too.`,
+        `"${scenario.title.slice(0, 50)}..." — recorded. The ten-year window accommodates this threat.`,
+        `*taps clipboard* "${scenario.title.slice(0, 50)}..." — added to projection matrix. Proceed.`,
+        `Noted: "${scenario.title.slice(0, 50)}..." — the schedule will account for this scenario.`,
+      ]));
       await delayOrSkip(1500);
     }
     
@@ -737,7 +758,14 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         { x: TIMELINE_ZONES['50-year'].x + Math.random() * 50, y: TIMELINE_ZONES['50-year'].y + 20 },
         3, true, '50-year', scenario
       );
-      addChatMessage('delmore', `*transcribing* "${scenario.title.slice(0, 40)}..."`);
+      addChatMessage('delmore', pickRandom([
+        `*transcribing carefully* "${scenario.title.slice(0, 40)}..." — this one will need delicate framing for the client.`,
+        `*adjusts glasses, writes* "${scenario.title.slice(0, 40)}..." — heavy. But important. The truth always is.`,
+        `*warm but serious* "${scenario.title.slice(0, 40)}..." — fifty years is a long shadow. I'll find the words.`,
+        `*notes in leather journal* "${scenario.title.slice(0, 40)}..." — generational. The kind of scenario that defines a company's legacy.`,
+        `*offers candy to self for strength* "${scenario.title.slice(0, 40)}..." — documented. Some futures need to be spoken aloud to be prevented.`,
+        `*pauses, then writes* "${scenario.title.slice(0, 40)}..." — this will require my most careful translation when the time comes.`,
+      ]));
       await delayOrSkip(1500);
     }
     
@@ -751,7 +779,12 @@ Be creative, specific, and think like an investigative journalist uncovering wha
     
     moveAgentTo('apparatus', { x: 820, y: 580 }, 'typing', 'Compiling analysis...');
     updateTaskStatus('task-7', 'in-progress');
-    addChatMessage('apparatus', `COMPILING ${allScenarios.length} DOOMSDAY SCENARIOS—`);
+    addChatMessage('apparatus', pickRandom([
+      `COMPILING ${allScenarios.length} DOOMSDAY SCENARIOS — AGGREGATION IN PROGRESS —`,
+      `SYNTHESIS INITIATED — ${allScenarios.length} CATASTROPHE VECTORS — CROSS-REFERENCING TIMELINES —`,
+      `DOSSIER ASSEMBLY — ${allScenarios.length} SCENARIOS ACROSS ALL HORIZONS — COMPILING FINAL REPORT —`,
+      `FINAL AGGREGATION — ${allScenarios.length} RISK EVENTS CATALOGUED — GENERATING SUMMARY —`,
+    ]));
     
     await delayOrSkip(2000);
     
@@ -779,7 +812,12 @@ Be creative, specific, and think like an investigative journalist uncovering wha
       `Twenty-two years and I still get a chill reading these. ${allScenarios.length} scenarios for ${company.name}. Pick the ones that keep you up at night.`,
       `The analysis is done. ${allScenarios.length} ways ${company.name} could make history — and not the kind they put in annual reports. Time to choose our battles.`,
     ]));
-    addChatMessage('apparatus', `ANALYSIS COMPLETE — Click "CONTINUE TO SCENARIOS" when ready to proceed.`);
+    addChatMessage('apparatus', pickRandom([
+      `ANALYSIS COMPLETE — Select "CONTINUE TO SCENARIOS" to proceed to campaign selection —`,
+      `REPORT FINALIZED — Awaiting user input — Press "CONTINUE TO SCENARIOS" when ready —`,
+      `DOOMSDAY INDEX SEALED — Review complete — Proceed via "CONTINUE TO SCENARIOS" —`,
+      `ALL SCENARIOS DOCUMENTED — The Apparatus awaits your selection — "CONTINUE TO SCENARIOS" to proceed —`,
+    ]));
     
     setAgents(prev => prev.map(a => ({ ...a, status: 'idle', action: '', isActive: false })));
     setIsRunning(false);
@@ -830,7 +868,12 @@ Be creative, specific, and think like an investigative journalist uncovering wha
 
   const handleSkipToEnd = useCallback(() => {
     skipRef.current = true;
-    addChatMessage('apparatus', 'FAST FORWARD ENGAGED — Completing analysis at accelerated pace.');
+    addChatMessage('apparatus', pickRandom([
+      `FAST FORWARD ENGAGED — Completing analysis at accelerated pace —`,
+      `ACCELERATION PROTOCOL ACTIVATED — Compressing remaining analysis into rapid sequence —`,
+      `TIME COMPRESSION ENGAGED — All agents operating at maximum throughput —`,
+      `SKIP INITIATED — Collapsing remaining phases into summary output —`,
+    ]));
   }, [addChatMessage]);
 
   const handleReset = () => {
