@@ -1530,6 +1530,79 @@ function escapeXml(str: string): string {
 }
 
 // ============================================
+// SVG TO PNG CONVERSION
+// ============================================
+
+/**
+ * Convert an SVG string to a PNG Blob using the browser Canvas API.
+ * Returns a base64-encoded PNG string (without the data:image/png;base64, prefix).
+ */
+export async function svgToPngBase64(
+  svgString: string,
+  width: number,
+  height: number,
+  scale: number = 2 // 2x for retina quality
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/png');
+      const base64 = dataUrl.split(',')[1];
+      resolve(base64);
+    };
+    img.onerror = () => reject(new Error('Failed to render SVG to image'));
+
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+/**
+ * Generate a billboard PNG (base64) from campaign data.
+ */
+export async function generateBillboardPng(
+  campaign: ApologyCampaign,
+  billboardImageBase64?: string
+): Promise<string> {
+  const svg = generateBillboardSvg(campaign, billboardImageBase64);
+  return svgToPngBase64(svg, 1440, 432);
+}
+
+/**
+ * Generate a print ad PNG (base64) from campaign data.
+ */
+export async function generatePrintAdPng(
+  campaign: ApologyCampaign,
+  heroImageBase64?: string
+): Promise<string> {
+  const svg = generatePrintAdSvg(campaign, heroImageBase64);
+  return svgToPngBase64(svg, 612, 792);
+}
+
+/**
+ * Generate a banner PNG (base64) from campaign data.
+ */
+export async function generateBannerPng(
+  campaign: ApologyCampaign,
+  width: number = 728,
+  height: number = 90
+): Promise<string> {
+  const svg = generateBannerSvg(campaign, width, height);
+  return svgToPngBase64(svg, width, height);
+}
+
+// ============================================
 // GENERATE ALL ASSETS
 // ============================================
 

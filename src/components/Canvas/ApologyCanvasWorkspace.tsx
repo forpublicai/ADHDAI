@@ -28,7 +28,7 @@ import { CharacterId, DoomsdayScenario, ApologyCampaign } from '../../types';
 import { Fortune500Company } from '../../data/fortune500';
 import { generateApologyCampaign, generateCampaignImage } from '../../services/apologyGenerator';
 import { formatApologyCampaignsAsHTML, formatSingleCampaignAsHTML } from '../../services/apologyDeliverables';
-import { generatePrintAdHtml, generateBillboardHtml, generateBillboardSvg, generatePrintAdSvg, generateBannerSvg, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
+import { generatePrintAdHtml, generateBillboardHtml, generateBillboardPng, generatePrintAdPng, generateBannerPng, generateSocialPostsHtml, generateStoryboardHtml, generateBannerAdsHtml } from '../../utils/assetGenerator';
 import { generateDialogueBatch, generateAgentLine } from '../../services/dialogueService';
 import './CanvasWorkspace.css';
 
@@ -1043,28 +1043,43 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
         const socialImg = campaign.generatedImages?.social;
         
         // ================================
-        // 1. SVG AD ASSETS (open as images, not HTML)
+        // 1. PNG AD ASSETS — all output as PNG images
         // ================================
         const adsFolder = scenarioFolder.folder('ads');
         
-        // Billboard SVG — opens as a real image
-        const billboardSvg = generateBillboardSvg(campaign, billboardImg || undefined);
-        adsFolder?.file('billboard_14x48ft.svg', billboardSvg);
+        // Billboard PNG
+        try {
+          const billboardPng = await generateBillboardPng(campaign, billboardImg || undefined);
+          adsFolder?.file('billboard_14x48ft.png', billboardPng, { base64: true });
+        } catch (e) { console.warn('Billboard PNG generation failed:', e); }
         
-        // Print Ad SVG — opens as a real image
-        const printAdSvg = generatePrintAdSvg(campaign, heroImg || undefined);
-        adsFolder?.file('print_ad_fullpage.svg', printAdSvg);
+        // Print Ad PNG
+        try {
+          const printAdPng = await generatePrintAdPng(campaign, heroImg || undefined);
+          adsFolder?.file('print_ad_fullpage.png', printAdPng, { base64: true });
+        } catch (e) { console.warn('Print ad PNG generation failed:', e); }
         
-        // Banner SVGs — real image files per size
-        adsFolder?.file('banner_leaderboard_728x90.svg', generateBannerSvg(campaign, 728, 90));
-        adsFolder?.file('banner_medium_rect_300x250.svg', generateBannerSvg(campaign, 300, 250));
-        adsFolder?.file('banner_skyscraper_160x600.svg', generateBannerSvg(campaign, 160, 600));
+        // Banner PNGs — real image files per size
+        try {
+          const banner728 = await generateBannerPng(campaign, 728, 90);
+          adsFolder?.file('banner_leaderboard_728x90.png', banner728, { base64: true });
+        } catch (e) { console.warn('Banner 728x90 PNG failed:', e); }
         
-        // Social Media Deck — HTML (multi-post, needs scrolling)
+        try {
+          const banner300 = await generateBannerPng(campaign, 300, 250);
+          adsFolder?.file('banner_medium_rect_300x250.png', banner300, { base64: true });
+        } catch (e) { console.warn('Banner 300x250 PNG failed:', e); }
+        
+        try {
+          const banner160 = await generateBannerPng(campaign, 160, 600);
+          adsFolder?.file('banner_skyscraper_160x600.png', banner160, { base64: true });
+        } catch (e) { console.warn('Banner 160x600 PNG failed:', e); }
+        
+        // Social Media Deck — HTML (multi-post layout, needs scrolling)
         const socialHtml = generateSocialPostsHtml(campaign, socialImg || undefined);
         adsFolder?.file('social_media_deck.html', socialHtml);
         
-        // Video Storyboard — HTML (multi-frame, needs scrolling)
+        // Video Storyboard — HTML (multi-frame layout, needs scrolling)
         const storyboardHtml = generateStoryboardHtml(campaign, heroImg || undefined);
         if (storyboardHtml) {
           adsFolder?.file('video_storyboard.html', storyboardHtml);
