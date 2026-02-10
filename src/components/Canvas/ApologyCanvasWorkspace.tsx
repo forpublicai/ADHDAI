@@ -327,59 +327,88 @@ const ApologyCanvasWorkspace: React.FC<ApologyCanvasWorkspaceProps> = ({
   }, []);
 
   // ============================================
-  // DRAG PROXIMITY — bots react when items are dragged near each other
+  // MERGE ON OVERLAP — when items overlap, generate a new combined idea
   // ============================================
+  const generateMergeConversation = useCallback(async (item1: WorkItem, item2: WorkItem): Promise<void> => {
+    const agent1 = getCharacterInfo(item1.createdBy);
+    const agent2 = getCharacterInfo(item2.createdBy);
+    const content1 = (item1.content || '').slice(0, 200);
+    const content2 = (item2.content || '').slice(0, 200);
+    const mergeContext = `Company: ${company.name}. Idea 1 (${agent1.name}): "${content1}". Idea 2 (${agent2.name}): "${content2}".`;
+
+    // Generate merged idea + dialogue in parallel via API
+    const [mergedIdea, dialogueLines] = await Promise.all([
+      generateAgentLine('apparatus',
+        `Synthesize these two ideas into a NEW combined concept for ${company.name}'s campaign. Idea 1 from ${agent1.name}: "${content1}". Idea 2 from ${agent2.name}: "${content2}". Output a merged concept with a title, 2-3 sentence description, and 3 bullet points showing what each idea contributes.`,
+        mergeContext
+      ),
+      generateDialogueBatch(
+        [item1.createdBy, item2.createdBy],
+        `${agent1.name} and ${agent2.name} have just discovered their work items overlap — they see connections between "${content1}" and "${content2}". They get excited about combining them. ${agent1.name} speaks first observing the connection, then ${agent2.name} builds on it.`,
+        mergeContext
+      )
+    ]);
+
+    // Play out conversation
+    addChatMessage(item1.createdBy, dialogueLines[item1.createdBy]);
+    
+    setTimeout(() => {
+      addChatMessage(item2.createdBy, dialogueLines[item2.createdBy]);
+    }, 1500);
+
+    setTimeout(() => {
+      // Create the merged work item at the midpoint
+      const midX = (item1.position.x + item2.position.x) / 2;
+      const midY = Math.max(item1.position.y, item2.position.y) + 130;
+      
+      createWorkItem(
+        item1.createdBy,
+        'concept',
+        mergedIdea,
+        { x: midX, y: midY },
+        currentPhase,
+        true // Type it out character by character
+      );
+      
+      // Apparatus logs + a third agent reacts
+      generateAgentLine('apparatus',
+        `${agent1.name} and ${agent2.name} merged their ideas into a new concept. Log the synthesis.`,
+        mergeContext
+      ).then(line => addChatMessage('apparatus', line));
+
+      // Third agent reacts to the new combined idea
+      const others: CharacterId[] = (['mike','poole','the-cell','burl','nadya','delmore'] as CharacterId[])
+        .filter(id => id !== item1.createdBy && id !== item2.createdBy);
+      const third = others[Math.floor(Math.random() * others.length)];
+      setTimeout(() => {
+        generateAgentLine(third,
+          `You see ${agent1.name} and ${agent2.name} just created a combined concept from their overlapping work. React — what does this synthesis mean for the campaign?`,
+          mergeContext
+        ).then(line => addChatMessage(third, line));
+      }, 1500);
+    }, 3000);
+  }, [company.name, addChatMessage, createWorkItem, currentPhase, getCharacterInfo]);
+
   useEffect(() => {
     proximityCheckRef.current = (droppedItemId: string) => {
       const allItems = workItems;
       const droppedItem = allItems.find(i => i.id === droppedItemId);
       if (!droppedItem || allItems.length < 2) return;
 
-      const PROXIMITY = 200;
-      let nearestItem: WorkItem | null = null;
-      let nearestDist = Infinity;
-
-      for (const item of allItems) {
-        if (item.id === droppedItemId) continue;
-        const dx = item.position.x - droppedItem.position.x;
-        const dy = item.position.y - droppedItem.position.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < nearestDist) { nearestDist = dist; nearestItem = item; }
-      }
-
-      if (!nearestItem || nearestDist > PROXIMITY) return;
-      if (nearestItem.phase === droppedItem.phase && nearestItem.createdBy === droppedItem.createdBy) return;
-
-      const charA = getCharacterInfo(droppedItem.createdBy);
-      const charB = getCharacterInfo(nearestItem.createdBy);
-      const contentA = (droppedItem.content || '').split('\n')[0].slice(0, 50);
-      const contentB = (nearestItem.content || '').split('\n')[0].slice(0, 50);
-
-      // Generate novel reaction via API
-      const speaker = Math.random() > 0.5 ? droppedItem.createdBy : nearestItem.createdBy;
-      generateAgentLine(speaker,
-        `${charA.name}'s work ("${contentA}") has been placed next to ${charB.name}'s work ("${contentB}"). React to seeing these two pieces of work side by side — what connections or synergies do you see?`,
-        `Two work items from different agents are now adjacent on the canvas.`
-      ).then(reaction => {
-        addChatMessage(speaker, reaction);
+      // Find overlapping item
+      const collidingItem = allItems.find(item => {
+        if (item.id === droppedItemId) return false;
+        if (item.createdBy === droppedItem.createdBy) return false;
+        const dx = Math.abs(item.position.x - droppedItem.position.x);
+        const dy = Math.abs(item.position.y - droppedItem.position.y);
+        return dx < 150 && dy < 80;
       });
 
-      // 40% chance a third bot reacts
-      if (Math.random() > 0.6) {
-        const others: CharacterId[] = (['mike','poole','the-cell','burl','nadya','delmore','apparatus'] as CharacterId[])
-          .filter(id => id !== droppedItem.createdBy && id !== nearestItem!.createdBy);
-        const third = others[Math.floor(Math.random() * others.length)];
-        setTimeout(() => {
-          generateAgentLine(third,
-            `You notice that ${charA.name}'s work ("${contentA}") has been placed next to ${charB.name}'s work ("${contentB}"). React from across the room — what do you see in this combination?`,
-            `Two colleagues' work items are now adjacent.`
-          ).then(line => {
-            addChatMessage(third, line);
-          });
-        }, 1500);
+      if (collidingItem) {
+        generateMergeConversation(droppedItem, collidingItem);
       }
     };
-  }, [workItems, getCharacterInfo, addChatMessage]);
+  }, [workItems, generateMergeConversation]);
 
   const createWorkItem = useCallback((
     agentId: CharacterId, 
