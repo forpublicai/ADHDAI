@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import LandingPage from './components/LandingPage'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import APIErrorBanner from './components/APIErrorBanner'
 import LoadingSpinner from './components/LoadingSpinner'
 import './index.css'
 
@@ -19,6 +20,7 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ErrorBoundary>
+      <APIErrorBanner />
       <HashRouter>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>

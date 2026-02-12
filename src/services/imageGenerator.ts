@@ -1,18 +1,6 @@
-import OpenAI from 'openai';
+import { getImageClient } from './openaiClient';
 import { BrandInfo } from '../types';
 import { parseBrief, getImagePromptContext } from '../utils/briefParser';
-
-// Create OpenAI client for image generation — uses VITE_OPENAI_IMAGE_API_KEY
-function getOpenAIImageClient(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_IMAGE_API_KEY;
-  if (!apiKey) {
-    throw new Error('[ImageGenerator] VITE_OPENAI_IMAGE_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true
-  });
-}
 
 export interface GeneratedImage {
   url: string;
@@ -28,7 +16,7 @@ export async function generateAdImage(
   brandInfo?: BrandInfo,
   style: 'hero' | 'product' | 'lifestyle' | 'documentary' = 'documentary'
 ): Promise<GeneratedImage | null> {
-  const openai = getOpenAIImageClient();
+  const openai = getImageClient();
 
   // Use intelligent brief parsing for better product extraction
   const parsedBrief = parseBrief(brief);
@@ -127,7 +115,7 @@ export async function generateStoryboardFrame(
   brief: string,
   frameNumber: number
 ): Promise<string | null> {
-  const openai = getOpenAIImageClient();
+  const openai = getImageClient();
 
   // Use intelligent brief parsing
   const parsedBrief = parseBrief(brief);
@@ -168,7 +156,7 @@ export async function generateSocialImage(
   brief: string,
   _brandInfo?: BrandInfo
 ): Promise<string | null> {
-  const openai = getOpenAIImageClient();
+  const openai = getImageClient();
 
   // Use intelligent brief parsing
   const parsedBrief = parseBrief(brief);

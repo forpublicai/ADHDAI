@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import OpenAI from 'openai';
+import { chatSingle } from '../../services/openaiClient';
 import {
   ClipboardText,
   Graph,
@@ -56,14 +56,7 @@ const getHorizonIcon = (horizon: TimeHorizon, size: number = 14) => {
   return icons[horizon];
 };
 
-// Initialize OpenAI — requires API key in .env
-const getOpenAI = (): OpenAI => {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-};
+// OpenAI calls now use the shared openaiClient utility
 
 interface Position {
   x: number;
@@ -486,8 +479,6 @@ const ScenarioAnalysisWorkspace: React.FC<ScenarioAnalysisWorkspaceProps> = ({
     horizon: TimeHorizon,
     _agentId: CharacterId
   ): Promise<DoomsdayScenario[]> => {
-    const openai = getOpenAI();
-
     const horizonDescriptions: Record<TimeHorizon, string> = {
       '1-year': 'within the next year (imminent, urgent, could happen tomorrow)',
       '5-year': 'within the next 5 years (near-term, emerging threats)',
@@ -531,8 +522,7 @@ Return JSON:
 Be creative, specific, and think like an investigative journalist uncovering what could go wrong.`;
 
     try {
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o',
+      const response = await chatSingle('gpt-4o', {
         messages: [
           {
             role: 'system',
@@ -546,9 +536,7 @@ Be creative, specific, and think like an investigative journalist uncovering wha
         temperature: 0.95,
         response_format: { type: 'json_object' },
         max_tokens: 2000
-      });
-
-      const response = completion.choices[0]?.message?.content?.trim() || '';
+      }, 'ScenarioAnalysis');
       const parsed = JSON.parse(response);
       const scenariosData = parsed.scenarios || [parsed];
 

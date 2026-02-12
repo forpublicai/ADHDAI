@@ -8,18 +8,7 @@
  * Uses model cascade: gpt-4o → gpt-4o-mini
  */
 
-import OpenAI from 'openai';
-
-function getOpenAI(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('[DialogueService] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-}
-
-// Models to try in order
-const MODELS = ['gpt-4o', 'gpt-4o-mini'] as const;
+import { chatWithCascade } from './openaiClient';
 
 // Agent personality definitions — fed into every prompt
 const AGENT_VOICES: Record<string, string> = {
@@ -43,33 +32,6 @@ export interface DialogueBatch {
 }
 
 /**
- * Call API with model cascade: gpt-4o → gpt-4o-mini
- */
-async function callWithModelCascade(
-  openai: OpenAI,
-  messages: OpenAI.ChatCompletionMessageParam[],
-  options: { temperature: number; max_tokens: number; response_format?: { type: 'json_object' } }
-): Promise<string> {
-  const errors: string[] = [];
-  for (const model of MODELS) {
-    try {
-      const response = await openai.chat.completions.create({
-        model,
-        messages,
-        ...options,
-      });
-      const content = response.choices[0]?.message?.content?.trim();
-      if (content) return content;
-    } catch (error: unknown) {
-      const errMsg = error instanceof Error ? error.message : String(error);
-      console.warn(`[DialogueService] ${model} failed: ${errMsg}`);
-      errors.push(`${model}: ${errMsg}`);
-    }
-  }
-  throw new Error(`[DialogueService] All models failed:\n${errors.join('\n')}`);
-}
-
-/**
  * Generate a batch of dialogue lines for multiple agents in a single API call.
  * Returns a map of agentId -> dialogue line.
  */
@@ -79,16 +41,15 @@ export async function generateDialogueBatch(
   context: string,
   maxTokensPerAgent: number = 200
 ): Promise<DialogueBatch> {
-  const openai = getOpenAI();
-
   const agentDescriptions = agents
     .map(a => `"${a}": ${AGENT_VOICES[a] || 'A creative professional.'}`)
     .join('\n\n');
 
-  const messages: OpenAI.ChatCompletionMessageParam[] = [
-    {
-      role: 'system',
-      content: `You write dialogue for characters at a fictional ad agency called ADHDAI — "The Feral Creative Collective." Each character has a distinct voice. Write genuinely novel, in-character dialogue — never generic, never repeatable. The dialogue should feel like overhearing real creative professionals argue, collaborate, and riff.
+  const result = await chatWithCascade({
+    messages: [
+      {
+        role: 'system',
+        content: `You write dialogue for characters at a fictional ad agency called ADHDAI — "The Feral Creative Collective." Each character has a distinct voice. Write genuinely novel, in-character dialogue — never generic, never repeatable. The dialogue should feel like overhearing real creative professionals argue, collaborate, and riff.
 
 THE CHARACTERS:
 ${agentDescriptions}
@@ -106,18 +67,16 @@ CRITICAL RULES:
 - Characters should reference specific details from the CONTEXT (company name, industry, risk areas)
 
 Output ONLY valid JSON with agent IDs as keys: { "agentId": "their line", ... }`
-    },
-    {
-      role: 'user',
-      content: `SITUATION: ${situation}\n\nCONTEXT: ${context}\n\nGenerate one ORIGINAL, IN-CHARACTER dialogue line for each of these agents: ${agents.join(', ')}\n\nRemember: DO NOT repeat or echo the situation description. Write what the character would ACTUALLY SAY in their unique voice.`
-    }
-  ];
-
-  const result = await callWithModelCascade(openai, messages, {
+      },
+      {
+        role: 'user',
+        content: `SITUATION: ${situation}\n\nCONTEXT: ${context}\n\nGenerate one ORIGINAL, IN-CHARACTER dialogue line for each of these agents: ${agents.join(', ')}\n\nRemember: DO NOT repeat or echo the situation description. Write what the character would ACTUALLY SAY in their unique voice.`
+      }
+    ],
     temperature: 0.95,
     max_tokens: maxTokensPerAgent * agents.length,
     response_format: { type: 'json_object' },
-  });
+  }, 'DialogueService');
 
   const parsed = JSON.parse(result) as DialogueBatch;
   // Ensure every requested agent has a line
@@ -138,14 +97,13 @@ export async function generateAgentLine(
   situation: string,
   context: string
 ): Promise<string> {
-  const openai = getOpenAI();
-
   const voice = AGENT_VOICES[agentId] || 'A creative professional at an ad agency.';
 
-  const messages: OpenAI.ChatCompletionMessageParam[] = [
-    {
-      role: 'system',
-      content: `You are writing dialogue for one character at ADHDAI, a fictional ad agency.
+  return await chatWithCascade({
+    messages: [
+      {
+        role: 'system',
+        content: `You are writing dialogue for one character at ADHDAI, a fictional ad agency.
 
 CHARACTER: ${voice}
 
@@ -154,16 +112,14 @@ Write a single, genuinely novel line of in-character dialogue. 2-4 sentences. In
 NEVER echo or repeat the situation description back. Write what this character would ACTUALLY SAY — their opinion, reaction, insight, or joke about the situation. Be original.
 
 Output ONLY the dialogue line. No quotes wrapping it. No explanation.`
-    },
-    {
-      role: 'user',
-      content: `SITUATION: ${situation}\nCONTEXT: ${context}\n\nWrite an ORIGINAL line — do not repeat the situation.`
-    }
-  ];
-
-  return await callWithModelCascade(openai, messages, {
+      },
+      {
+        role: 'user',
+        content: `SITUATION: ${situation}\nCONTEXT: ${context}\n\nWrite an ORIGINAL line — do not repeat the situation.`
+      }
+    ],
     temperature: 0.95,
     max_tokens: 200,
-  });
+  }, 'DialogueService');
 }
 

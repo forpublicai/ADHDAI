@@ -1,21 +1,4 @@
-import OpenAI from 'openai';
-
-function getOpenAIClient(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('[BrandExtractor] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-}
-
-const MODELS = ['gpt-4o', 'gpt-4o-mini'] as const;
-async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string> {
-  const errors: string[] = [];
-  for (const model of MODELS) {
-    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { const msg = e instanceof Error ? e.message : String(e); console.warn(`[BrandExtractor] ${model} failed:`, msg); errors.push(`${model}: ${msg}`); }
-  }
-  throw new Error(`[BrandExtractor] All models failed:\n${errors.join('\n')}`);
-}
+import { chatWithCascade } from './openaiClient';
 
 export interface BrandInfo {
   clientName: string;
@@ -38,8 +21,6 @@ export interface BrandInfo {
  * Infers client name, brand colors, fonts, tone, and style
  */
 export async function extractBrandInfo(brief: string): Promise<BrandInfo> {
-  const openai = getOpenAIClient();
-
   {
     const prompt = `You are a senior brand strategist at Landor or Pentagram. Analyze this brief and extract comprehensive brand intelligence:
 
@@ -72,7 +53,7 @@ Return ONLY valid JSON:
 
 For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make sophisticated inferences based on industry, positioning, and competitive landscape.`;
 
-    const rawResponse = await callWithModelCascade(openai, {
+    const rawResponse = await chatWithCascade({
       messages: [
         {
           role: 'system',
@@ -83,10 +64,10 @@ For KNOWN BRANDS, use their REAL colors and fonts. For unknown brands, make soph
           content: prompt
         }
       ],
-      temperature: 0.3, // Lower temperature for more consistent extraction
+      temperature: 0.3,
       response_format: { type: 'json_object' },
       max_tokens: 500
-    });
+    }, 'BrandExtractor');
 
     const cleaned = rawResponse
       .replace(/^```json\n?/i, '')
