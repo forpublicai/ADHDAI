@@ -9,7 +9,7 @@
  * - DALL-E generated images (hero, billboard, social)
  */
 
-import OpenAI from 'openai';
+import { getImageClient } from '../services/openaiClient';
 import { ApologyCampaign } from '../types';
 
 /**
@@ -24,15 +24,6 @@ function s(value: string | undefined | null, fallback: string = ''): string {
 // ============================================
 // DALL-E IMAGE GENERATION
 // ============================================
-
-// Create OpenAI client for image generation — uses VITE_OPENAI_IMAGE_API_KEY
-function getOpenAIImageClient(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_IMAGE_API_KEY;
-  if (!apiKey) {
-    throw new Error('[AssetGenerator] VITE_OPENAI_IMAGE_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-}
 
 export interface GeneratedAssets {
   heroImage?: string;       // base64 PNG data
@@ -52,7 +43,7 @@ export async function generateImage(
   prompt: string,
   size: '1024x1024' | '1792x1024' = '1024x1024'
 ): Promise<string | null> {
-  const openai = getOpenAIImageClient();
+  const openai = getImageClient();
 
   try {
     const response = await openai.images.generate({

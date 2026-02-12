@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import OpenAI from 'openai';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { chatSingle, getImageClient } from '../../services/openaiClient';
 import {
   ClipboardText,
   Graph,
@@ -42,14 +42,7 @@ const getCharacterIcon = (icon: string, size: number = 14) => {
   return icons[icon] || <Gear {...iconProps} />;
 };
 
-// Initialize OpenAI — requires API key in .env
-const getOpenAI = (): OpenAI => {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-};
+// OpenAI calls now use the shared openaiClient utility
 
 interface Position {
   x: number;
@@ -220,10 +213,7 @@ const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
   // Generate creative content using API
   const generateCreativeContent = useCallback(async (prompt: string, _maxTokens: number = 150): Promise<string> => {
-    const openai = getOpenAI();
-
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+    return await chatSingle('gpt-4o', {
       messages: [
         {
           role: 'system',
@@ -240,12 +230,7 @@ Output ONLY the creative content. No explanations. No preamble. Just the work. M
       ],
       max_tokens: _maxTokens,
       temperature: 0.9,
-    });
-    const content = response.choices[0]?.message?.content?.trim();
-    if (!content) {
-      throw new Error('Empty response from API');
-    }
-    return content;
+    }, 'CanvasWorkspace');
   }, []);
 
   // Canvas panning
@@ -401,12 +386,9 @@ Output ONLY the creative content. No explanations. No preamble. Just the work. M
     const agent2 = getCharacterInfo(item2.createdBy);
     const currentBrief = briefRef.current;
     
-    const openai = getOpenAI();
-    
     // Generate the merged idea
     const generateMergedIdea = async (): Promise<string> => {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+      return await chatSingle('gpt-4o', {
         messages: [
           {
             role: 'system',
@@ -429,16 +411,12 @@ KEY ELEMENTS:
         ],
         max_tokens: 200,
         temperature: 0.8,
-      });
-      const content = response.choices[0]?.message?.content?.trim();
-      if (!content) throw new Error('Empty response from API');
-      return content;
+      }, 'CanvasWorkspace');
     };
     
     // Generate the dialogue
     const generateDialogue = async (): Promise<{agent1: string, agent2: string, agent1_reply: string, resolution: string}> => {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+      const text = await chatSingle('gpt-4o', {
         messages: [
           {
             role: 'system',
@@ -448,9 +426,8 @@ KEY ELEMENTS:
         ],
         max_tokens: 300,
         temperature: 0.9,
-      });
+      }, 'CanvasWorkspace');
       
-      const text = response.choices[0]?.message?.content || '';
       return JSON.parse(text);
     };
     
@@ -1408,15 +1385,6 @@ KEY ELEMENTS:
     const socialFolder = zip.folder('03_SOCIAL');
     const oohFolder = zip.folder('04_OOH');
     const docsFolder = zip.folder('05_DOCUMENTATION');
-    
-    // Helper to generate and fetch image using DALL-E with image API key
-    const getImageClient = () => {
-      const imageApiKey = import.meta.env.VITE_OPENAI_IMAGE_API_KEY;
-      if (!imageApiKey) {
-        throw new Error('VITE_OPENAI_IMAGE_API_KEY is not set. Add it to your .env file.');
-      }
-      return new OpenAI({ apiKey: imageApiKey, dangerouslyAllowBrowser: true });
-    };
     
     const generateImage = async (prompt: string, filename: string): Promise<{blob: Blob} | null> => {
       try {

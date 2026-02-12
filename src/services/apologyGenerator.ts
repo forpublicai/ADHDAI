@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { chatWithCascade, getImageClient } from './openaiClient';
 import { 
   DoomsdayScenario, 
   ApologyCampaign, 
@@ -8,52 +8,6 @@ import {
   VideoShot
 } from '../types';
 import { Fortune500Company } from '../data/fortune500';
-
-// Create OpenAI client — requires API key in .env
-function getOpenAIClient(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('[ApologyGenerator] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true
-  });
-}
-
-// Create OpenAI client for image generation — uses VITE_OPENAI_IMAGE_API_KEY
-function getOpenAIImageClient(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_IMAGE_API_KEY;
-  if (!apiKey) {
-    throw new Error('[ApologyGenerator] VITE_OPENAI_IMAGE_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({
-    apiKey: apiKey,
-    dangerouslyAllowBrowser: true
-  });
-}
-
-// Model cascade — try gpt-4o first, then gpt-4o-mini as backup
-const MODELS = ['gpt-4o', 'gpt-4o-mini'] as const;
-
-async function callWithModelCascade(
-  openai: OpenAI,
-  params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>
-): Promise<string> {
-  const errors: string[] = [];
-  for (const model of MODELS) {
-    try {
-      const response = await openai.chat.completions.create({ model, ...params });
-      const content = response.choices[0]?.message?.content?.trim();
-      if (content) return content;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`[ApologyGenerator] ${model} failed:`, msg);
-      errors.push(`${model}: ${msg}`);
-    }
-  }
-  throw new Error(`[ApologyGenerator] All models failed:\n${errors.join('\n')}`);
-}
 
 // Generate unique ID
 function generateId(): string {
@@ -123,16 +77,15 @@ export async function generateApologyCampaign(
   company: Fortune500Company
 ): Promise<ApologyCampaign> {
   const campaignId = generateId();
-  const openai = getOpenAIClient();
 
   // Generate core creative concept first
-  const creativeDirection = await generateCreativeDirection(openai, scenario, company);
+  const creativeDirection = await generateCreativeDirection(scenario, company);
   
   // Generate the insane marketing angle
-  const marketingAngle = await generateMarketingAngle(openai, scenario, company, creativeDirection);
+  const marketingAngle = await generateMarketingAngle(scenario, company, creativeDirection);
   
   // Generate deliverables with the creative direction
-  const deliverables = await generateDeliverables(openai, scenario, company, creativeDirection, marketingAngle);
+  const deliverables = await generateDeliverables(scenario, company, creativeDirection, marketingAngle);
 
   // Build key messages
   const keyMessages: string[] = [
@@ -175,7 +128,6 @@ interface CreativeDirection {
  * Generate the core creative direction - this is where the campaign magic happens
  */
 async function generateCreativeDirection(
-  openai: OpenAI,
   scenario: DoomsdayScenario,
   company: Fortune500Company
 ): Promise<CreativeDirection> {
@@ -228,7 +180,7 @@ Return JSON:
   "typography": "Specific font pairing with rationale. Not just 'serif and sans-serif' — WHY these faces? What do they communicate about ${company.name}'s relationship to this apology?"
 }`;
 
-  const rawCreativeResponse = await callWithModelCascade(openai, {
+  const rawCreativeResponse = await chatWithCascade({
     messages: [
       {
         role: 'system',
@@ -242,7 +194,7 @@ Return JSON:
     temperature: 0.92,
     response_format: { type: 'json_object' },
     max_tokens: 3000
-  });
+  }, 'ApologyGenerator');
 
   return JSON.parse(rawCreativeResponse) as CreativeDirection;
 }
@@ -258,7 +210,6 @@ interface MarketingAngle {
  * Generate the insane marketing angle that makes this more than just an apology
  */
 async function generateMarketingAngle(
-  openai: OpenAI,
   scenario: DoomsdayScenario,
   company: Fortune500Company,
   creative: CreativeDirection
@@ -294,7 +245,7 @@ Return JSON:
   "productTieIn": "The strategic jiu-jitsu: how does apologizing for this disaster actually STRENGTHEN ${company.name}'s brand and business? The cynical genius that makes this work commercially, not just creatively."
 }`;
 
-  const rawAngleResponse = await callWithModelCascade(openai, {
+  const rawAngleResponse = await chatWithCascade({
     messages: [
       {
         role: 'system',
@@ -305,7 +256,7 @@ Return JSON:
     temperature: 0.95,
     response_format: { type: 'json_object' },
     max_tokens: 800
-  });
+  }, 'ApologyGenerator');
 
   return JSON.parse(rawAngleResponse) as MarketingAngle;
 }
@@ -314,16 +265,15 @@ Return JSON:
  * Generate campaign deliverables with actual creative thought
  */
 async function generateDeliverables(
-  openai: OpenAI,
   scenario: DoomsdayScenario,
   company: Fortune500Company,
   creative: CreativeDirection,
   marketing: MarketingAngle
 ): Promise<ApologyDeliverables> {
   const [printAssets, socialPosts, videoScript] = await Promise.all([
-    generatePrintAssets(openai, scenario, company, creative, marketing),
-    generateSocialPosts(openai, scenario, company, creative, marketing),
-    generateVideoScript(openai, scenario, company, creative, marketing)
+    generatePrintAssets(scenario, company, creative, marketing),
+    generateSocialPosts(scenario, company, creative, marketing),
+    generateVideoScript(scenario, company, creative, marketing)
   ]);
 
   return {
@@ -346,7 +296,6 @@ interface PrintAssets {
 }
 
 async function generatePrintAssets(
-  openai: OpenAI,
   scenario: DoomsdayScenario,
   company: Fortune500Company,
   creative: CreativeDirection,
@@ -391,7 +340,7 @@ Return JSON:
   ]
 }`;
 
-  const rawPrintResponse = await callWithModelCascade(openai, {
+  const rawPrintResponse = await chatWithCascade({
     messages: [
       {
         role: 'system',
@@ -402,7 +351,7 @@ Return JSON:
     temperature: 0.9,
     response_format: { type: 'json_object' },
     max_tokens: 2000
-  });
+  }, 'ApologyGenerator');
 
   const parsed = JSON.parse(rawPrintResponse);
   const extractAsset = (raw: Record<string, unknown>): ApologyAsset => ({
@@ -424,7 +373,6 @@ Return JSON:
 }
 
 async function generateSocialPosts(
-  openai: OpenAI,
   scenario: DoomsdayScenario,
   company: Fortune500Company,
   creative: CreativeDirection,
@@ -455,7 +403,7 @@ Return JSON array:
   { "platform": "Instagram", "type": "Reel", "copy": "Reel concept", "visual": "...", "hashtags": [] }
 ]`;
 
-  const rawSocialResponse = await callWithModelCascade(openai, {
+  const rawSocialResponse = await chatWithCascade({
     messages: [
       {
         role: 'system',
@@ -466,7 +414,7 @@ Return JSON array:
     temperature: 0.95,
     response_format: { type: 'json_object' },
     max_tokens: 2000
-  });
+  }, 'ApologyGenerator');
 
   const parsed = JSON.parse(rawSocialResponse);
   const rawPosts = Array.isArray(parsed) ? parsed : (parsed.posts || parsed.socialPosts || []);
@@ -481,7 +429,6 @@ Return JSON array:
 }
 
 async function generateVideoScript(
-  openai: OpenAI,
   scenario: DoomsdayScenario,
   company: Fortune500Company,
   creative: CreativeDirection,
@@ -517,7 +464,7 @@ Return JSON:
   "notes": "Director's notes - tone, reference films, casting notes, music direction"
 }`;
 
-  const rawVideoResponse = await callWithModelCascade(openai, {
+  const rawVideoResponse = await chatWithCascade({
     messages: [
       {
         role: 'system',
@@ -528,7 +475,7 @@ Return JSON:
     temperature: 0.9,
     response_format: { type: 'json_object' },
     max_tokens: 2000
-  });
+  }, 'ApologyGenerator');
 
   const parsed = JSON.parse(rawVideoResponse);
   return {
@@ -557,7 +504,7 @@ export async function generateCampaignImage(
   campaign: ApologyCampaign,
   imageType: 'hero' | 'social' | 'billboard'
 ): Promise<string | null> {
-  const openai = getOpenAIImageClient();
+  const openai = getImageClient();
 
   const company = campaign.companyName || 'Corporation';
   const scenario = campaign.scenarioTitle || 'corporate crisis';

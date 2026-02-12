@@ -1,24 +1,7 @@
-import OpenAI from 'openai';
+import { chatWithCascade } from './openaiClient';
 import { AdComponents, BrandInfo } from '../types';
 import { generateAdImage, generateStoryboardFrame, generateSocialImage } from './imageGenerator';
 import { parseBrief, ParsedBrief } from '../utils/briefParser';
-
-function getOpenAIClient(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('[CampaignDeliverables] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-}
-
-const MODELS = ['gpt-4o', 'gpt-4o-mini'] as const;
-async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string> {
-  const errors: string[] = [];
-  for (const model of MODELS) {
-    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { const msg = e instanceof Error ? e.message : String(e); console.warn(`[CampaignDeliverables] ${model} failed:`, msg); errors.push(`${model}: ${msg}`); }
-  }
-  throw new Error(`[CampaignDeliverables] All models failed:\n${errors.join('\n')}`);
-}
 
 export interface CampaignDeliverables {
   video: VideoScript;
@@ -106,7 +89,6 @@ export async function generateCampaignDeliverables(
   adComponents: AdComponents,
   brandInfo?: BrandInfo
 ): Promise<CampaignDeliverables> {
-  const openai = getOpenAIClient();
   const briefInfo = extractBriefInfo(brief);
 
   {
@@ -183,7 +165,7 @@ Return JSON with this exact structure:
   }
 }`;
 
-    const rawResponse = await callWithModelCascade(openai, {
+    const rawResponse = await chatWithCascade({
       messages: [
         {
           role: 'system',
@@ -197,7 +179,7 @@ Return JSON with this exact structure:
       temperature: 0.85,
       response_format: { type: 'json_object' },
       max_tokens: 8000
-    });
+    }, 'CampaignDeliverables');
 
     const cleaned = rawResponse.replace(/^```json\n?/i, '').replace(/^```\n?/i, '').replace(/```\n?$/i, '').trim();
     

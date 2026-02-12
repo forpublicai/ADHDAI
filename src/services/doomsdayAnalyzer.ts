@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { chatWithCascade } from './openaiClient';
 import { 
   DoomsdayScenario, 
   ScenarioAnalysis, 
@@ -7,23 +7,6 @@ import {
   SeverityLevel 
 } from '../types';
 import { Fortune500Company } from '../data/fortune500';
-
-function getOpenAIClient(): OpenAI {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('[DoomsdayAnalyzer] VITE_OPENAI_API_KEY is not set. Add it to your .env file.');
-  }
-  return new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-}
-
-const MODELS = ['gpt-4o', 'gpt-4o-mini'] as const;
-async function callWithModelCascade(openai: OpenAI, params: Omit<OpenAI.ChatCompletionCreateParamsNonStreaming, 'model'>): Promise<string> {
-  const errors: string[] = [];
-  for (const model of MODELS) {
-    try { const r = await openai.chat.completions.create({ model, ...params }); const c = r.choices[0]?.message?.content?.trim(); if (c) return c; } catch (e) { const msg = e instanceof Error ? e.message : String(e); console.warn(`[DoomsdayAnalyzer] ${model} failed:`, msg); errors.push(`${model}: ${msg}`); }
-  }
-  throw new Error(`[DoomsdayAnalyzer] All models failed:\n${errors.join('\n')}`);
-}
 
 // Generate unique ID
 function generateId(): string {
@@ -36,7 +19,6 @@ function generateId(): string {
 export async function analyzeDoomsdayScenarios(
   company: Fortune500Company
 ): Promise<ScenarioAnalysis> {
-  const openai = getOpenAIClient();
 
   {
     const prompt = `You are a world-class investigative journalist crossed with a corporate risk strategist. Your analysis has the depth of a New Yorker long-read and the precision of a McKinsey report. Analyze ${company.name} (${company.industry}, ${company.sector}) and identify potential catastrophe scenarios with the rigor and dark wit of a Michael Lewis book.
@@ -77,7 +59,7 @@ Return JSON object with "scenarios" array:
   ]
 }`;
 
-    const rawResponse = await callWithModelCascade(openai, {
+    const rawResponse = await chatWithCascade({
       messages: [
         {
           role: 'system',
@@ -91,7 +73,7 @@ Return JSON object with "scenarios" array:
       temperature: 0.9,
       response_format: { type: 'json_object' },
       max_tokens: 6000
-    });
+    }, 'DoomsdayAnalyzer');
 
     // Parse and validate response
     let scenariosData;
@@ -140,14 +122,12 @@ async function generateAnalysisSummary(
   company: Fortune500Company,
   scenarios: DoomsdayScenario[]
 ): Promise<string> {
-  const openai = getOpenAIClient();
-
   const scenarioSummaries = scenarios
     .slice(0, 5)
     .map(s => `- ${s.title} (${s.timeHorizon}, ${s.severity})`)
     .join('\n');
 
-  return await callWithModelCascade(openai, {
+  return await chatWithCascade({
     messages: [
       {
         role: 'system',
@@ -160,7 +140,7 @@ async function generateAnalysisSummary(
     ],
     temperature: 0.8,
     max_tokens: 200
-  });
+  }, 'DoomsdayAnalyzer');
 }
 
 /**
